@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lutrin Pi - Interface de Débogage</title>
+    <!-- Chargement de Tailwind CSS pour un style moderne et mobile-first -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Surcharge pour l'affichage de la vidéo */
+        #video-stream {
+            width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Style pour les messages de chargement */
+        .loader {
+            border-top-color: #3b82f6;
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+
+        @-webkit-keyframes spinner {
+            0% {
+                -webkit-transform: rotate(0deg);
+            }
+
+            100% {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spinner {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen p-4 md:p-8 font-sans">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-blue-600 mb-2">Lutrin Pi - Console de Contrôle</h1>
+            <p class="text-gray-500">Débogage de l'API du Raspberry Pi (192.168.0.41)</p>
+            <p id="api-status" class="mt-2 text-sm font-medium"></p>
+        </header>
+
+        <main class="grid md:grid-cols-2 gap-8">
+
+            <!-- Section 1: Streaming Vidéo & Capture -->
+            <div class="md:col-span-1 bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"></path>
+                    </svg>
+                    Vision en Direct & Capture
+                </h2>
+
+                <!-- Zone de Streaming -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Flux Vidéo du Pi (`/video_feed`)</label>
+                    <img id="video-stream" src="" alt="Flux vidéo de la webcam"
+                        class="bg-gray-200 border border-gray-300">
+                </div>
+
+                <!-- Bouton de Capture -->
+                <button id="capture-button" onclick="startCaptureAndOCR()"
+                    class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-150 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300 flex items-center justify-center disabled:opacity-50">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.74 4h2.52a2 2 0 011.664.89l.812 1.218a2 2 0 001.664.89H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z">
+                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    Capturer l'Image & Lancer l'OCR
+                </button>
+
+                <!-- Affichage de l'Image Capturée (pour vérification) -->
+                <div class="mt-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Image Capturée (`/capture`)</label>
+                    <img id="captured-image" src="https://placehold.co/640x480/cccccc/333333?text=Image+Capturée"
+                        alt="Dernière image capturée" class="w-full h-auto rounded-lg border border-gray-300">
+                </div>
+            </div>
+
+            <!-- Section 2: Résultats & TTS -->
+            <div class="md:col-span-1 bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.586-1.586A2 2 0 0010.414 3H7.586a2 2 0 00-1.414.586L4.707 5.293A1 1 0 014 5z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                    Résultats OCR & Synthèse Vocale
+                </h2>
+
+                <!-- Zone de Statut/Chargement -->
+                <div id="status-message" class="p-3 bg-yellow-100 text-yellow-800 rounded-lg hidden mb-4 font-medium">
+                    <div class="flex items-center">
+                        <div class="w-5 h-5 border-4 border-dashed rounded-full loader mr-2"></div>
+                        <span>Opération en cours...</span>
+                    </div>
+                </div>
+
+                <!-- Texte Reconnu -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Texte Reconnu (OCR)</label>
+                    <textarea id="ocr-text-result" rows="8"
+                        class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 resize-none text-gray-800"
+                        placeholder="Le texte reconnu par le Raspberry Pi apparaîtra ici..."></textarea>
+                </div>
+
+                <!-- Zone Audio -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Lecture Audio (TTS Simulé)</label>
+                    <audio id="audio-playback" controls class="w-full bg-gray-200 rounded-lg p-2"></audio>
+                </div>
+
+                <p id="error-message" class="text-red-500 text-sm mt-2 hidden">Une erreur est survenue.</p>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        const API_BASE_URL = "http://192.168.0.41:5000";
+        const IP_ADDRESS = "192.168.0.41"; // Utilisé pour le flux vidéo
+
+        // --- Éléments du DOM ---
+        const videoStream = document.getElementById('video-stream');
+        const capturedImage = document.getElementById('captured-image');
+        const ocrTextResult = document.getElementById('ocr-text-result');
+        const audioPlayback = document.getElementById('audio-playback');
+        const captureButton = document.getElementById('capture-button');
+        const statusMessage = document.getElementById('status-message');
+        const errorMessage = document.getElementById('error-message');
+        const apiStatus = document.getElementById('api-status');
+
+        // --- Fonctions Utilitaires ---
+
+        function showStatus(message, isError = false) {
+            errorMessage.classList.add('hidden');
+            statusMessage.classList.remove('hidden');
+            statusMessage.textContent = message;
+            if (isError) {
+                statusMessage.classList.remove('bg-yellow-100', 'text-yellow-800');
+                statusMessage.classList.add('bg-red-100', 'text-red-800');
+            } else {
+                statusMessage.classList.remove('bg-red-100', 'text-red-800');
+                statusMessage.classList.add('bg-yellow-100', 'text-yellow-800');
+            }
+        }
+
+        function hideStatus() {
+            statusMessage.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+            statusMessage.classList.add('hidden');
+        }
+
+        // --- Connexion de base (Status de l'API) ---
+
+        async function checkApiStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/status`);
+                if (response.ok) {
+                    const data = await response.json();
+                    apiStatus.textContent = `API: EN LIGNE. Message: ${data.message}`;
+                    apiStatus.classList.remove('text-red-500');
+                    apiStatus.classList.add('text-green-500');
+                } else {
+                    apiStatus.textContent = `API: HORS LIGNE (Erreur HTTP ${response.status})`;
+                    apiStatus.classList.remove('text-green-500');
+                    apiStatus.classList.add('text-red-500');
+                }
+            } catch (error) {
+                apiStatus.textContent = "API: HORS LIGNE (Impossible de se connecter)";
+                apiStatus.classList.remove('text-green-500');
+                apiStatus.classList.add('text-red-500');
+            }
+        }
+
+        // --- Fonction Principale : Capture, OCR et TTS ---
+
+        async function startCaptureAndOCR() {
+            // 1. Désactiver le bouton et montrer le statut
+            captureButton.disabled = true;
+            ocrTextResult.value = "";
+            audioPlayback.src = "";
+            showStatus("1/3 - Requête de capture d'image en cours...", false);
+
+            try {
+                // 2. Appel de la route /capture (qui fait OCR et TTS simulé)
+                const response = await fetch(`${API_BASE_URL}/capture`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    // Pas de corps nécessaire pour une capture simple
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.error) {
+                    throw new Error(data.error || `Erreur lors de la capture: HTTP ${response.status}`);
+                }
+
+                // 3. Affichage de l'image capturée (pour vérification)
+                showStatus("2/3 - OCR terminé. Affichage de l'image et du texte...", false);
+                const imageFile = data.image_file;
+                const imageUrl = `${API_BASE_URL}/audio/${imageFile}`; // Le Pi héberge les fichiers dans le même dossier
+
+                // Mettre à jour l'image pour l'affichage (utilise la route /audio pour servir le JPG)
+                capturedImage.src = imageUrl + "?t=" + new Date().getTime(); // Ajout d'un timestamp pour éviter le cache
+
+                // 4. Affichage du texte OCR
+                ocrTextResult.value = data.text;
+
+                // 5. Lecture du fichier audio (simulation)
+                showStatus("3/3 - Audio simulé généré. Lecture en cours...", false);
+                audioPlayback.src = data.audio_url; // L'URL audio est directement dans la réponse
+                audioPlayback.load();
+                // Note: La lecture automatique est souvent bloquée par les navigateurs, l'utilisateur devra cliquer sur Play.
+
+                hideStatus();
+                showStatus("Opération terminée avec succès !", false); // Remplacer par un message simple
+                setTimeout(hideStatus, 3000); // Cacher le message de succès après 3 secondes
+
+            } catch (error) {
+                console.error("Erreur complète:", error);
+                showError(`Échec de l'opération : ${error.message || error}`);
+            } finally {
+                // Rétablir le bouton
+                captureButton.disabled = false;
+            }
+        }
+
+        // --- Initialisation ---
+
+        function init() {
+            // 1. Démarrer le flux vidéo
+            // Utilise l'IP et la route MJPEG du Pi
+            videoStream.src = `${API_BASE_URL}/video_feed`;
+
+            // 2. Vérifier le statut de l'API toutes les 10 secondes
+            checkApiStatus();
+            setInterval(checkApiStatus, 10000);
+
+            // 3. Afficher l'IP actuelle dans le statut de l'API
+            const ipDisplay = document.getElementById('api-status');
+            ipDisplay.innerHTML = `<span class="font-bold">IP API : ${IP_ADDRESS}:5000</span> | `;
+        }
+
+        window.onload = init;
+    </script>
+</body>
+
+</html>
