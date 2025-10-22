@@ -4,3 +4,4 @@ pytesseract
 opencv-python-headless
 waitress
 flask-cors
+python-dotenv
