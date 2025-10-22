@@ -17,7 +17,7 @@ sudo systemctl start ssh
 
 Installation de l'outil Tesseract et des données de langue française
 ```
-sudo apt install -y tesseract-ocr tesseract-ocr-fra`
+sudo apt install -y tesseract-ocr tesseract-ocr-fra
 ```
 
 Installation des outils nécessaires pour Python si ce n'est pas déjà fait
@@ -27,9 +27,9 @@ sudo apt install -y python3 python3-pip git
 
 ## Création du projet
 
-mkdir -p ~/lutrin_app
+mkdir -p ~/lutrin_api
 mkdir -p ~/lutrin_data
-cd ~/lutrin_app
+cd ~/lutrin_api
 python3 -m venv venv
 source venv/bin/activate
 echo -e "Flask\nPillow\npytesseract\nopencv-python-headless\nwaitress\nflask-cors" > ~/lutrin_api/requirements.txt

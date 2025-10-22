@@ -1,10 +1,9 @@
 # server.py - Routeur Principal
 
-# --- 1. CONFIGURATION ET ENVIRONNEMENT ---
 import os
 import time
 import uuid
-from flask import Flask, Response, jsonify
+from flask import Flask, Response, jsonify, send_from_directory, url_for
 from flask_cors import CORS
 from waitress import serve
 
@@ -20,14 +19,10 @@ from config import (
 # Importation des services après la définition des variables de configuration
 from services import generate_frames, capture_image_from_webcam, ocr_image, generate_tts_simulation
 
-# --- 2. INITIALISATION ---
-
 # Configuration de Flask
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 CORS(app) # Activation de CORS pour toutes les routes
-
-# --- 3. ROUTES DE L'API ---
 
 @app.route('/status')
 def status():
@@ -73,17 +68,26 @@ def capture():
     if not tts_success:
         print(f"Avertissement TTS: {audio_path_or_error}")
         # On ne retourne pas une erreur critique car l'OCR a réussi
-        
+
+    # Construire les URLs complètes pour le client
+    # url_for est plus robuste car il construit l'URL dynamiquement
+    image_url = url_for('serve_file', filename=img_filename, _external=True) if success else None
+    audio_url = url_for('serve_file', filename=audio_filename, _external=True) if tts_success else None
+
     # Retourne les chemins locaux pour vérification et les données pour le client
     return jsonify({
         "status": "success",
         "text": recognized_text,
         "image_path_local": result_path_or_error,
         "audio_path_local": audio_path_or_error if tts_success else None,
-        "image_filename": img_filename, 
-        "audio_filename": audio_filename if tts_success else None
+        "image_url": image_url,
+        "audio_url": audio_url
     })
 
+@app.route('/files/<path:filename>')
+def serve_file(filename):
+    """Sert un fichier depuis le dossier UPLOAD_FOLDER."""
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
     print(f"Serveur Lutrin Pi démarré. Tesseract CMD: {TESSERACT_CMD}")
