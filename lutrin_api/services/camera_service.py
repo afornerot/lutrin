@@ -8,10 +8,50 @@ from config import CAPTURE_WIDTH, CAPTURE_HEIGHT, UPLOAD_FOLDER
 
 camera = None
 camera_lock = threading.Lock()
+# Variables pour stocker les résolutions détectées et de streaming
+max_resolution = None
+streaming_resolution = (640, 480)  # Résolution fixe pour le flux vidéo
+
+# Liste des résolutions communes à tester, de la plus haute à la plus basse
+RESOLUTIONS_TO_TEST = [
+    (3840, 2160),  # 4K UHD
+    (2560, 1440),  # 1440p QHD
+    (1920, 1080),  # Full HD (1080p)
+    (1280, 720),   # HD (720p)
+    (640, 480)     # VGA
+]
+
+def _determine_max_resolution(cam):
+    """
+    Détermine la plus haute résolution supportée par la caméra en itérant
+    sur une liste prédéfinie. Cette fonction est appelée une seule fois.
+    """
+    global max_resolution
+    print("Détermination de la résolution maximale de la caméra...")
+    for width, height in RESOLUTIONS_TO_TEST:
+        print(f"  -> Test de la résolution {width}x{height}...", end=" ")
+        cam.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+        cam.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+        time.sleep(0.2) # Laisse le temps au pilote de s'adapter
+
+        actual_width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
+        actual_height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+        if actual_width == width and actual_height == height:
+            print("SUCCÈS ✅")
+            max_resolution = (width, height)
+            return
+        else:
+            print(f"ÉCHEC ❌ (obtenu {actual_width}x{actual_height})")
+    
+    # Si aucune résolution de la liste n'a fonctionné, on utilise une valeur par défaut
+    max_resolution = (CAPTURE_WIDTH, CAPTURE_HEIGHT)
+    print(f"Aucune résolution testée n'a fonctionné. Utilisation de la résolution par défaut : {max_resolution}")
 
 def get_camera():
     """
     Gère l'initialisation de la caméra (OpenCV) une seule fois.
+    Détermine la résolution max et configure la résolution de streaming.
     """
     
     global camera
@@ -27,6 +67,24 @@ def get_camera():
             if not camera.isOpened():
                  print("Erreur: Impossible d'ouvrir la caméra, le streaming sera désactivé.")
                  camera = None
+                 return None
+            
+            # 1. Déterminer la résolution maximale supportée
+            _determine_max_resolution(camera)
+            
+            # 2. Calculer la résolution de streaming en conservant les proportions
+            global streaming_resolution
+            if max_resolution and max_resolution[0] > 0:
+                aspect_ratio = max_resolution[1] / max_resolution[0]
+                streaming_width = 640
+                streaming_height = int(streaming_width * aspect_ratio)
+                streaming_resolution = (streaming_width, streaming_height)
+            
+            # 3. Configurer la caméra pour la résolution de streaming calculée
+            print(f"Configuration de la caméra pour le streaming à {streaming_resolution[0]}x{streaming_resolution[1]} (ratio conservé)")
+            camera.set(cv2.CAP_PROP_FRAME_WIDTH, streaming_resolution[0])
+            camera.set(cv2.CAP_PROP_FRAME_HEIGHT, streaming_resolution[1])
+            time.sleep(0.5) # Laisse le temps à la caméra de s'initialiser
     return camera
 
 def generate_frames():
@@ -83,10 +141,19 @@ def capture_image_from_webcam(filename):
             print(f"Réglage de la résolution sur {CAPTURE_WIDTH}x{CAPTURE_HEIGHT} pour la capture.")
             cam.set(cv2.CAP_PROP_FRAME_WIDTH, CAPTURE_WIDTH)
             cam.set(cv2.CAP_PROP_FRAME_HEIGHT, CAPTURE_HEIGHT)
+            # 1. Régler la caméra sur la résolution maximale détectée
+            if max_resolution is None:
+                return False, "La résolution maximale de la caméra n'a pas été déterminée."
+            
+            print(f"Réglage de la résolution sur {max_resolution[0]}x{max_resolution[1]} pour la capture.")
+            cam.set(cv2.CAP_PROP_FRAME_WIDTH, max_resolution[0])
+            cam.set(cv2.CAP_PROP_FRAME_HEIGHT, max_resolution[1])
     
             # Laisser le temps au pilote de s'adapter
             time.sleep(0.5) # Augmenté pour plus de stabilité
+            time.sleep(0.5)
     
+            # 2. Capturer l'image
             success, frame = cam.read()
             if not success:
                 return False, "Échec de la lecture de la frame en haute résolution."
@@ -94,11 +161,13 @@ def capture_image_from_webcam(filename):
             filepath = os.path.join(UPLOAD_FOLDER, filename)
             cv2.imwrite(filepath, frame)
             print(f"Image haute résolution sauvegardée sur {filepath}")
+            print(f"Image capturée en {int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))}x{int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))} et sauvegardée sur {filepath}")
     
             # Réinitialiser la caméra en basse résolution pour le streaming
-            print("Réinitialisation de la résolution à 640x480 pour le streaming.")
-            camera.set(cv2.CAP_PROP_FRAME_WIDTH, CAPTURE_WIDTH/2)
-            camera.set(cv2.CAP_PROP_FRAME_HEIGHT, CAPTURE_HEIGHT/2)
+            # 3. Réinitialiser la caméra à la résolution de streaming
+            print(f"Réinitialisation de la résolution à {streaming_resolution[0]}x{streaming_resolution[1]} pour le streaming.")
+            cam.set(cv2.CAP_PROP_FRAME_WIDTH, streaming_resolution[0])
+            cam.set(cv2.CAP_PROP_FRAME_HEIGHT, streaming_resolution[1])
             
             return True, filepath
         except Exception as e:
