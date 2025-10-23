@@ -103,7 +103,7 @@ def process_tts():
         "audio_url": url_for('serve_file', filename=audio_filename, _external=True)
     })
 
-@app.route('/files/<path:filename>')
+@app.route('/file/<path:filename>')
 def serve_file(filename):
     """
     Sert un fichier depuis le dossier UPLOAD_FOLDER.

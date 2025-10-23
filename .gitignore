@@ -7,5 +7,6 @@ pycache/
 waitress.log
 lutrin_data/*
 !lutrin_data/
+!lutrin_data/test*
 .DS_Store
 .vscode/

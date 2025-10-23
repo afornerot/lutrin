@@ -29,7 +29,8 @@ start_api() {
         EchoOrange "Le serveur API semble déjà en cours d'exécution."
     else
         # Utilise le python du virtualenv directement pour plus de robustesse
-        nohup $VENV_PYTHON $API_DIR/server.py > "$API_LOG_FILE" 2>&1 & echo $! > "$API_PID_FILE"
+        # L'option -u est cruciale pour désactiver la mise en tampon de la sortie et voir les logs en temps réel.
+        nohup $VENV_PYTHON -u $API_DIR/server.py > "$API_LOG_FILE" 2>&1 & echo $! > "$API_PID_FILE"
         EchoVert "Serveur API démarré avec le PID $(cat $API_PID_FILE) sur http://localhost:$API_PORT. Logs dans $API_LOG_FILE"
     fi
     EchoBlanc
@@ -41,7 +42,7 @@ start_client() {
         EchoOrange "Le serveur client semble déjà en cours d'exécution."
     else
         cd "$CLIENT_DIR"
-        nohup python3 -m http.server "$CLIENT_PORT" > "$CLIENT_LOG_FILE" 2>&1 & echo $! > "$CLIENT_PID_FILE"
+        nohup python3 -u -m http.server "$CLIENT_PORT" > "$CLIENT_LOG_FILE" 2>&1 & echo $! > "$CLIENT_PID_FILE"
         cd ..
         EchoVert "Serveur client démarré avec le PID $(cat $CLIENT_PID_FILE) sur http://localhost:$CLIENT_PORT. Logs dans $CLIENT_LOG_FILE"
     fi

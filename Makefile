@@ -13,11 +13,6 @@ VENV_DIR = $(API_DIR)/venv
 PYTHON = $(VENV_DIR)/bin/python3
 PIP = $(VENV_DIR)/bin/pip3
 
-# Fichiers pour stocker les PIDs (Process IDs) des serveurs
-API_PID_FILE = /tmp/lutrin_api.pid
-CLIENT_PID_FILE = /tmp/lutrin_client.pid
-API_LOG_FILE = /tmp/lutrin_api.log
-
 # Port pour le serveur client (simple serveur HTTP Python)
 CLIENT_PORT = 8000
 

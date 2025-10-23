@@ -133,6 +133,78 @@ async function startCaptureAndOCR() {
     }
 }
 
+// --- Fonction OCR ---
+async function startCR(fichier) {
+    // 1. Désactiver le bouton et montrer le statut
+    captureButton.disabled = true;
+    ocrTextResult.value = "";
+    audioPlayback.removeAttribute('src');
+
+    try {
+        // --- Étape 1: Capture de l'image ---
+        showStatus("1/3 - Capture de l'image...", false);
+        const captureResponse = await fetch(`${API_BASE_URL}/capture`, {
+            method: 'POST'
+        });
+        if (!captureResponse.ok) {
+            const errorText = await captureResponse.text(); // Lire la réponse comme du texte
+            throw new Error(`Étape 1 (Capture) a échoué avec le statut ${captureResponse.status}: ${errorText}`);
+        }
+        const captureData = await captureResponse.json();
+        capturedImage.src = API_BASE_URL+"/file/"+fichier+"?t=" + new Date().getTime();
+
+        // --- Étape 2: Lancement de l'OCR ---
+        showStatus("2/3 - Reconnaissance du texte (OCR)...", false);
+        const ocrResponse = await fetch(`${API_BASE_URL}/ocr`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                image_filename: fichier
+            })
+        });
+        if (!ocrResponse.ok) {
+            const errorText = await ocrResponse.text();
+            throw new Error(`Étape 2 (OCR) a échoué avec le statut ${ocrResponse.status}: ${errorText}`);
+        }
+        const ocrData = await ocrResponse.json();
+        ocrTextResult.value = ocrData.text;
+
+        // --- Étape 3: Génération du TTS ---
+        showStatus("3/3 - Génération de l'audio (TTS)...", false);
+        const ttsResponse = await fetch(`${API_BASE_URL}/tts`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                text: ocrData.text
+            })
+        });
+        if (!ttsResponse.ok) {
+            const errorText = await ttsResponse.text();
+            throw new Error(`Étape 3 (TTS) a échoué avec le statut ${ttsResponse.status}: ${errorText}`);
+        }
+        const ttsData = await ttsResponse.json();
+        audioPlayback.src = ttsData.audio_url;
+        audioPlayback.load();
+
+        // --- Fin de l'opération ---
+        showStatus("Opération terminée avec succès !", false);
+        statusMessage.classList.replace('bg-yellow-100', 'bg-green-100');
+        statusMessage.classList.replace('text-yellow-800', 'text-green-800');
+        setTimeout(hideStatus, 3000);
+
+
+    } catch (error) {
+        console.error("Erreur complète:", error);
+        showError(`Échec de l'opération : ${error.message || error}`);
+    } finally {
+        // Rétablir le bouton
+        captureButton.disabled = false;
+    }
+}
 // --- Initialisation ---
 function init() {
     // 1. Démarrer le flux vidéo
