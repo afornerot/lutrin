@@ -4,10 +4,12 @@ Projet d'interface web pour contrôler une caméra sur un Raspberry Pi, effectue
 
 ## Installation
 
+```
 sudo apt install -y python3 python3-pip git make tesseract-ocr tesseract-ocr-fra
 git clone https://github.com/afornerot/lutrin.git
 cd lutrin
 make install
+```
 
 ## Utilisation
 
@@ -38,8 +40,8 @@ Le cœur de l'automatisation. Ce script Bash gère la logique de démarrage, d'a
 
 ### `lutrin_api/`
 Le backend du projet. C'est une application **Flask** qui expose une API REST pour contrôler le matériel.
-- **`server.py`**: Le routeur principal de l'API. Il définit les points d'accès (endpoints) comme `/status`, `/video`, `/capture`, `/ocr` et `/tts`.
-- **`services.py`**: Contient la logique métier. C'est ici que se trouvent les fonctions pour interagir avec la caméra (`opencv`), lancer Tesseract pour l'OCR, et simuler la synthèse vocale.
+- **`server.py`**: Le routeur principal de l'API. Il définit les points d'accès (endpoints) comme `/status`, `/video`, `/capture`, `/ocr`, `/tts` et `/file`.
+- **`services`**: Contient la logique métier. C'est ici que se trouvent les fonctions pour interagir avec la caméra, lancer Tesseract pour l'OCR, et simuler la synthèse vocale.
 - **`config.py`**: Fichier de configuration pour les chemins, les ports, etc.
 - **`requirements.txt`**: Liste les dépendances Python pour le backend (Flask, Waitress, Pillow, etc.).
 
@@ -47,6 +49,7 @@ Le backend du projet. C'est une application **Flask** qui expose une API REST po
 Le frontend du projet. C'est une application web statique (HTML, CSS, JavaScript) qui communique avec le backend.
 - **`index.html`**: La page web unique qui constitue l'interface utilisateur.
 - **`style.css`**: La feuille de style pour l'apparence de l'interface.
+- **`lutrin.js`**: Le code js du client.
 
 ### `lutrin_tools/`
 Un répertoire pour les scripts utilitaires partagés.
