@@ -1,29 +1,13 @@
-## Installation Py
-
-- Installation de Py3 64bit sur carte SD 15Go via rpi-imager
-- Avant de lancer le formatage bien configurer wifi / login / password
-- Branchement de la Py3 avec la carte SD
-- Update de la Py3
-- Brancher un écran en HDMI / Souris USB / Clavier USB
-
-## Activer le ssh sur la Py
-
-```
-sudo systemctl enable ssh
-sudo systemctl start ssh
-```
 
 ## Installation des dépendances
 
 Installation de l'outil Tesseract et des données de langue française
 ```
-sudo apt install -y tesseract-ocr tesseract-ocr-fra
+git clone https://github.com/afornerot/lutrin.git
+sudo apt install -y python3 python3-pip git make tesseract-ocr tesseract-ocr-fra
+
 ```
 
-Installation des outils nécessaires pour Python si ce n'est pas déjà fait
-```
-sudo apt install -y python3 python3-pip git
-```
 
 ## Création du projet
 
