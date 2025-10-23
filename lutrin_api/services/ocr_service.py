@@ -1,7 +1,9 @@
 # lutrin_api/services/ocr_service.py
 
 import pytesseract
-from config import TESSERACT_CMD
+import os
+from config import TESSERACT_CMD, UPLOAD_FOLDER
+from .optimizer_service import optimiser_image_pour_ocr
 
 # Configuration du chemin Tesseract pour l'interface Python
 pytesseract.pytesseract.tesseract_cmd = TESSERACT_CMD
@@ -10,15 +12,22 @@ def ocr_image(filepath):
     """
     Exécute la reconnaissance de caractères (OCR) sur l'image fournie.
     """
-    try:
-        # Configuration pour la langue française
-        # Pour un débogage plus avancé, vous pouvez ajouter des options de configuration.
-        # Par exemple, --psm 6 pour supposer qu'il s'agit d'un bloc de texte uniforme.
-        # config = '--psm 6'
 
-        config = '--psm 1 --oem 1'
-        print(f"Exécution de Tesseract (langue: fra, config: '{config}')...")
-        text = pytesseract.image_to_string(filepath, lang='fra', config=config)
+    print(f"--- Début du traitement OCR pour l'image : {filepath} ---")
+    try:
+        # --- Étape 1: Optimisation de l'image ---
+        base, ext = os.path.splitext(os.path.basename(filepath))
+        optimized_filename = f"{base}_optimized.png"
+        optimized_filepath = os.path.join(UPLOAD_FOLDER, optimized_filename)
+        
+        print("\nLancement de l'optimisation de l'image...")
+        optimiser_image_pour_ocr(filepath, optimized_filepath)
+        print("Optimisation terminée.")
+
+        # --- Étape 2: Exécution de Tesseract sur l'image optimisée ---
+        config = '--psm 3 --oem 1'
+        print(f"\nExécution de Tesseract sur l'image optimisée (lang: fra, config: '{config}')...")
+        text = pytesseract.image_to_string(optimized_filepath, lang='fra', config=config)
 
         print(f"Texte brut retourné par Tesseract:\n---\n{text}\n---")
 
