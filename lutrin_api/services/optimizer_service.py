@@ -29,15 +29,8 @@ def optimiser_image_pour_ocr(chemin_entree, chemin_sortie="image_optimisee.png",
     """
     
     # 1. Détection de la résolution initiale
-    # Nous utilisons soit la résolution trouvée dans le fichier, soit une estimation (comme 159).
     resolution_initiale = obtenir_dpi_fichier(chemin_entree)
-    
-    # Si le DPI est absent (0) ou invalide, nous utilisons l'estimation de Tesseract (159)
-    if resolution_initiale < 70:
-        resolution_initiale = 159
-        print(f"DPI non trouvé dans le fichier. Utilisation de l'estimation Tesseract: {resolution_initiale} DPI.")
-    else:
-        print(f"DPI trouvé dans le fichier: {resolution_initiale} DPI.")
+    print(f"DPI du fichier: {resolution_initiale} DPI.")
 
     # 2. Chargement de l'image (avec cv2 pour le traitement)
     image = cv2.imread(chemin_entree)
@@ -46,7 +39,8 @@ def optimiser_image_pour_ocr(chemin_entree, chemin_sortie="image_optimisee.png",
         return
 
     gris = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    
+    print(f"Niveaux de gris effectué.")
+
     # 3. Redimensionnement Conditionnel (pour atteindre la résolution cible)
     if resolution_initiale < resolution_cible:
         facteur_agrandissement = resolution_cible / resolution_initiale
@@ -57,21 +51,19 @@ def optimiser_image_pour_ocr(chemin_entree, chemin_sortie="image_optimisee.png",
                           interpolation=cv2.INTER_LINEAR)
         
         print(f"Redimensionnement appliqué par un facteur de {facteur_agrandissement:.2f} pour atteindre {resolution_cible} DPI.")
-    else:
-        print(f"Pas de redimensionnement : {resolution_initiale} DPI est suffisant.")
 
-    # 4. Amélioration du Contraste/Lissage et Binarisation Adaptative (votre code précédent)
-    
+    # 4. Amélioration Lissage
     flou = cv2.GaussianBlur(gris, (3, 3), 0)
-    print("Léger lissage Gaussien effectué.")
+    print("Lissage Gaussien effectué.")
     
+    # 5. Flou gaussien
     binarisee = cv2.adaptiveThreshold(flou, 255, 
                                       cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
                                       cv2.THRESH_BINARY_INV, 
                                       15, 5)
 
     image_finale = binarisee
-    print("Binarisation Adaptative (Gaussien) effectuée.")
+    print("Flou Gaussien effectuée.")
     
     # 5. Sauvegarde de l'image optimisée
     cv2.imwrite(chemin_sortie, image_finale)
