@@ -3,7 +3,7 @@
 import pytesseract
 import os
 from config import TESSERACT_CMD, UPLOAD_FOLDER
-from .optimizer_service import optimiser_image_pour_ocr
+from .optimizer_service import traiter_document_pour_ocr
 
 # Configuration du chemin Tesseract pour l'interface Python
 pytesseract.pytesseract.tesseract_cmd = TESSERACT_CMD
@@ -21,11 +21,11 @@ def ocr_image(filepath):
         optimized_filepath = os.path.join(UPLOAD_FOLDER, optimized_filename)
         
         print("\nLancement de l'optimisation de l'image...")
-        optimiser_image_pour_ocr(filepath, optimized_filepath)
+        traiter_document_pour_ocr(filepath, optimized_filepath)
         print("Optimisation terminée.")
 
         # --- Étape 2: Exécution de Tesseract sur l'image optimisée ---
-        config = '--psm 3 --oem 1'
+        config = '--psm 1 --oem 1'
         print(f"\nExécution de Tesseract sur l'image optimisée (lang: fra, config: '{config}')...")
         text = pytesseract.image_to_string(optimized_filepath, lang='fra', config=config)
 

@@ -4,4 +4,4 @@
 from .camera_service import generate_frames, capture_image_from_webcam
 from .ocr_service import ocr_image
 from .tts_service import generate_tts_simulation
-from .optimizer_service import optimiser_image_pour_ocr
+from .optimizer_service import traiter_document_pour_ocr
