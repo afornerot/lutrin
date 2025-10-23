@@ -15,8 +15,6 @@ UPLOAD_FOLDER_RELATIVE = os.getenv('UPLOAD_FOLDER', '../lutrin_data/')
 UPLOAD_FOLDER = os.path.join(BASE_DIR, UPLOAD_FOLDER_RELATIVE)
 
 TESSERACT_CMD = os.getenv('TESSERACT_CMD', '/usr/bin/tesseract')
-CAPTURE_WIDTH = int(os.getenv('CAPTURE_WIDTH', 1920))
-CAPTURE_HEIGHT = int(os.getenv('CAPTURE_HEIGHT', 1080))
 FLASK_PORT = int(os.getenv('FLASK_PORT', 5000)) 
 
 # Configuration du chemin Tesseract pour l'interface Python
