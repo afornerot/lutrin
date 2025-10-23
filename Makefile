@@ -16,6 +16,7 @@ PIP = $(VENV_DIR)/bin/pip3
 # Fichiers pour stocker les PIDs (Process IDs) des serveurs
 API_PID_FILE = /tmp/lutrin_api.pid
 CLIENT_PID_FILE = /tmp/lutrin_client.pid
+API_LOG_FILE = /tmp/lutrin_api.log
 
 # Port pour le serveur client (simple serveur HTTP Python)
 CLIENT_PORT = 8000
@@ -30,7 +31,7 @@ RESET  := $(shell tput -Txterm sgr0)
 
 .DEFAULT_GOAL := help
 
-.PHONY: all install update start stop restart clean help
+.PHONY: all install update start stop restart clean help logs
 
 help:
 	@echo "$(GREEN)Aide pour le Makefile du projet Lutrin$(RESET)"
@@ -38,13 +39,15 @@ help:
 	@echo "Utilisez 'make <cible>' pour exécuter une commande."
 	@echo ""
 	@echo "Cibles disponibles:"
-	@echo "  $(YELLOW)install$(RESET)   - Installe les dépendances système et configure l'environnement Python."
-	@echo "  $(YELLOW)start$(RESET)     - Démarre les serveurs API et client en arrière-plan."
-	@echo "  $(YELLOW)stop$(RESET)      - Arrête tous les serveurs."
-	@echo "  $(YELLOW)status$(RESET)    - Affiche le statut des serveurs."
-	@echo "  $(YELLOW)restart$(RESET)   - Redémarre les serveurs."
-	@echo "  $(YELLOW)update$(RESET)    - Met à jour le code depuis Git et redémarre les serveurs."
-	@echo "  $(YELLOW)clean$(RESET)     - Supprime l'environnement virtuel Python."
+	@echo "  $(YELLOW)install$(RESET)   	- Installe les dépendances système et configure l'environnement Python."
+	@echo "  $(YELLOW)start$(RESET)     	- Démarre les serveurs API et client en arrière-plan."
+	@echo "  $(YELLOW)stop$(RESET)      	- Arrête tous les serveurs."
+	@echo "  $(YELLOW)status$(RESET)    	- Affiche le statut des serveurs."
+	@echo "  $(YELLOW)restart$(RESET)   	- Redémarre les serveurs."
+	@echo "  $(YELLOW)update$(RESET)    	- Met à jour le code depuis Git et redémarre les serveurs."
+	@echo "  $(YELLOW)apilogs$(RESET)   	- Affiche les logs du serveur API en temps réel."
+	@echo "  $(YELLOW)clientlogs$(RESET)	- Affiche les logs du serveur Client en temps réel."
+	@echo "  $(YELLOW)clean$(RESET)     	- Supprime l'environnement virtuel Python."
 
 install:
 	chmod +x run.sh && ./run.sh install
@@ -63,5 +66,12 @@ status:
 
 restart: stop start
 
+apilogs:
+	./run.sh apilogs
+
+clientlogs:
+	./run.sh clientlogs
+
 clean:
 	./run.sh clean
+

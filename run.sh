@@ -17,6 +17,10 @@ CLIENT_PORT=8000
 API_PID_FILE="/tmp/lutrin_api.pid"
 CLIENT_PID_FILE="/tmp/lutrin_client.pid"
 
+# Fichiers de log pour les serveurs
+API_LOG_FILE="/tmp/lutrin_api.log"
+CLIENT_LOG_FILE="/tmp/lutrin_client.log"
+
 # --- Fonctions de gestion des services ---
 
 start_api() {
@@ -25,8 +29,8 @@ start_api() {
         EchoOrange "Le serveur API semble déjà en cours d'exécution."
     else
         # Utilise le python du virtualenv directement pour plus de robustesse
-        (nohup $VENV_PYTHON $API_DIR/server.py > /dev/null 2>&1 & echo $! > "$API_PID_FILE")
-        EchoVert "Serveur API démarré avec le PID $(cat $API_PID_FILE)  sur http://localhost:$API_PORT"
+        nohup $VENV_PYTHON $API_DIR/server.py > "$API_LOG_FILE" 2>&1 & echo $! > "$API_PID_FILE"
+        EchoVert "Serveur API démarré avec le PID $(cat $API_PID_FILE) sur http://localhost:$API_PORT. Logs dans $API_LOG_FILE"
     fi
     EchoBlanc
 }
@@ -37,9 +41,9 @@ start_client() {
         EchoOrange "Le serveur client semble déjà en cours d'exécution."
     else
         cd "$CLIENT_DIR"
-        nohup python3 -m http.server "$CLIENT_PORT" > /dev/null 2>&1 & echo $! > "$CLIENT_PID_FILE"
+        nohup python3 -m http.server "$CLIENT_PORT" > "$CLIENT_LOG_FILE" 2>&1 & echo $! > "$CLIENT_PID_FILE"
         cd ..
-        EchoVert "Serveur client démarré avec le PID $(cat $CLIENT_PID_FILE) sur http://localhost:$CLIENT_PORT"
+        EchoVert "Serveur client démarré avec le PID $(cat $CLIENT_PID_FILE) sur http://localhost:$CLIENT_PORT. Logs dans $CLIENT_LOG_FILE"
     fi
     EchoBlanc
 }
@@ -65,6 +69,8 @@ stop_client() {
     else
         EchoOrange "Le serveur client n'était pas en cours d'exécution."
     fi
+    rm -rf $API_LOG_FILE
+    rm -rf $CLIENT_LOG_FILE
     EchoBlanc
 }
 
@@ -151,6 +157,12 @@ clean_project() {
 
 # --- Point d'entrée ---
 case "$1" in
+    install)
+        install_project
+        ;;
+    update)
+        update_project
+        ;;
     start)
         BigTitle "Démarrage des services Lutrin"
         start_api
@@ -162,22 +174,28 @@ case "$1" in
         stop_client
         EchoBlanc
         ;;
+    apilogs)
+        BigTitle "Logs du serveur API"
+        if [ -f "$API_LOG_FILE" ]; then
+            tail -f $API_LOG_FILE
+        fi
+        ;;
+    clientlogs)
+        BigTitle "Logs du serveur Client"
+        if [ -f "$CLIENT_LOG_FILE" ]; then
+            tail -f $CLIENT_LOG_FILE
+        fi
+        ;;
     status)
         BigTitle "Statut des services Lutrin"
         status_all
-        ;;
-    install)
-        install_project
-        ;;
-    update)
-        update_project
         ;;
     clean)
         clean_project
         EchoBlanc
         ;;
     *)
-        EchoOrange "Usage: $0 {start|stop|status|install|update|clean}"
+        EchoOrange "Usage: $0 {install|update|start|stop|status|apilogs|clientlogs|clean}"
         EchoBlanc
         exit 1
         ;;
