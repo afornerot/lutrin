@@ -29,6 +29,31 @@ Le projet est géré via des commandes `make` simples et intuitives.
 
 Une fois les serveurs démarrés avec `make start`, vous pouvez accéder à l'interface web à l'adresse : **http://localhost:8000**
 
+## Configuration (`.env`)
+
+Le projet utilise des fichiers d'environnement pour gérer sa configuration, ce qui permet de séparer les paramètres de l'application du code source.
+
+-   **`.env`**: Ce fichier contient la configuration par défaut. Il est inclus dans le contrôle de version (Git) et sert de modèle.
+-   **`.env.local`**: Ce fichier (que vous devez créer manuellement si besoin) est utilisé pour surcharger les paramètres du `.env` pour votre environnement local. Il n'est **pas** inclus dans le contrôle de version et est idéal pour stocker des informations sensibles comme les clés d'API.
+
+### Paramètres disponibles
+
+-   `UPLOAD_FOLDER`: Chemin relatif vers le dossier où sont stockées les images capturées, les résultats OCR et les fichiers audio.
+-   `TTS_MODEL`: Chemin relatif vers le modèle de synthèse vocale Piper (`.onnx`).
+-   `FLASK_PORT`: Le port sur lequel le serveur API Flask écoute.
+-   `OCR_IA_USE`: Un booléen (`true` ou `false`) qui détermine quel moteur OCR utiliser.
+    -   `false` (défaut) : Utilise le moteur OCR local **PaddleOCR**. Gourmand en ressources mais ne nécessite pas de connexion internet ni de clé API.
+    -   `true` : Utilise une API externe (actuellement configurée pour **Groq**). Nécessite une clé API et une connexion internet.
+-   `OCR_IA_TOKEN`: Votre clé d'API pour le service OCR externe (Groq).
+
+### Obtenir une clé API Groq
+
+Pour utiliser le mode OCR avec l'IA de Groq (`OCR_IA_USE=true`), vous devez fournir une clé API.
+
+1.  Créez un compte sur le site de Groq.
+2.  Accédez à la section des clés API de votre console : https://console.groq.com/keys
+3.  Créez une nouvelle clé et copiez-la dans la variable `OCR_IA_TOKEN` de votre fichier `.env.local`.
+
 ## Structure des modules
 
 Le projet est organisé en plusieurs composants clés :

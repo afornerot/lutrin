@@ -70,6 +70,32 @@ make install
 </tbody>
 </table>
 <p>Une fois les serveurs démarrés avec <code>make start</code>, vous pouvez accéder à l'interface web à l'adresse : <strong>http://localhost:8000</strong></p>
+<h2 id="configuration-env">Configuration (<code>.env</code>)</h2>
+<p>Le projet utilise des fichiers d'environnement pour gérer sa configuration, ce qui permet de séparer les paramètres de l'application du code source.</p>
+<ul>
+<li><strong><code>.env</code></strong>: Ce fichier contient la configuration par défaut. Il est inclus dans le contrôle de version (Git) et sert de modèle.</li>
+<li><strong><code>.env.local</code></strong>: Ce fichier (que vous devez créer manuellement si besoin) est utilisé pour surcharger les paramètres du <code>.env</code> pour votre environnement local. Il n'est <strong>pas</strong> inclus dans le contrôle de version et est idéal pour stocker des informations sensibles comme les clés d'API.</li>
+</ul>
+<h3 id="paramtres-disponibles">Paramètres disponibles</h3>
+<ul>
+<li><code>UPLOAD_FOLDER</code>: Chemin relatif vers le dossier où sont stockées les images capturées, les résultats OCR et les fichiers audio.</li>
+<li><code>TTS_MODEL</code>: Chemin relatif vers le modèle de synthèse vocale Piper (<code>.onnx</code>).</li>
+<li><code>FLASK_PORT</code>: Le port sur lequel le serveur API Flask écoute.</li>
+<li><code>OCR_IA_USE</code>: Un booléen (<code>true</code> ou <code>false</code>) qui détermine quel moteur OCR utiliser.
+<ul>
+<li><code>false</code> (défaut) : Utilise le moteur OCR local <strong>PaddleOCR</strong>. Gourmand en ressources mais ne nécessite pas de connexion internet ni de clé API.</li>
+<li><code>true</code> : Utilise une API externe (actuellement configurée pour <strong>Groq</strong>). Nécessite une clé API et une connexion internet.</li>
+</ul>
+</li>
+<li><code>OCR_IA_TOKEN</code>: Votre clé d'API pour le service OCR externe (Groq).</li>
+</ul>
+<h3 id="obtenir-une-cl-api-groq">Obtenir une clé API Groq</h3>
+<p>Pour utiliser le mode OCR avec l'IA de Groq (<code>OCR_IA_USE=true</code>), vous devez fournir une clé API.</p>
+<ol>
+<li>Créez un compte sur le site de Groq.</li>
+<li>Accédez à la section des clés API de votre console : <a href="https://console.groq.com/keys">https://console.groq.com/keys</a></li>
+<li>Créez une nouvelle clé et copiez-la dans la variable <code>OCR_IA_TOKEN</code> de votre fichier <code>.env.local</code>.</li>
+</ol>
 <h2 id="structure-des-modules">Structure des modules</h2>
 <p>Le projet est organisé en plusieurs composants clés :</p>
 <h3 id="makefile"><code>Makefile</code></h3>
