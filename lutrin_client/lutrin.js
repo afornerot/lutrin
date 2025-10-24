@@ -7,14 +7,13 @@ const videoStream = document.getElementById('video-stream');
 const capturedImage = document.getElementById('captured-image');
 const ocrTextResult = document.getElementById('ocr-text-result');
 const audioPlayback = document.getElementById('audio-playback');
-const captureButton = document.getElementById('capture-button');
+const captureButton = document.getElementsByClassName('capture-button');
 const statusMessage = document.getElementById('status-message');
 const errorMessage = document.getElementById('error-message');
 const apiStatus = document.getElementById('api-status');
 const statusText = statusMessage.querySelector('span');
 
-// --- Fonctions Utilitaires ---
-
+// Fonctions Utilitaires ---
 function showStatus(message, isError = false) {
     errorMessage.classList.add('hidden');
     statusMessage.classList.remove('hidden');
@@ -39,14 +38,20 @@ function showError(message) {
     statusMessage.classList.add('hidden');
 }
 
-// --- Connexion de base (Status de l'API) ---
+// Active ou désactive tous les boutons de capture.
+function setCaptureButtonsState(disabled) {
+    for (const button of captureButton) {
+        button.disabled = disabled;
+    }
+}
 
+// Status de l'API
 async function checkApiStatus() {
     try {
         const response = await fetch(`${API_BASE_URL}/status`);
         if (response.ok) {
             const data = await response.json();
-            apiStatus.textContent = `API: EN LIGNE. Message: ${data.message}`;
+            apiStatus.textContent = `API: EN LIGNE. Message: ${data.status}`;
             apiStatus.classList.remove('text-red-500');
             apiStatus.classList.add('text-green-500');
         } else {
@@ -61,10 +66,10 @@ async function checkApiStatus() {
     }
 }
 
-// --- Fonction Capture, OCR et TTS ---
+// Fonction Capture, OCR et TTS ---
 async function startCaptureAndOCR() {
     // 1. Désactiver le bouton et montrer le statut
-    captureButton.disabled = true;
+    setCaptureButtonsState(true);
     ocrTextResult.value = "";
     audioPlayback.removeAttribute('src');
 
@@ -129,29 +134,21 @@ async function startCaptureAndOCR() {
         showError(`Échec de l'opération : ${error.message || error}`);
     } finally {
         // Rétablir le bouton
-        captureButton.disabled = false;
+        setCaptureButtonsState(false);
     }
 }
 
-// --- Fonction OCR ---
+// Fonction OCR sur fichier spécifique
 async function startCR(fichier) {
-    // 1. Désactiver le bouton et montrer le statut
-    captureButton.disabled = true;
+    // 1. Désactiver les bouton et montrer le statut
+    setCaptureButtonsState(true);
     ocrTextResult.value = "";
     audioPlayback.removeAttribute('src');
 
     try {
         // --- Étape 1: Capture de l'image ---
         showStatus("1/3 - Capture de l'image...", false);
-        const captureResponse = await fetch(`${API_BASE_URL}/capture`, {
-            method: 'POST'
-        });
-        if (!captureResponse.ok) {
-            const errorText = await captureResponse.text(); // Lire la réponse comme du texte
-            throw new Error(`Étape 1 (Capture) a échoué avec le statut ${captureResponse.status}: ${errorText}`);
-        }
-        const captureData = await captureResponse.json();
-        capturedImage.src = API_BASE_URL+"/file/"+fichier+"?t=" + new Date().getTime();
+        capturedImage.src = API_BASE_URL + "/file/" + fichier;
 
         // --- Étape 2: Lancement de l'OCR ---
         showStatus("2/3 - Reconnaissance du texte (OCR)...", false);
@@ -202,10 +199,11 @@ async function startCR(fichier) {
         showError(`Échec de l'opération : ${error.message || error}`);
     } finally {
         // Rétablir le bouton
-        captureButton.disabled = false;
+        setCaptureButtonsState(false);
     }
 }
-// --- Initialisation ---
+
+// Initialisation
 function init() {
     // 1. Démarrer le flux vidéo
     videoStream.src = `${API_BASE_URL}/video`;
