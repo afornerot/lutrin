@@ -5,15 +5,15 @@ import requests
 from groq import Groq
 from paddleocr import PaddleOCR
 from .logger_service import *
-from config import UPLOAD_FOLDER, OCR_IA_USE, OCR_IA_TOKEN
+from config import UPLOAD_FOLDER, OCR_IA, GROQ_TOKEN
 
 # Initialisation conditionnelle de PaddleOCR/Groq.
 ocr_engine = None
-if not OCR_IA_USE: # Si OCR_IA_USE est false, on utilise le moteur local PaddleOCR
-    Info("Initialisation PaddleOCR")
+if OCR_IA == 'paddle':
+    Info("Initialisation OCR = Paddle")
     ocr_engine = PaddleOCR(use_angle_cls=True, lang='en')
-else:
-    Info("Initialisation Groq")
+elif OCR_IA == 'groq':
+    Info("Initialisation OCR = Groq")
 
 def _reordonner_double_page(resultat_ocr):
     """
@@ -83,19 +83,14 @@ def _delete_old_files():
                 Error(f"Suppression du fichier impossible {filename} = {e}")
 
 
-def _ocr_image_ia(filepath, output_filename): # Renommé de ocr_image_ia à _ocr_image_ia
+def _ocr_image_groq(filepath, output_filename): # Renommé de ocr_image_ia à _ocr_image_groq
     """
     Point d'entrée pour l'OCR via une API externe (Groq).
     """
 
-    BigTitle(f"Traitement OCR avec Groq")
-
-    # Suppression des anciens fichiers de résultat OCR
-    _delete_old_files()
-
     # Tester la présence du tocken
     error_msg = ""
-    if not OCR_IA_TOKEN:
+    if not GROQ_TOKEN:
         error_msg = "Le jeton d'API Groq est manquant dans la configuration."
         Error(error_msg)
         text_output_path = os.path.join(UPLOAD_FOLDER, output_filename)
@@ -106,7 +101,7 @@ def _ocr_image_ia(filepath, output_filename): # Renommé de ocr_image_ia à _ocr
     # Traitement l'image par Groq
     try:
         Title("Traitement de l'image par Groq")
-        client = Groq(api_key=OCR_IA_TOKEN)
+        client = Groq(api_key=GROQ_TOKEN)
 
         # Lire l'image et l'encoder en base64
         with open(filepath, "rb") as image_file:
@@ -174,11 +169,6 @@ def _ocr_image_paddle(filepath, output_filename):
     Écrit le texte reconnu dans un fichier et retourne le texte et le chemin du fichier.
     """
 
-    BigTitle(f"Traitement OCR avec PaddleOCR")
-
-    # Suppression des anciens fichiers de résultat OCR
-    _delete_old_files()
-
     # Tester la précence de paddle
     if not ocr_engine:
         error_msg = "Le moteur PaddleOCR) n'est pas initialisé"
@@ -223,7 +213,14 @@ def ocr_image(filepath, output_filename):
     Aiguilleur principal pour le service OCR.
     Appelle le moteur local (PaddleOCR) ou une API externe en fonction de la configuration.
     """
+
+    BigTitle(f"Traitement OCR")
+
+    # Suppression des anciens fichiers
+    _delete_old_files()
     
-    if OCR_IA_USE:
-        return _ocr_image_ia(filepath, output_filename)
-    return _ocr_image_paddle(filepath, output_filename)
+    # Groq / Paddle
+    if OCR_IA == 'groq':
+        return _ocr_image_groq(filepath, output_filename)
+    else:
+        return _ocr_image_paddle(filepath, output_filename)

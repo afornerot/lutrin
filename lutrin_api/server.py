@@ -102,11 +102,14 @@ def process_tts():
     if not tts_success:
         return jsonify({"error": "La génération TTS a échoué", "details": audio_path_or_error}), 500
 
+    # Le nom de fichier peut avoir changé (ex: .wav -> .mp3), on le récupère depuis le chemin retourné
+    final_audio_filename = os.path.basename(audio_path_or_error)
+
     return jsonify({
         "status": "success",
-        "audio_filename": audio_filename,
+        "audio_filename": final_audio_filename,
         "audio_path_local": audio_path_or_error,
-        "audio_url": url_for('serve_file', filename=audio_filename, _external=True)
+        "audio_url": url_for('serve_file', filename=final_audio_filename, _external=True)
     })
 
 @app.route('/file/<path:filename>')

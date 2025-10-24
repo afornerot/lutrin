@@ -11,15 +11,17 @@ load_dotenv(find_dotenv('.env.local'), override=True)
 # Base dir
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Chemin vers le modèle TTS Piper. Assurez-vous de télécharger le modèle et de le placer dans lutrin_api/models/
-TTS_MODEL_RELATIVE = os.getenv('TTS_MODEL', 'models/fr_FR-siwis-medium.onnx')
-TTS_MODEL = os.path.join(BASE_DIR, TTS_MODEL_RELATIVE)
+# Chemin vers le modèle TTS Piper
+PIPER_MODEL_RELATIVE = os.getenv('PIPER_MODEL', 'models/fr_FR-siwis-medium.onnx')
+PIPER_MODEL = os.path.join(BASE_DIR, PIPER_MODEL_RELATIVE)
 
-# Activer ou non le moteur d'IA pour l'OCR. Convertit la variable d'env en booléen.
-OCR_IA_USE = os.getenv('OCR_IA_USE', 'false').lower() in ('true', '1', 'yes')
+# Moteur OCR/TTS à utiliser
+OCR_IA = os.getenv('OCR_IA', 'paddle').lower()
+TTS_IA = os.getenv('TTS_IA', 'piper').lower()
 
-# Jeton pour un service OCR externe
-OCR_IA_TOKEN = os.getenv('OCR_IA_TOKEN', '')
+# Jeton
+GROQ_TOKEN = os.getenv('GROQ_TOKEN', '')
+GEMINI_TOKEN = os.getenv('GEMINI_TOKEN', '')
 
 # Port de communication flask
 FLASK_PORT = int(os.getenv('FLASK_PORT', 5000)) 

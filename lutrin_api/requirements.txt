@@ -10,3 +10,5 @@ paddleocr
 paddlepaddle
 piper-tts
 groq
+google-genai
+google

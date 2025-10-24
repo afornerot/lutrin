@@ -41,18 +41,18 @@ Le projet utilise des fichiers d'environnement pour gérer sa configuration, ce 
 -   `UPLOAD_FOLDER`: Chemin relatif vers le dossier où sont stockées les images capturées, les résultats OCR et les fichiers audio.
 -   `TTS_MODEL`: Chemin relatif vers le modèle de synthèse vocale Piper (`.onnx`).
 -   `FLASK_PORT`: Le port sur lequel le serveur API Flask écoute.
--   `OCR_IA_USE`: Un booléen (`true` ou `false`) qui détermine quel moteur OCR utiliser.
-    -   `false` (défaut) : Utilise le moteur OCR local **PaddleOCR**. Gourmand en ressources mais ne nécessite pas de connexion internet ni de clé API.
-    -   `true` : Utilise une API externe (actuellement configurée pour **Groq**). Nécessite une clé API et une connexion internet.
--   `OCR_IA_TOKEN`: Votre clé d'API pour le service OCR externe (Groq).
+-   `OCR_IA`: Chaîne de caractères (`'paddle'` ou `'groq'`) qui détermine quel moteur OCR utiliser.
+    -   `'paddle'` (défaut) : Utilise le moteur OCR local **PaddleOCR**. Gourmand en ressources mais ne nécessite pas de connexion internet ni de clé API.
+    -   `'groq'` : Utilise l'API externe de **Groq**. Nécessite une clé API et une connexion internet.
+-   `GROQ_TOKEN`: Votre clé d'API pour les services externes (Groq).
 
 ### Obtenir une clé API Groq
 
-Pour utiliser le mode OCR avec l'IA de Groq (`OCR_IA_USE=true`), vous devez fournir une clé API.
+Pour utiliser le mode OCR avec l'IA de Groq (`OCR_IA=groq`), vous devez fournir une clé API.
 
 1.  Créez un compte sur le site de Groq.
 2.  Accédez à la section des clés API de votre console : https://console.groq.com/keys
-3.  Créez une nouvelle clé et copiez-la dans la variable `OCR_IA_TOKEN` de votre fichier `.env.local`.
+3.  Créez une nouvelle clé et copiez-la dans la variable `GROQ_TOKEN` de votre fichier `.env.local`.
 
 ## Structure des modules
 
