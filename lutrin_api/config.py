@@ -14,11 +14,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER_RELATIVE = os.getenv('UPLOAD_FOLDER', '../lutrin_data/')
 UPLOAD_FOLDER = os.path.join(BASE_DIR, UPLOAD_FOLDER_RELATIVE)
 
-TESSERACT_CMD = os.getenv('TESSERACT_CMD', '/usr/bin/tesseract')
 FLASK_PORT = int(os.getenv('FLASK_PORT', 5000)) 
-
-# Configuration du chemin Tesseract pour l'interface Python
-pytesseract.pytesseract.tesseract_cmd = TESSERACT_CMD
 
 # Création du répertoire de stockage s'il n'existe pas
 if not os.path.exists(UPLOAD_FOLDER):

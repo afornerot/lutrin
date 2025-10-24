@@ -1,46 +1,50 @@
 # lutrin_api/services/ocr_service.py
 
-import pytesseract
-import os
-from config import TESSERACT_CMD, UPLOAD_FOLDER
-from .optimizer_service import traiter_document_pour_ocr
+from paddleocr import PaddleOCR
 
-# Configuration du chemin Tesseract pour l'interface Python
-pytesseract.pytesseract.tesseract_cmd = TESSERACT_CMD
+# Initialisation de PaddleOCR. 
+# use_angle_cls=True pour détecter l'orientation du texte.
+# lang='fr' pour spécifier le français.
+# NOTE: Pour les langues latines, il est recommandé d'utiliser 'en', qui charge
+# un modèle multilingue plus performant incluant le français.
+# Le modèle sera téléchargé au premier lancement.
+print("Initialisation de PaddleOCR (modèle multilingue pour langues latines)...")
+ocr_engine = PaddleOCR(use_angle_cls=True, lang='en')
+print("PaddleOCR initialisé.")
 
 def ocr_image(filepath):
     """
-    Exécute la reconnaissance de caractères (OCR) sur l'image fournie.
+    Exécute la reconnaissance de caractères (OCR) sur l'image fournie avec PaddleOCR.
     """
 
-    print(f"--- Début du traitement OCR pour l'image : {filepath} ---")
+    print(f"--- Début du traitement OCR avec PaddleOCR pour : {filepath} ---")
     try:
-        # --- Étape 1: Optimisation de l'image ---
-        base, ext = os.path.splitext(os.path.basename(filepath))
-        optimized_filename = f"{base}_optimized.png"
-        optimized_filepath = os.path.join(UPLOAD_FOLDER, optimized_filename)
+        # Exécution de PaddleOCR sur le fichier image
+        # qui retourne un objet plus structuré.
+        result = ocr_engine.predict(filepath)
+
+        # La méthode predict retourne une liste de résultats (un par image).
+        # Nous traitons la première (et unique) image.
+        all_text_lines = []
+        if result and result[0]:
+            ocr_result_for_image = result[0]
+            # L'objet OCRResult est directement itérable. Chaque élément est une ligne détectée.
+            # Chaque ligne est une liste contenant les coordonnées, le texte et le score.
+            # Exemple de ligne : [[[x,y], [x,y], [x,y], [x,y]], ('texte reconnu', 0.99)]
+            if ocr_result_for_image:
+                for line in ocr_result_for_image:
+                    all_text_lines.append(line[1][0])
         
-        print("\nLancement de l'optimisation de l'image...")
-        traiter_document_pour_ocr(filepath, optimized_filepath)
-        print("Optimisation terminée.")
+        full_text = "\n".join(all_text_lines)
 
-        # --- Étape 2: Exécution de Tesseract sur l'image optimisée ---
-        config = '--psm 1 --oem 1'
-        print(f"\nExécution de Tesseract sur l'image optimisée (lang: fra, config: '{config}')...")
-        text = pytesseract.image_to_string(optimized_filepath, lang='fra', config=config)
+        print(f"Texte brut retourné par PaddleOCR:\n---\n{full_text}\n---")
 
-        print(f"Texte brut retourné par Tesseract:\n---\n{text}\n---")
-
-        stripped_text = text.strip()
-        word_count = len(stripped_text.split())
+        stripped_text = full_text.strip()
+        word_count = len(stripped_text.split()) if stripped_text else 0
 
         print(f"Traitement terminé. {word_count} mot(s) trouvé(s).")
         print("-" * 50)
         return stripped_text
-    except pytesseract.TesseractNotFoundError:
-        error_msg = "Erreur Tesseract: L'exécutable Tesseract est introuvable."
-        print(error_msg)
-        return error_msg
     except Exception as e:
         error_msg = f"Erreur OCR inattendue: {e}"
         print(error_msg)

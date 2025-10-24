@@ -10,7 +10,6 @@ from waitress import serve
 # Importation du module de configuration
 from config import (
     UPLOAD_FOLDER, 
-    TESSERACT_CMD, 
     FLASK_PORT
 )
 
@@ -31,7 +30,6 @@ def status():
         "status": "online",
         "api_name": "Lutrin Pi API",
         "version": "1.0",
-        "tesseract_cmd": TESSERACT_CMD
     })
 
 @app.route('/video')
@@ -113,5 +111,5 @@ def serve_file(filename):
 
 # Lancement du serveur de production Waitress sur toutes les interfaces (0.0.0.0)
 if __name__ == '__main__':
-    print(f"Serveur Lutrin Pi démarré. Tesseract CMD: {TESSERACT_CMD}")
+    print("Serveur Lutrin Pi démarré.")
     serve(app, host='0.0.0.0', port=FLASK_PORT, threads=6)

@@ -6,3 +6,5 @@ waitress
 flask-cors
 python-dotenv
 numpy
+paddleocr
+paddlepaddle
