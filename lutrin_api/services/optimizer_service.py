@@ -1,28 +1,22 @@
 import cv2
 import numpy as np
 from PIL import Image
-import sys
-
-# --- FONCTIONS UTILITAIRES POUR LA TRANSFORMATION DE PERSPECTIVE ---
 
 def order_points(pts):
     """
     Réordonne les quatre points d'un quadrilatère (la page) dans l'ordre:
     (haut-gauche, haut-droite, bas-droite, bas-gauche).
     """
-    # initialiser une liste de coordonnées que nous allons réordonner
-    # de haut-gauche, haut-droite, bas-droite, et bas-gauche
+
+    # initialiser une liste de coordonnées que nous allons réordonner de haut-gauche, haut-droite, bas-droite, et bas-gauche
     rect = np.zeros((4, 2), dtype="float32")
 
-    # la somme des coordonnées (x, y) identifie le coin haut-gauche
-    # (la plus petite somme) et le coin bas-droite (la plus grande somme)
+    # la somme des coordonnées (x, y) identifie le coin haut-gauche (la plus petite somme) et le coin bas-droite (la plus grande somme)
     s = pts.sum(axis=1)
     rect[0] = pts[np.argmin(s)] # Haut-Gauche
     rect[2] = pts[np.argmax(s)] # Bas-Droite
 
-    # la différence entre les coordonnées (x - y) identifie le coin
-    # haut-droite (la plus petite différence) et le coin bas-gauche
-    # (la plus grande différence)
+    # la différence entre les coordonnées (x - y) identifie le coin haut-droite (la plus petite différence) et le coin bas-gauche (la plus grande différence)
     diff = np.diff(pts, axis=1)
     rect[1] = pts[np.argmin(diff)] # Haut-Droite
     rect[3] = pts[np.argmax(diff)] # Bas-Gauche
@@ -33,6 +27,7 @@ def four_point_transform(image, pts):
     """
     Applique une transformation de perspective (redressement) sur les quatre points donnés.
     """
+
     # obtenir un tableau ordonné de points
     rect = order_points(pts)
     (tl, tr, br, bl) = rect
@@ -56,15 +51,16 @@ def four_point_transform(image, pts):
 
     # calculer la matrice de transformation de perspective
     M = cv2.getPerspectiveTransform(rect, dst)
+    
     # appliquer la transformation
     warped = cv2.warpPerspective(image, M, (maxWidth, maxHeight))
 
     return warped
 
-# --- FONCTION PRINCIPALE DE DÉTECTION ET DE TRAITEMENT ---
-
 def detect_and_crop_page(image):
-    """Détecte le plus grand quadrilatère (la page) dans l'image, le recadre et le redresse."""
+    """
+    Détecte le plus grand quadrilatère (la page) dans l'image, le recadre et le redresse.
+    """
     
     # 1. Prétraitement pour la détection
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -110,11 +106,11 @@ def detect_and_crop_page(image):
     
     return warped
 
-# --- FONCTION D'OPTIMISATION FINALE ---
-
 def obtenir_dpi_fichier(chemin_entree):
-    """Tente d'obtenir le DPI (x et y) à partir des métadonnées du fichier."""
-    # (Fonction inchangée)
+    """
+    Tente d'obtenir le DPI (x et y) à partir des métadonnées du fichier.
+    """
+
     try:
         img_pil = Image.open(chemin_entree)
         if 'dpi' in img_pil.info:
@@ -173,12 +169,3 @@ def traiter_document_pour_ocr(chemin_entree, chemin_sortie="image_optimisee.png"
     # 7. Sauvegarde de l'image optimisée
     cv2.imwrite(chemin_sortie, binarisee)
     print(f"Image optimisée (recadrée et binarisée) enregistrée sous : {chemin_sortie}")
-    print("\n--- INSTRUCTION TESSERACT RECOMMANDÉE ---")
-    print(f"Utilisez le mode 5 pour les doubles colonnes : tesseract {chemin_sortie} - -l fra --psm 5")
-
-
-# --- Utilisation du script (Exemple) ---
-# Décommentez les lignes suivantes pour tester
-# chemin_image_entree = "test03.jpg" # Remplacer par le chemin de votre fichier
-# chemin_image_sortie = "test03_auto_traite.png"
-# traiter_document_pour_ocr(chemin_image_entree, chemin_image_sortie)
