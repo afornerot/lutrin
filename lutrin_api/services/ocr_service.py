@@ -1,16 +1,23 @@
 # lutrin_api/services/ocr_service.py
 import os
+import base64
+import requests
+from PIL import Image
 
 from paddleocr import PaddleOCR
-from config import UPLOAD_FOLDER
-from .optimizer_service import traiter_document_pour_ocr
+from config import UPLOAD_FOLDER, OCR_IA_USE, OCR_IA_TOKEN
 
-# Initialisation de PaddleOCR. 
-print("Initialisation de PaddleOCR")
-ocr_engine = PaddleOCR(use_angle_cls=True, lang='en')
-print("PaddleOCR initialisé.")
+# Initialisation conditionnelle de PaddleOCR.
+ocr_engine = None
+if not OCR_IA_USE: # Si OCR_IA_USE est false, on utilise le moteur local PaddleOCR
+    print("Initialisation du moteur OCR local : PaddleOCR (OCR_IA_USE=false)")
+    ocr_engine = PaddleOCR(use_angle_cls=True, lang='en')
+    print("PaddleOCR initialisé.")
+else:
+    # Si OCR_IA_USE est true, on se prépare à utiliser une API externe (Groq, etc.)
+    print("AVERTISSESEMENT: Le moteur OCR local est désactivé. L'application utilisera une API externe (OCR_IA_USE=true).")
 
-def reordonner_double_page(resultat_ocr):
+def _reordonner_double_page(resultat_ocr):
     """
     Réorganise le texte d'une double page scannée en supposant un milieu
     horizontal de l'image (l'axe Y) comme séparateur de page.
@@ -60,11 +67,112 @@ def reordonner_double_page(resultat_ocr):
     
     return texte_final
 
-def ocr_image(filepath, output_filename): 
+def _ocr_image_ia(filepath, output_filename): # Renommé de ocr_image_ia à _ocr_image_ia
+    """
+    Point d'entrée pour l'OCR via une API externe (Groq).
+    """
+    
+    print(f"--- Début du traitement OCR avec Groq pour : {filepath} ---")
+
+    if not OCR_IA_TOKEN:
+        error_msg = "Le jeton d'API Groq (OCR_IA_TOKEN) est manquant dans la configuration."
+        print(f"ERREUR: {error_msg}")
+        text_output_path = os.path.join(UPLOAD_FOLDER, output_filename)
+        with open(text_output_path, 'w', encoding='utf-8') as f:
+            f.write(error_msg)
+        return error_msg, text_output_path
+
+    try:
+        # 1. Lire l'image et l'encoder en base64
+        with open(filepath, "rb") as image_file:
+            encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+        image_data_url = f"data:image/jpeg;base64,{encoded_image}"
+        print(f"Image encodée en base64 (taille: {len(encoded_image)}).")
+
+        # 2. Préparer le payload pour l'API Groq
+        groq_api_url = 'https://api.groq.com/openai/v1/chat/completions'
+        headers = {
+            'Authorization': f'Bearer {OCR_IA_TOKEN}',
+            'Content-Type': 'application/json',
+        }
+        payload = {
+            "model": "meta-llama/llama-4-scout-17b-16e-instruct",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": """Tu es un expert en extraction de texte depuis des images de livres. Analyse cette image et extrais TOUT le texte visible, qu'il s'agisse d'une page simple ou d'une double page.
+
+Instructions importantes :
+- Extrais le texte dans l'ordre de lecture naturel (de gauche à droite, de haut en bas)
+- Si c'est une double page, lis d'abord la page de gauche en entier, puis la page de droite
+- Préserve la structure des paragraphes
+- Ignore les numéros de page
+- Ne commente pas, ne décris pas l'image, donne UNIQUEMENT le texte extrait
+- Assure-toi que le texte est fluide et cohérent
+
+Retourne uniquement le texte extrait, propre et lisible."""
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": image_data_url}
+                        }
+                    ]
+                }
+            ],
+            "temperature": 0.2,
+            "max_tokens": 4000
+        }
+
+        # 3. Envoyer la requête à Groq
+        print("Envoi de la requête à l'API Groq...")
+        response = requests.post(groq_api_url, headers=headers, json=payload)
+        response.raise_for_status() # Lève une exception pour les codes d'état HTTP d'erreur
+
+        data = response.json()
+        print(f"Réponse Groq reçue (statut: {response.status_code}).")
+
+        # 4. Extraire le texte
+        extracted_text = data.get('choices', [{}])[0].get('message', {}).get('content', 'Aucun texte trouvé par Groq.')
+        
+        # Si le texte est vide après le traitement, assigner un message par défaut.
+        if not extracted_text or not extracted_text.strip():
+            extracted_text = "Aucun texte trouvé par Groq."
+
+        print(f"Texte extrait (début): {extracted_text[:300]}...")
+
+        # 5. Écrire le texte dans le fichier spécifié
+        text_output_path = os.path.join(UPLOAD_FOLDER, output_filename)
+        with open(text_output_path, 'w', encoding='utf-8') as f:
+            f.write(extracted_text)
+        print(f"Texte OCR sauvegardé dans : {text_output_path}")
+
+        return extracted_text, text_output_path
+
+    except requests.exceptions.RequestException as e:
+        error_msg = f"Erreur de connexion ou d'API Groq: {e}"
+        print(f"ERREUR: {error_msg}")
+        return "", error_msg
+    except Exception as e:
+        error_msg = f"Erreur inattendue lors du traitement Groq OCR: {e}"
+        print(f"ERREUR: {error_msg}")
+        return "", error_msg
+
+def _ocr_image_paddle(filepath, output_filename): 
     """
     Exécute la reconnaissance de caractères (OCR) sur l'image fournie avec PaddleOCR.
     Écrit le texte reconnu dans un fichier et retourne le texte et le chemin du fichier.
     """
+
+    if not ocr_engine:
+        error_msg = "Le moteur OCR local (PaddleOCR) n'est pas initialisé."
+        print(f"ERREUR: {error_msg}")
+        text_output_path = os.path.join(UPLOAD_FOLDER, output_filename)
+        with open(text_output_path, 'w', encoding='utf-8') as f:
+            f.write(error_msg)
+        return error_msg, text_output_path
 
     print(f"--- Début du traitement OCR avec PaddleOCR pour : {filepath} ---")
     try:
@@ -97,7 +205,7 @@ def ocr_image(filepath, output_filename):
         result = ocr_engine.predict(filepath)
 
         # Déterminer les textes de pages gauche et droite
-        full_text=reordonner_double_page(result)
+        full_text=_reordonner_double_page(result)
         
         # Si le texte est vide après le traitement, assigner un message par défaut.
         if not full_text or not full_text.strip():
@@ -121,3 +229,13 @@ def ocr_image(filepath, output_filename):
         error_msg = f"Erreur OCR inattendue: {e}"
         print(error_msg)
         return "", error_msg
+
+def ocr_image(filepath, output_filename):
+    """
+    Aiguilleur principal pour le service OCR.
+    Appelle le moteur local (PaddleOCR) ou une API externe en fonction de la configuration.
+    """
+    
+    if OCR_IA_USE:
+        return _ocr_image_ia(filepath, output_filename)
+    return _ocr_image_paddle(filepath, output_filename)
