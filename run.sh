@@ -176,7 +176,9 @@ watch_api_changes() {
 
     # Démarrage initial
     stop_api
+    stop_client
     start_api
+    start_client
 
     # Lancer tail -f en arrière-plan et stocker son PID
     tail -f "$API_LOG_FILE" &
