@@ -2,7 +2,7 @@
 import os
 import base64
 import requests
-
+from groq import Groq
 from paddleocr import PaddleOCR
 from .logger_service import *
 from config import UPLOAD_FOLDER, OCR_IA_USE, OCR_IA_TOKEN
@@ -94,39 +94,36 @@ def _ocr_image_ia(filepath, output_filename): # Renommé de ocr_image_ia à _ocr
     _delete_old_files()
 
     # Tester la présence du tocken
+    error_msg = ""
     if not OCR_IA_TOKEN:
-        Error(f"{error_msg}")
-
         error_msg = "Le jeton d'API Groq est manquant dans la configuration."
+        Error(error_msg)
         text_output_path = os.path.join(UPLOAD_FOLDER, output_filename)
         with open(text_output_path, 'w', encoding='utf-8') as f:
             f.write(error_msg)
         return error_msg, text_output_path
 
     # Traitement l'image par Groq
-    Title("Traitement de l'image par Groq")
     try:
+        Title("Traitement de l'image par Groq")
+        client = Groq(api_key=OCR_IA_TOKEN)
+
         # Lire l'image et l'encoder en base64
         with open(filepath, "rb") as image_file:
             encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
         image_data_url = f"data:image/jpeg;base64,{encoded_image}"
         Log(f"Image encodée en base64 (taille: {len(encoded_image)}).")
 
-        # Préparer le payload pour l'API Groq
-        groq_api_url = 'https://api.groq.com/openai/v1/chat/completions'
-        headers = {
-            'Authorization': f'Bearer {OCR_IA_TOKEN}',
-            'Content-Type': 'application/json',
-        }
-        payload = {
-            "model": "meta-llama/llama-4-scout-17b-16e-instruct",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": """Tu es un expert en extraction de texte depuis des images de livres. Analyse cette image et extrais TOUT le texte visible, qu'il s'agisse d'une page simple ou d'une double page.
+        # Envoyer la requête à Groq via la librairie Python
+        Log("Envoi de la requête à l'API Groq")
+        chat_completion = client.chat.completions.create(
+            messages=[
+                 {
+                     "role": "user",
+                     "content": [
+                         {
+                             "type": "text",
+                             "text": """Tu es un expert en extraction de texte depuis des images de livres. Analyse cette image et extrais TOUT le texte visible, qu'il s'agisse d'une page simple ou d'une double page.
 
 Instructions importantes :
 - Extrais le texte dans l'ordre de lecture naturel (de gauche à droite, de haut en bas)
@@ -137,50 +134,37 @@ Instructions importantes :
 - Assure-toi que le texte est fluide et cohérent
 
 Retourne uniquement le texte extrait, propre et lisible."""
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": image_data_url}
-                        }
-                    ]
-                }
-            ],
-            "temperature": 0.2,
-            "max_tokens": 4000
-        }
-
-        # Envoyer la requête à Groq
-        Log("Envoi de la requête à l'API Groq")
-        response = requests.post(groq_api_url, headers=headers, json=payload)
-        response.raise_for_status()
-
-        data = response.json()
-        Log(f"Réponse Groq reçue statut = {response.status_code}")
+                         },
+                         {
+                             "type": "image_url",
+                             "image_url": {"url": image_data_url}
+                         }
+                     ]
+                 }
+             ],
+            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            temperature=0.2,
+            max_tokens=4000
+        )
+        Log("Réponse Groq reçue.")
 
         # Extraire le texte
-        extracted_text = data.get('choices', [{}])[0].get('message', {}).get('content', 'Aucun texte trouvé par Groq.')
+        extracted_text = chat_completion.choices[0].message.content
         
         # Si le texte est vide après le traitement, assigner un message par défaut.
         if not extracted_text or not extracted_text.strip():
             extracted_text = "Aucun texte trouvé"
 
         Log(f"Texte extrait = {extracted_text[:300]}...")
-
-        # Écrire le texte dans le fichier spécifié
         text_output_path = os.path.join(UPLOAD_FOLDER, output_filename)
         with open(text_output_path, 'w', encoding='utf-8') as f:
             f.write(extracted_text)
 
         Success(f"Texte OCR sauvegardé dans = {text_output_path}")
-
         return extracted_text, text_output_path
 
-    except requests.exceptions.RequestException as e:
-        error_msg = f"Erreur de connexion ou d'API Groq: {e}"
-        Error(f"{error_msg}")
-        return "", error_msg
     except Exception as e:
-        error_msg = f"Erreur inattendue lors du traitement Groq OCR: {e}"
+        error_msg = f"Erreur inattendue lors du traitement Groq OCR: {repr(e)}"
         Error(f"{error_msg}")
         return "", error_msg
 
@@ -190,7 +174,7 @@ def _ocr_image_paddle(filepath, output_filename):
     Écrit le texte reconnu dans un fichier et retourne le texte et le chemin du fichier.
     """
 
-    BigTitle(f"Traitement OCR avec Groq")
+    BigTitle(f"Traitement OCR avec PaddleOCR")
 
     # Suppression des anciens fichiers de résultat OCR
     _delete_old_files()

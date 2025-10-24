@@ -9,3 +9,4 @@ numpy
 paddleocr
 paddlepaddle
 piper-tts
+groq
