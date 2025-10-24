@@ -14,6 +14,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER_RELATIVE = os.getenv('UPLOAD_FOLDER', '../lutrin_data/')
 UPLOAD_FOLDER = os.path.join(BASE_DIR, UPLOAD_FOLDER_RELATIVE)
 
+# Chemin vers le modèle TTS Piper. Assurez-vous de télécharger le modèle et de le placer dans lutrin_api/models/
+TTS_MODEL_RELATIVE = os.getenv('TTS_MODEL', 'models/fr_FR-siwis-medium.onnx')
+TTS_MODEL = os.path.join(BASE_DIR, TTS_MODEL_RELATIVE)
+
 FLASK_PORT = int(os.getenv('FLASK_PORT', 5000)) 
 
 # Création du répertoire de stockage s'il n'existe pas

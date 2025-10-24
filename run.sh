@@ -187,10 +187,13 @@ watch_api_changes() {
         # Le -q rend inotifywait silencieux jusqu'à ce qu'un événement se produise
         inotifywait -q -r -e modify,create,delete,move "$API_DIR" --include '\.py$'
         
-        EchoOrange "Modification détectée ! Redémarrage du serveur API..."
+        EchoJaune "Modification détectée ! Redémarrage du serveur API..."
         kill "$TAIL_PID" 2>/dev/null # Arrêter l'ancien tail
         stop_api
         start_api
+        EchoBleu "Temporisation de 5 secondes pour permettre l'initialisation du serveur..."
+        sleep 5
+        EchoVert "Reprise de la surveillance."
         tail -f "$API_LOG_FILE" & # Lancer un nouveau tail
         TAIL_PID=$!
     done

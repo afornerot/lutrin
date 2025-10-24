@@ -134,6 +134,20 @@ def capture_image_from_webcam(filename):
     # Acquérir le verrou pour garantir un accès exclusif à la caméra
     with camera_lock:
         try:
+            # --- Suppression des anciennes images de capture ---
+            print("Nettoyage des anciennes images de capture...")
+            # On parcourt tous les fichiers dans le dossier UPLOAD_FOLDER
+            for f in os.listdir(UPLOAD_FOLDER):
+                # Si le fichier correspond au pattern des images de capture
+                if f.startswith('capture_') and f.endswith('.jpg'):
+                    try:
+                        file_path_to_delete = os.path.join(UPLOAD_FOLDER, f)
+                        os.remove(file_path_to_delete)
+                        print(f"Ancienne image de capture supprimée : {file_path_to_delete}")
+                    except OSError as e:
+                        # On ne bloque pas le processus si une suppression échoue, on logue juste l'erreur
+                        print(f"Erreur lors de la suppression du fichier {f}: {e}")
+
             # 1. Régler la caméra sur la résolution maximale détectée
             if max_resolution is None:
                 return False, "La résolution maximale de la caméra n'a pas été déterminée."

@@ -86,22 +86,22 @@
                         Fichier = /file
                     </label>
 
-                    <button id="capture-photo01" onclick="startCR('test01.jpg')"
+                    <button id="capture-photo01" onclick="startOCR('test01.jpg')"
                         class="capture-button w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-150 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300 flex items-center justify-center disabled:opacity-50 mb-1">
                         <i class="fas fa-camera mr-2"></i>
                         Capturer l'image de test 01
                     </button>
-                    <button id="capture-photo02" onclick="startCR('test02.jpg')"
+                    <button id="capture-photo02" onclick="startOCR('test02.jpg')"
                         class="capture-button w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-150 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300 flex items-center justify-center disabled:opacity-50 mb-1">
                         <i class="fas fa-camera mr-2"></i>
                         Capturer l'image de test 02
                     </button>
-                    <button id="capture-photo03" onclick="startCR('test03.jpg')"
+                    <button id="capture-photo03" onclick="startOCR('test03.jpg')"
                         class="capture-button w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-150 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300 flex items-center justify-center disabled:opacity-50 mb-1">
                         <i class="fas fa-camera mr-2"></i>
                         Capturer l'image de test 03
                     </button>
-                    <button id="capture-photo04" onclick="startCR('test04.jpg')"
+                    <button id="capture-photo04" onclick="startOCR('test04.jpg')"
                         class="capture-button w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-150 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300 flex items-center justify-center disabled:opacity-50 mb-1">
                         <i class="fas fa-camera mr-2"></i>
                         Capturer l'image de test 04
@@ -109,19 +109,34 @@
                 </div>
             </div>
 
-            <!-- Image Capturée -->
-            <div class="md:col-span-1 bg-white p-3 rounded-xl shadow-lg">
-                <h2 class="text-2xl font-semibold text-gray-700 flex items-center">
-                    <i class="fas fa-image w-6 text-center mr-2 text-red-500"></i>
-                    Capture
-                </h2>
+            <div class="md:col-span-1">
+                <!-- Image Capturée -->
+                <div class="bg-white p-3 rounded-xl shadow-lg mb-4">
+                    <h2 class="text-2xl font-semibold text-gray-700 flex items-center">
+                        <i class="fas fa-image w-6 text-center mr-2 text-red-500"></i>
+                        Capture
+                    </h2>
 
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 italic">
-                        Image Capturée = /capture
-                    </label>
-                    <img id="captured-image" src="https://placehold.co/960x540/cccccc/333333?text=Image+Capturée"
-                        alt="Dernière image capturée" class="w-full h-auto rounded-lg border border-gray-300">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 italic">
+                            Image Capturée = /capture
+                        </label>
+                        <img id="captured-image" src="https://placehold.co/960x540/cccccc/333333?text=Image+Capturée"
+                            alt="Dernière image capturée" class="w-full h-auto rounded-lg border border-gray-300">
+                    </div>
+                </div>
+
+                <!-- Zone de Statistiques -->
+                <div class="bg-white p-3 rounded-xl shadow-lg">
+                    <h2 class="text-2xl font-semibold text-gray-700 flex items-center">
+                        <i class="fas fa-chart-bar w-6 text-center mr-2 text-blue-500"></i>
+                        Statistiques de Traitement
+                    </h2>
+                    <div class="text-sm text-gray-600">
+                        <p><strong>Capture:</strong> <span id="stat-capture-time">N/A</span> s</p>
+                        <p><strong>OCR:</strong> <span id="stat-ocr-time">N/A</span> s</p>
+                        <p><strong>TTS:</strong> <span id="stat-tts-time">N/A</span> s</p>
+                    </div>
                 </div>
             </div>
 
@@ -138,6 +153,12 @@
                         class="w-full h-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 resize-none text-gray-800 flex-grow"
                         placeholder="Le texte reconnu apparaîtra ici..."></textarea>
                 </div>
+
+                <button id="capture-text01" onclick="startTTS('test01.txt')"
+                    class="capture-button w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-150 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300 flex items-center justify-center disabled:opacity-50 mb-1">
+                    <i class="fas fa-camera mr-2"></i>
+                    Capturer le texte de test 01
+                </button>
             </div>
 
         </main>

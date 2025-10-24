@@ -60,13 +60,28 @@ def reordonner_double_page(resultat_ocr):
     
     return texte_final
 
-def ocr_image(filepath):
+def ocr_image(filepath, output_filename): 
     """
     Exécute la reconnaissance de caractères (OCR) sur l'image fournie avec PaddleOCR.
+    Écrit le texte reconnu dans un fichier et retourne le texte et le chemin du fichier.
     """
 
     print(f"--- Début du traitement OCR avec PaddleOCR pour : {filepath} ---")
     try:
+        # --- Suppression des anciens fichiers de résultat OCR ---
+        print("Nettoyage des anciens fichiers de résultat OCR...")
+        # On parcourt tous les fichiers dans le dossier UPLOAD_FOLDER
+        for filename in os.listdir(UPLOAD_FOLDER):
+            # Si le fichier correspond au pattern des fichiers de résultat OCR
+            if filename.startswith('ocr_result_') and filename.endswith('.txt'):
+                try:
+                    file_path_to_delete = os.path.join(UPLOAD_FOLDER, filename)
+                    os.remove(file_path_to_delete)
+                    print(f"Ancien fichier OCR supprimé : {file_path_to_delete}")
+                except OSError as e:
+                    # On ne bloque pas le processus si une suppression échoue, on logue juste l'erreur
+                    print(f"Erreur lors de la suppression du fichier {filename}: {e}")
+
         # Optimisation de l'images
         """"
         print("\nLancement de l'optimisation de l'image...")
@@ -87,9 +102,16 @@ def ocr_image(filepath):
         print("\n--- Texte complet ---\n")
         print(full_text)
         print("-" * 50)
-
-        return full_text
+        
+        # Écrire le texte reconnu dans le fichier spécifié
+        text_output_path = os.path.join(UPLOAD_FOLDER, output_filename)
+        with open(text_output_path, 'w', encoding='utf-8') as f:
+            f.write(full_text)
+        print(f"Texte OCR sauvegardé dans : {text_output_path}")
+        
+        # Retourner le texte et le chemin du fichier
+        return full_text, text_output_path
     except Exception as e:
         error_msg = f"Erreur OCR inattendue: {e}"
         print(error_msg)
-        return error_msg
+        return "", error_msg
