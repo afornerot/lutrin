@@ -37,6 +37,7 @@ help:
 	@echo "  $(YELLOW)install$(RESET)   	- Installe les dépendances système et configure l'environnement Python."
 	@echo "  $(YELLOW)start$(RESET)     	- Démarre les serveurs API et client en arrière-plan."
 	@echo "  $(YELLOW)stop$(RESET)      	- Arrête tous les serveurs."
+	@echo "  $(YELLOW)watch$(RESET)      	- Watch les modifications sur API server et le relance si besoin."
 	@echo "  $(YELLOW)status$(RESET)    	- Affiche le statut des serveurs."
 	@echo "  $(YELLOW)restart$(RESET)   	- Redémarre les serveurs."
 	@echo "  $(YELLOW)update$(RESET)    	- Met à jour le code depuis Git et redémarre les serveurs."
@@ -55,6 +56,9 @@ start:
 
 stop:
 	./run.sh stop
+
+watch:
+	./run.sh watch
 
 status:
 	./run.sh status

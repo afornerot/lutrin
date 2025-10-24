@@ -67,7 +67,7 @@ def ocr_image(filepath):
 
     print(f"--- Début du traitement OCR avec PaddleOCR pour : {filepath} ---")
     try:
-        # Optimisation de l'image
+        # Optimisation de l'images
         """"
         print("\nLancement de l'optimisation de l'image...")
         base, ext = os.path.splitext(os.path.basename(filepath))

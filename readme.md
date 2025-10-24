@@ -17,10 +17,11 @@ Le projet est géré via des commandes `make` simples et intuitives.
 
 | Commande        | Description                                                                                                               |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `make install`  | Installe les dépendances système, crée l'environnement virtuel et installe les paquets Python.                            |
+| `make install`  | Installe / Met à jour les dépendances système, crée l'environnement virtuel et installe les paquets Python.               |
 | `make start`    | Démarre les serveurs de l'API et du client en arrière-plan.                                                               |
 | `make stop`     | Arrête proprement les deux serveurs.                                                                                      |
 | `make restart`  | Redémarre les serveurs (équivaut à `make stop && make start`).                                                            |
+| `make watch`    | Redémarre le server API lors d'une modification d'un source python et log le server API                                   |
 | `make status`   | Affiche le statut actuel des serveurs (en cours d'exécution ou arrêtés).                                                  |
 | `make update`   | Met à jour le projet : arrête les serveurs, récupère les dernières modifications depuis Git, puis redémarre les serveurs. |
 | `make clean`    | Nettoie le projet en supprimant l'environnement virtuel Python.                                                           |

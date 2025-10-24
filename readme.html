@@ -33,7 +33,7 @@ make install
 <tbody>
 <tr>
 <td><code>make install</code></td>
-<td>Installe les dépendances système, crée l'environnement virtuel et installe les paquets Python.</td>
+<td>Installe / Met à jour les dépendances système, crée l'environnement virtuel et installe les paquets Python.</td>
 </tr>
 <tr>
 <td><code>make start</code></td>
@@ -46,6 +46,10 @@ make install
 <tr>
 <td><code>make restart</code></td>
 <td>Redémarre les serveurs (équivaut à <code>make stop &amp;&amp; make start</code>).</td>
+</tr>
+<tr>
+<td><code>make watch</code></td>
+<td>Redémarre le server API lors d'une modification d'un source python et log le server API</td>
 </tr>
 <tr>
 <td><code>make status</code></td>

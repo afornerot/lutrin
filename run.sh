@@ -104,7 +104,7 @@ install_project() {
 
     Title "Installation des dépendances système"
     EchoOrange "Cette étape nécessite les droits super-utilisateur (sudo)."
-    sudo apt update && sudo apt install -y python3 python3-pip git make tesseract-ocr tesseract-ocr-fra
+    sudo apt update && sudo apt install -y python3 python3-pip git make tesseract-ocr tesseract-ocr-fra inotify-tools
     if [ $? -ne 0 ]; then
         EchoRouge "L'installation des dépendances système a échoué."
         exit 1
@@ -125,6 +125,10 @@ install_project() {
     fi
     EchoBlanc
 
+    Title "Mise à jour du code source depuis Git"
+    git pull
+    EchoBlanc
+
     Title "Installation des dépendances Python"
     "$VENV_PIP" install -r "$API_DIR/requirements.txt"
     EchoVert "Dépendances Python installées avec succès."
@@ -132,20 +136,6 @@ install_project() {
 
     EchoVert "✅ Installation terminée avec succès !"
     EchoBlanc "Lancez 'make start' pour démarrer les serveurs."
-}
-
-update_project() {
-    BigTitle "Mise à jour des services Lutrin"
-    stop_api
-    stop_client
-    
-    Title "Mise à jour du code source depuis Git"
-    git pull
-    EchoBlanc
-
-    Title "Redémarrage des services"
-    start_api
-    start_client
 }
 
 clean_project() {
@@ -156,13 +146,60 @@ clean_project() {
     EchoBlanc
 }
 
+watch_api_changes() {
+    BigTitle "Mode Watch pour Lutrin API"
+    EchoVert "Surveillance des modifications de fichiers .py dans '$API_DIR'..."
+    EchoVert "Le serveur API sera redémarré automatiquement en cas de changement."
+    EchoBlanc
+
+    # Vérifier si inotifywait est installé
+    if ! command -v inotifywait &> /dev/null
+    then
+        EchoRouge "Erreur: 'inotifywait' n'est pas installé. Veuillez l'installer (par exemple: sudo apt install inotify-tools)."
+        exit 1
+    fi
+
+    # Fonction de nettoyage pour tuer le processus tail en arrière-plan
+    cleanup() {
+        EchoOrange "\nArrêt du mode watch..."
+        if [ -n "$TAIL_PID" ]; then
+            kill "$TAIL_PID" 2>/dev/null
+            EchoVert "Processus 'tail' arrêté."
+        fi
+        # On peut aussi arrêter le serveur API ici pour un nettoyage complet
+        stop_api
+        exit 0
+    }
+
+    # Intercepter le signal de sortie (Ctrl+C) pour appeler la fonction de nettoyage
+    trap cleanup INT TERM
+
+    # Démarrage initial
+    stop_api
+    start_api
+
+    # Lancer tail -f en arrière-plan et stocker son PID
+    tail -f "$API_LOG_FILE" &
+    TAIL_PID=$!
+
+    while true; do
+        # Surveiller les événements de modification, création, suppression, déplacement de fichiers .py de manière récursive
+        # Le -q rend inotifywait silencieux jusqu'à ce qu'un événement se produise
+        inotifywait -q -r -e modify,create,delete,move "$API_DIR" --include '\.py$'
+        
+        EchoOrange "Modification détectée ! Redémarrage du serveur API..."
+        kill "$TAIL_PID" 2>/dev/null # Arrêter l'ancien tail
+        stop_api
+        start_api
+        tail -f "$API_LOG_FILE" & # Lancer un nouveau tail
+        TAIL_PID=$!
+    done
+}
+
 # --- Point d'entrée ---
 case "$1" in
     install)
         install_project
-        ;;
-    update)
-        update_project
         ;;
     start)
         BigTitle "Démarrage des services Lutrin"
@@ -195,8 +232,11 @@ case "$1" in
         clean_project
         EchoBlanc
         ;;
+    watch)
+        watch_api_changes
+        ;;
     *)
-        EchoOrange "Usage: $0 {install|update|start|stop|status|apilogs|clientlogs|clean}"
+        EchoOrange "Usage: $0 {install|start|stop|watch|status|apilogs|clientlogs|clean"
         EchoBlanc
         exit 1
         ;;
