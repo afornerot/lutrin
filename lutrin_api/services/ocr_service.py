@@ -27,7 +27,7 @@ def reordonner_double_page(resultat_ocr):
     polys = res.get('rec_polys', [])
     
     if not textes or not polys:
-        return "Aucun texte ou coordonnée trouvé."
+        return "Aucun texte trouvé."
 
     # 1. Calculer la largeur maximale de l'image pour déterminer le milieu
     # On prend la coordonnée X maximale parmi toutes les boîtes (approximatif mais suffisant)
@@ -99,10 +99,16 @@ def ocr_image(filepath, output_filename):
         # Déterminer les textes de pages gauche et droite
         full_text=reordonner_double_page(result)
         
+        # Si le texte est vide après le traitement, assigner un message par défaut.
+        if not full_text or not full_text.strip():
+            full_text = "Aucun texte trouvée"
+        
         print("\n--- Texte complet ---\n")
         print(full_text)
         print("-" * 50)
         
+        
+
         # Écrire le texte reconnu dans le fichier spécifié
         text_output_path = os.path.join(UPLOAD_FOLDER, output_filename)
         with open(text_output_path, 'w', encoding='utf-8') as f:

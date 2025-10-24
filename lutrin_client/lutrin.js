@@ -319,6 +319,19 @@ async function startTTS(fichier) {
     }
 }
 
+async function noOCR() {
+    const ttsResponse = await fetch(`${API_BASE_URL}/tts`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text: "Aucun texte détecté" }) // Envoyer le contenu récupéré
+    });
+    if (!ttsResponse.ok) {
+        const errorText = await ttsResponse.text();
+        throw new Error(`Étape 2 (TTS) a échoué avec le statut ${ttsResponse.status}: ${errorText}`);
+    }
+}
 // Initialisation
 function init() {
     // 1. Démarrer le flux vidéo
