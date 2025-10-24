@@ -1,18 +1,15 @@
 # Contient les variables de configuration de l'application chargées via python-dotenv.
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 import os
-import pytesseract
 
-# Charge les variables d'environnement depuis .env et .env.local
-load_dotenv(override=True)
+# Charger le fichier .env de base. find_dotenv() le cherche dans les répertoires parents.
+load_dotenv(find_dotenv('.env'))
 
-# Définir le chemin de base du script (le dossier lutrin_api)
+# Charger le fichier .env.local pour surcharger les valeurs.
+load_dotenv(find_dotenv('.env.local'), override=True)
+
+# Base dir
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# Récupération des variables d'environnement ou utilisation de valeurs par défaut
-# UPLOAD_FOLDER utilise un chemin relatif résolu en absolu pour plus de portabilité
-UPLOAD_FOLDER_RELATIVE = os.getenv('UPLOAD_FOLDER', '../lutrin_data/')
-UPLOAD_FOLDER = os.path.join(BASE_DIR, UPLOAD_FOLDER_RELATIVE)
 
 # Chemin vers le modèle TTS Piper. Assurez-vous de télécharger le modèle et de le placer dans lutrin_api/models/
 TTS_MODEL_RELATIVE = os.getenv('TTS_MODEL', 'models/fr_FR-siwis-medium.onnx')
@@ -24,7 +21,11 @@ OCR_IA_USE = os.getenv('OCR_IA_USE', 'false').lower() in ('true', '1', 'yes')
 # Jeton pour un service OCR externe
 OCR_IA_TOKEN = os.getenv('OCR_IA_TOKEN', '')
 
+# Port de communication flask
 FLASK_PORT = int(os.getenv('FLASK_PORT', 5000)) 
+
+# Définir le chemin des uploads
+UPLOAD_FOLDER = os.path.join(BASE_DIR, '../lutrin_data/')
 
 # Création du répertoire de stockage s'il n'existe pas
 if not os.path.exists(UPLOAD_FOLDER):
