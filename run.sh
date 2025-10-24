@@ -196,6 +196,8 @@ watch_api_changes() {
         EchoBleu "Temporisation de 5 secondes pour permettre l'initialisation du serveur..."
         sleep 5
         EchoVert "Reprise de la surveillance."
+        EchoBlanc
+        EchoBlanc
         tail -f "$API_LOG_FILE" & # Lancer un nouveau tail
         TAIL_PID=$!
     done

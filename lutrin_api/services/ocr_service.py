@@ -2,20 +2,18 @@
 import os
 import base64
 import requests
-from PIL import Image
 
 from paddleocr import PaddleOCR
+from .logger_service import *
 from config import UPLOAD_FOLDER, OCR_IA_USE, OCR_IA_TOKEN
 
-# Initialisation conditionnelle de PaddleOCR.
+# Initialisation conditionnelle de PaddleOCR/Groq.
 ocr_engine = None
 if not OCR_IA_USE: # Si OCR_IA_USE est false, on utilise le moteur local PaddleOCR
-    print("Initialisation du moteur OCR local : PaddleOCR (OCR_IA_USE=false)")
+    Info("Initialisation PaddleOCR")
     ocr_engine = PaddleOCR(use_angle_cls=True, lang='en')
-    print("PaddleOCR initialisé.")
 else:
-    # Si OCR_IA_USE est true, on se prépare à utiliser une API externe (Groq, etc.)
-    print("AVERTISSESEMENT: Le moteur OCR local est désactivé. L'application utilisera une API externe (OCR_IA_USE=true).")
+    Info("Initialisation Groq")
 
 def _reordonner_double_page(resultat_ocr):
     """
@@ -67,29 +65,54 @@ def _reordonner_double_page(resultat_ocr):
     
     return texte_final
 
+def _delete_old_files():
+    """
+    Point d'entrée pour supprimer les anciens fichiers de résultat OCR.
+    """
+
+    Title("Nettoyage des anciens fichiers de résultat OCR")
+
+    # On parcourt tous les fichiers dans le dossier UPLOAD_FOLDER
+    for filename in os.listdir(UPLOAD_FOLDER):
+        if filename.startswith('ocr_result_') and filename.endswith('.txt'):
+            try:
+                file_path_to_delete = os.path.join(UPLOAD_FOLDER, filename)
+                os.remove(file_path_to_delete)
+                Log(f"Suppression = {file_path_to_delete}")
+            except OSError as e:
+                Error(f"Suppression du fichier impossible {filename} = {e}")
+
+
 def _ocr_image_ia(filepath, output_filename): # Renommé de ocr_image_ia à _ocr_image_ia
     """
     Point d'entrée pour l'OCR via une API externe (Groq).
     """
-    
-    print(f"--- Début du traitement OCR avec Groq pour : {filepath} ---")
 
+    BigTitle(f"Traitement OCR avec Groq")
+
+    # Suppression des anciens fichiers de résultat OCR
+    _delete_old_files()
+
+    # Tester la présence du tocken
     if not OCR_IA_TOKEN:
-        error_msg = "Le jeton d'API Groq (OCR_IA_TOKEN) est manquant dans la configuration."
-        print(f"ERREUR: {error_msg}")
+        Error(f"{error_msg}")
+
+        error_msg = "Le jeton d'API Groq est manquant dans la configuration."
         text_output_path = os.path.join(UPLOAD_FOLDER, output_filename)
         with open(text_output_path, 'w', encoding='utf-8') as f:
             f.write(error_msg)
         return error_msg, text_output_path
 
+    # Traitement l'image par Groq
+    Title("Traitement de l'image par Groq")
     try:
-        # 1. Lire l'image et l'encoder en base64
+        # Lire l'image et l'encoder en base64
         with open(filepath, "rb") as image_file:
             encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
         image_data_url = f"data:image/jpeg;base64,{encoded_image}"
-        print(f"Image encodée en base64 (taille: {len(encoded_image)}).")
+        Log(f"Image encodée en base64 (taille: {len(encoded_image)}).")
 
-        # 2. Préparer le payload pour l'API Groq
+        # Préparer le payload pour l'API Groq
         groq_api_url = 'https://api.groq.com/openai/v1/chat/completions'
         headers = {
             'Authorization': f'Bearer {OCR_IA_TOKEN}',
@@ -126,38 +149,39 @@ Retourne uniquement le texte extrait, propre et lisible."""
             "max_tokens": 4000
         }
 
-        # 3. Envoyer la requête à Groq
-        print("Envoi de la requête à l'API Groq...")
+        # Envoyer la requête à Groq
+        Log("Envoi de la requête à l'API Groq")
         response = requests.post(groq_api_url, headers=headers, json=payload)
-        response.raise_for_status() # Lève une exception pour les codes d'état HTTP d'erreur
+        response.raise_for_status()
 
         data = response.json()
-        print(f"Réponse Groq reçue (statut: {response.status_code}).")
+        Log(f"Réponse Groq reçue statut = {response.status_code}")
 
-        # 4. Extraire le texte
+        # Extraire le texte
         extracted_text = data.get('choices', [{}])[0].get('message', {}).get('content', 'Aucun texte trouvé par Groq.')
         
         # Si le texte est vide après le traitement, assigner un message par défaut.
         if not extracted_text or not extracted_text.strip():
-            extracted_text = "Aucun texte trouvé par Groq."
+            extracted_text = "Aucun texte trouvé"
 
-        print(f"Texte extrait (début): {extracted_text[:300]}...")
+        Log(f"Texte extrait = {extracted_text[:300]}...")
 
-        # 5. Écrire le texte dans le fichier spécifié
+        # Écrire le texte dans le fichier spécifié
         text_output_path = os.path.join(UPLOAD_FOLDER, output_filename)
         with open(text_output_path, 'w', encoding='utf-8') as f:
             f.write(extracted_text)
-        print(f"Texte OCR sauvegardé dans : {text_output_path}")
+
+        Success(f"Texte OCR sauvegardé dans = {text_output_path}")
 
         return extracted_text, text_output_path
 
     except requests.exceptions.RequestException as e:
         error_msg = f"Erreur de connexion ou d'API Groq: {e}"
-        print(f"ERREUR: {error_msg}")
+        Error(f"{error_msg}")
         return "", error_msg
     except Exception as e:
         error_msg = f"Erreur inattendue lors du traitement Groq OCR: {e}"
-        print(f"ERREUR: {error_msg}")
+        Error(f"{error_msg}")
         return "", error_msg
 
 def _ocr_image_paddle(filepath, output_filename): 
@@ -166,41 +190,24 @@ def _ocr_image_paddle(filepath, output_filename):
     Écrit le texte reconnu dans un fichier et retourne le texte et le chemin du fichier.
     """
 
+    BigTitle(f"Traitement OCR avec Groq")
+
+    # Suppression des anciens fichiers de résultat OCR
+    _delete_old_files()
+
+    # Tester la précence de paddle
     if not ocr_engine:
-        error_msg = "Le moteur OCR local (PaddleOCR) n'est pas initialisé."
-        print(f"ERREUR: {error_msg}")
+        error_msg = "Le moteur PaddleOCR) n'est pas initialisé"
+        Error(f"{error_msg}")
         text_output_path = os.path.join(UPLOAD_FOLDER, output_filename)
         with open(text_output_path, 'w', encoding='utf-8') as f:
             f.write(error_msg)
         return error_msg, text_output_path
 
-    print(f"--- Début du traitement OCR avec PaddleOCR pour : {filepath} ---")
+
+    # Traitement l'image par Paddle
+    Title("Traitement de l'image par Paddle")
     try:
-        # --- Suppression des anciens fichiers de résultat OCR ---
-        print("Nettoyage des anciens fichiers de résultat OCR...")
-        # On parcourt tous les fichiers dans le dossier UPLOAD_FOLDER
-        for filename in os.listdir(UPLOAD_FOLDER):
-            # Si le fichier correspond au pattern des fichiers de résultat OCR
-            if filename.startswith('ocr_result_') and filename.endswith('.txt'):
-                try:
-                    file_path_to_delete = os.path.join(UPLOAD_FOLDER, filename)
-                    os.remove(file_path_to_delete)
-                    print(f"Ancien fichier OCR supprimé : {file_path_to_delete}")
-                except OSError as e:
-                    # On ne bloque pas le processus si une suppression échoue, on logue juste l'erreur
-                    print(f"Erreur lors de la suppression du fichier {filename}: {e}")
-
-        # Optimisation de l'images
-        """"
-        print("\nLancement de l'optimisation de l'image...")
-        base, ext = os.path.splitext(os.path.basename(filepath))
-        optimized_filename = f"{base}_optimized.png"
-        optimized_filepath = os.path.join(UPLOAD_FOLDER, optimized_filename)
-        traiter_document_pour_ocr(filepath, optimized_filepath)
-        print("Optimisation terminée.")
-        result = ocr_engine.predict(optimized_filepath)
-        """
-
         # Exécution de PaddleOCR sur le fichier image qui retourne un objet plus structuré.
         result = ocr_engine.predict(filepath)
 
@@ -211,23 +218,20 @@ def _ocr_image_paddle(filepath, output_filename):
         if not full_text or not full_text.strip():
             full_text = "Aucun texte trouvée"
         
-        print("\n--- Texte complet ---\n")
-        print(full_text)
-        print("-" * 50)
-        
-        
+        Log(f"Texte extrait = {full_text[:300]}...")
 
         # Écrire le texte reconnu dans le fichier spécifié
         text_output_path = os.path.join(UPLOAD_FOLDER, output_filename)
         with open(text_output_path, 'w', encoding='utf-8') as f:
             f.write(full_text)
-        print(f"Texte OCR sauvegardé dans : {text_output_path}")
-        
+
+        Success(f"Texte OCR sauvegardé dans = {text_output_path}")
+       
         # Retourner le texte et le chemin du fichier
         return full_text, text_output_path
     except Exception as e:
         error_msg = f"Erreur OCR inattendue: {e}"
-        print(error_msg)
+        Error(error_msg)
         return "", error_msg
 
 def ocr_image(filepath, output_filename):

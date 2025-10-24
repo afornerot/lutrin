@@ -1,20 +1,12 @@
-# server.py - Routeur Principal
-
 import os
 import time
 import uuid
+
 from flask import Flask, Response, jsonify, send_from_directory, url_for, request
 from flask_cors import CORS
 from waitress import serve
-
-# Importation du module de configuration
-from config import (
-    UPLOAD_FOLDER, 
-    FLASK_PORT
-)
-
-# Importation des services après la définition des variables de configuration
-from services import generate_frames, capture_image_from_webcam, ocr_image, generate_tts
+from services import camera_video, camera_image, ocr_image, generate_tts, BigTitle     
+from config import UPLOAD_FOLDER, FLASK_PORT
 
 # Configuration de Flask
 app = Flask(__name__)
@@ -25,7 +17,10 @@ CORS(app)
 
 @app.route('/status')
 def status():
-    """Vérifie l'état de l'API."""
+    """
+    Vérifie l'état de l'API.
+    """
+
     return jsonify({
         "status": "online",
         "api_name": "Lutrin Pi API",
@@ -34,8 +29,11 @@ def status():
 
 @app.route('/video')
 def video():
-    """Fournit le flux vidéo MJPEG en continu (Service Caméra)."""
-    return Response(generate_frames(),
+    """
+    Fournit le flux vidéo MJPEG en continu (Service Caméra).
+    """
+
+    return Response(camera_video(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/capture', methods=['POST']) # Étape 1: Capture
@@ -44,16 +42,16 @@ def capture_image():
     Capture une image depuis la webcam et la sauvegarde.
     Retourne les informations sur le fichier image créé.
     """
+
     timestamp = int(time.time())
     unique_id = uuid.uuid4().hex[:6]
     img_filename = f"capture_{unique_id}_{timestamp}.jpg"
     
-    success, result_path_or_error = capture_image_from_webcam(img_filename)
+    success, result_path_or_error = camera_image(img_filename)
     
     if not success:
         return jsonify({"error": "Capture échouée", "details": result_path_or_error}), 500
 
-    print(f"Image sauvegardée: {result_path_or_error}")
     return jsonify({
         "status": "success",
         "image_filename": img_filename,
@@ -66,6 +64,7 @@ def process_ocr():
     """
     Prend un nom de fichier image en entrée, exécute l'OCR et retourne le texte.
     """
+
     data = request.get_json()
     if not data or 'image_filename' not in data:
         return jsonify({"error": "Le nom du fichier image est manquant"}), 400
@@ -90,6 +89,7 @@ def process_tts():
     """
     Prend du texte en entrée, génère un fichier audio et retourne ses informations.
     """
+
     data = request.get_json()
     if not data or 'text' not in data:
         return jsonify({"error": "Le texte est manquant"}), 400
@@ -119,5 +119,5 @@ def serve_file(filename):
 
 # Lancement du serveur de production Waitress sur toutes les interfaces (0.0.0.0)
 if __name__ == '__main__':
-    print("Serveur Lutrin Pi démarré.")
+    BigTitle("Serveur Lutrin démarré")
     serve(app, host='0.0.0.0', port=FLASK_PORT, threads=6)
