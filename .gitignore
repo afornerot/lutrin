@@ -8,5 +8,6 @@ waitress.log
 lutrin_data/*
 !lutrin_data/
 !lutrin_data/test*
+lutrin_data/test*_optimized.png
 .DS_Store
 .vscode/
