@@ -70,7 +70,7 @@ make install
 </tbody>
 </table>
 <p>Une fois les serveurs démarrés avec <code>make start</code>, vous pouvez accéder à l'interface web à l'adresse : <strong>http://localhost:8000</strong></p>
-<h2 id="configuration-env">Configuration (<code>.env</code>)</h2>
+<h2 id="configuration-lutrin-apienv">Configuration (<code>lutrin_api/.env</code>)</h2>
 <p>Le projet utilise des fichiers d'environnement pour gérer sa configuration, ce qui permet de séparer les paramètres de l'application du code source.</p>
 <ul>
 <li><strong><code>.env</code></strong>: Ce fichier contient la configuration par défaut. Il est inclus dans le contrôle de version (Git) et sert de modèle.</li>
@@ -78,19 +78,13 @@ make install
 </ul>
 <h3 id="paramtres-disponibles">Paramètres disponibles</h3>
 <ul>
-<li><code>UPLOAD_FOLDER</code>: Chemin relatif vers le dossier où sont stockées les images capturées, les résultats OCR et les fichiers audio.</li>
 <li><code>TTS_MODEL</code>: Chemin relatif vers le modèle de synthèse vocale Piper (<code>.onnx</code>).</li>
 <li><code>FLASK_PORT</code>: Le port sur lequel le serveur API Flask écoute.</li>
-<li><code>OCR_IA</code>: Chaîne de caractères (<code>'paddle'</code> ou <code>'groq'</code>) qui détermine quel moteur OCR utiliser.
-<ul>
-<li><code>'paddle'</code> (défaut) : Utilise le moteur OCR local <strong>PaddleOCR</strong>. Gourmand en ressources mais ne nécessite pas de connexion internet ni de clé API.</li>
-<li><code>'groq'</code> : Utilise l'API externe de <strong>Groq</strong>. Nécessite une clé API et une connexion internet.</li>
-</ul>
-</li>
-<li><code>GROQ_TOKEN</code>: Votre clé d'API pour les services externes (Groq).</li>
+<li><code>GROQ_TOKEN</code>: Votre clé d'API pour Groq OCR.</li>
+<li><code>COQUI_TTS_URL</code>: Url du service Coqui TTS.</li>
 </ul>
 <h3 id="obtenir-une-cl-api-groq">Obtenir une clé API Groq</h3>
-<p>Pour utiliser le mode OCR avec l'IA de Groq (<code>OCR_IA=groq</code>), vous devez fournir une clé API.</p>
+<p>Pour utiliser le mode OCR avec l'IA de Groq, vous devez fournir une clé API.</p>
 <ol>
 <li>Créez un compte sur le site de Groq.</li>
 <li>Accédez à la section des clés API de votre console : <a href="https://console.groq.com/keys">https://console.groq.com/keys</a></li>
@@ -106,7 +100,7 @@ make install
 <p>Le backend du projet. C'est une application <strong>Flask</strong> qui expose une API REST pour contrôler le matériel.</p>
 <ul>
 <li><strong><code>server.py</code></strong>: Le routeur principal de l'API. Il définit les points d'accès (endpoints) comme <code>/status</code>, <code>/video</code>, <code>/capture</code>, <code>/ocr</code>, <code>/tts</code> et <code>/file</code>.</li>
-<li><strong><code>services</code></strong>: Contient la logique métier. C'est ici que se trouvent les fonctions pour interagir avec la caméra, lancer Tesseract pour l'OCR, et simuler la synthèse vocale.</li>
+<li><strong><code>services</code></strong>: Contient la logique métier. C'est ici que se trouvent les fonctions pour lancer récupérer l'image, la traiter en OCR, et simuler la synthèse vocale en TTS.</li>
 <li><strong><code>config.py</code></strong>: Fichier de configuration pour les chemins, les ports, etc.</li>
 <li><strong><code>requirements.txt</code></strong>: Liste les dépendances Python pour le backend (Flask, Waitress, Pillow, etc.).</li>
 </ul>
@@ -121,6 +115,7 @@ make install
 <p>Un répertoire pour les scripts utilitaires partagés.</p>
 <ul>
 <li><strong><code>ihm.sh</code></strong>: Un script shell fournissant des fonctions pour afficher des messages colorés et formatés dans le terminal, améliorant l'expérience utilisateur des scripts <code>run.sh</code>.</li>
+<li><strong><code>voice-choice</code></strong>: échantillon des voix possibles pour la synthèse vocale Coqui</li>
 </ul>
 
   </body>

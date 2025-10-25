@@ -3,7 +3,7 @@
 Projet d'interface web pour contrôler une caméra sur un Raspberry Pi, effectuer une reconnaissance optique de caractères (OCR) sur les images capturées et générer une synthèse vocale (TTS) du texte reconnu.
 
 ## Installation
-
+ 
 ```
 sudo apt install -y python3 python3-pip git make tesseract-ocr tesseract-ocr-fra
 git clone https://github.com/afornerot/lutrin.git
@@ -29,7 +29,7 @@ Le projet est géré via des commandes `make` simples et intuitives.
 
 Une fois les serveurs démarrés avec `make start`, vous pouvez accéder à l'interface web à l'adresse : **http://localhost:8000**
 
-## Configuration (`.env`)
+## Configuration (`lutrin_api/.env`)
 
 Le projet utilise des fichiers d'environnement pour gérer sa configuration, ce qui permet de séparer les paramètres de l'application du code source.
 
@@ -38,17 +38,14 @@ Le projet utilise des fichiers d'environnement pour gérer sa configuration, ce 
 
 ### Paramètres disponibles
 
--   `UPLOAD_FOLDER`: Chemin relatif vers le dossier où sont stockées les images capturées, les résultats OCR et les fichiers audio.
 -   `TTS_MODEL`: Chemin relatif vers le modèle de synthèse vocale Piper (`.onnx`).
 -   `FLASK_PORT`: Le port sur lequel le serveur API Flask écoute.
--   `OCR_IA`: Chaîne de caractères (`'paddle'` ou `'groq'`) qui détermine quel moteur OCR utiliser.
-    -   `'paddle'` (défaut) : Utilise le moteur OCR local **PaddleOCR**. Gourmand en ressources mais ne nécessite pas de connexion internet ni de clé API.
-    -   `'groq'` : Utilise l'API externe de **Groq**. Nécessite une clé API et une connexion internet.
--   `GROQ_TOKEN`: Votre clé d'API pour les services externes (Groq).
+-   `GROQ_TOKEN`: Votre clé d'API pour Groq OCR.
+-   `COQUI_TTS_URL`: Url du service Coqui TTS.
 
 ### Obtenir une clé API Groq
 
-Pour utiliser le mode OCR avec l'IA de Groq (`OCR_IA=groq`), vous devez fournir une clé API.
+Pour utiliser le mode OCR avec l'IA de Groq, vous devez fournir une clé API.
 
 1.  Créez un compte sur le site de Groq.
 2.  Accédez à la section des clés API de votre console : https://console.groq.com/keys
@@ -67,7 +64,7 @@ Le cœur de l'automatisation. Ce script Bash gère la logique de démarrage, d'a
 ### `lutrin_api/`
 Le backend du projet. C'est une application **Flask** qui expose une API REST pour contrôler le matériel.
 - **`server.py`**: Le routeur principal de l'API. Il définit les points d'accès (endpoints) comme `/status`, `/video`, `/capture`, `/ocr`, `/tts` et `/file`.
-- **`services`**: Contient la logique métier. C'est ici que se trouvent les fonctions pour interagir avec la caméra, lancer Tesseract pour l'OCR, et simuler la synthèse vocale.
+- **`services`**: Contient la logique métier. C'est ici que se trouvent les fonctions pour lancer récupérer l'image, la traiter en OCR, et simuler la synthèse vocale en TTS.
 - **`config.py`**: Fichier de configuration pour les chemins, les ports, etc.
 - **`requirements.txt`**: Liste les dépendances Python pour le backend (Flask, Waitress, Pillow, etc.).
 
@@ -80,3 +77,4 @@ Le frontend du projet. C'est une application web statique (HTML, CSS, JavaScript
 ### `lutrin_tools/`
 Un répertoire pour les scripts utilitaires partagés.
 - **`ihm.sh`**: Un script shell fournissant des fonctions pour afficher des messages colorés et formatés dans le terminal, améliorant l'expérience utilisateur des scripts `run.sh`.
+- **`voice-choice`**: échantillon des voix possibles pour la synthèse vocale Coqui
