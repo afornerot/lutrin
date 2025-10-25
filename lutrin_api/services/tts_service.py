@@ -3,22 +3,20 @@ import wave
 import requests
 
 from piper.voice import PiperVoice
-from .logger_service import *
-from config import UPLOAD_FOLDER, PIPER_MODEL, TTS_IA, COQUI_TTS_URL
+from .logger_service import BigTitle, Title, Error, Success, Log
+from config import UPLOAD_FOLDER, PIPER_MODEL, COQUI_TTS_URL
 
-# Initialisation du modèle TTS (chargé une seule fois au démarrage)
+# --- Initialisation des modèles TTS (chargés une seule fois au démarrage) ---
 voice = None
-if TTS_IA == 'piper':
-    Info(f"Initialisation TTS = Piper")
-    if os.path.exists(PIPER_MODEL):
-        try:
-            voice = PiperVoice.load(PIPER_MODEL)
-        except Exception as e:
-            Error(f"Impossible de charger le modèle TTS Piper. Détails: {e}")
-    else:
-        Error(f"Modèle TTS Piper non trouvé à l'emplacement = {PIPER_MODEL}") 
-elif TTS_IA == 'coqui':
-    Info("Initialisation TTS = Coqui")
+Log("Initialisation des moteurs TTS...")
+if os.path.exists(PIPER_MODEL):
+    try:
+        voice = PiperVoice.load(PIPER_MODEL)
+        Log("Moteur TTS Piper chargé avec succès.")
+    except Exception as e:
+        Error(f"Impossible de charger le modèle TTS Piper. Détails: {e}")
+else:
+    Error(f"Modèle TTS Piper non trouvé à l'emplacement = {PIPER_MODEL}. Le moteur Piper sera indisponible.")
 
 def _delete_old_files():
     """
@@ -90,20 +88,20 @@ def _generate_tts_coqui(text, audio_filename):
         Error(error_msg)
         return False, error_msg
     
-def generate_tts(text, audio_filename):
+def generate_tts(text, audio_filename, tts_engine='coqui'):
     """
     Aiguilleur principal pour le service TTS.
     """
 
-    BigTitle(f"Traitement TTS")
+    BigTitle(f"Traitement TTS avec le moteur : {tts_engine.upper()}")
 
     # Suppression des anciens fichiers audio
     _delete_old_files()
 
     if not text or not text.strip():
         return False, "Le texte fourni est vide."
-
-    if TTS_IA == 'piper':
+    
+    if tts_engine == 'piper':
         return _generate_tts_piper(text, audio_filename)
-    elif TTS_IA == 'coqui':
+    elif tts_engine == 'coqui':
         return _generate_tts_coqui(text, audio_filename)

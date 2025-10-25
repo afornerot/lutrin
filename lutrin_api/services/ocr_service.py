@@ -5,15 +5,16 @@ import requests
 from groq import Groq
 from paddleocr import PaddleOCR
 from .logger_service import *
-from config import UPLOAD_FOLDER, OCR_IA, GROQ_TOKEN
+from config import UPLOAD_FOLDER, GROQ_TOKEN
 
-# Initialisation conditionnelle de PaddleOCR/Groq.
+# --- Initialisation des moteurs OCR (chargés une seule fois au démarrage) ---
 ocr_engine = None
-if OCR_IA == 'paddle':
-    Info("Initialisation OCR = Paddle")
-    ocr_engine = PaddleOCR(use_angle_cls=True, lang='en')
-elif OCR_IA == 'groq':
-    Info("Initialisation OCR = Groq")
+Log("Initialisation des moteurs OCR...")
+try:
+    ocr_engine = PaddleOCR(use_angle_cls=True, lang='fr')
+    Log("Moteur PaddleOCR chargé avec succès.")
+except Exception as e:
+    Error(f"Impossible de charger le moteur PaddleOCR. Détails: {e}. Le moteur Paddle sera indisponible.")
 
 def _reordonner_double_page(resultat_ocr):
     """
@@ -208,19 +209,18 @@ def _ocr_image_paddle(filepath, output_filename):
         Error(error_msg)
         return "", error_msg
 
-def ocr_image(filepath, output_filename):
+def ocr_image(filepath, output_filename, ocr_engine_choice='paddle'):
     """
     Aiguilleur principal pour le service OCR.
     Appelle le moteur local (PaddleOCR) ou une API externe en fonction de la configuration.
     """
 
-    BigTitle(f"Traitement OCR")
+    BigTitle(f"Traitement OCR avec le moteur : {ocr_engine_choice.upper()}")
 
     # Suppression des anciens fichiers
     _delete_old_files()
     
-    # Groq / Paddle
-    if OCR_IA == 'groq':
+    if ocr_engine_choice == 'groq':
         return _ocr_image_groq(filepath, output_filename)
     else:
         return _ocr_image_paddle(filepath, output_filename)

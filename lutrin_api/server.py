@@ -66,19 +66,21 @@ def process_ocr():
     """
 
     data = request.get_json()
-    if not data or 'image_filename' not in data:
-        return jsonify({"error": "Le nom du fichier image est manquant"}), 400
+    image_filename = data.get('image_filename')
+    ocr_engine = data.get('ocr_engine', 'paddle') # 'paddle' par défaut
 
-    image_path = os.path.join(app.config['UPLOAD_FOLDER'], data['image_filename'])
+    if not image_filename:
+        return jsonify({"error": "Le paramètre 'image_filename' est manquant"}), 400
+
+    image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
     if not os.path.exists(image_path):
         return jsonify({"error": "Le fichier image est introuvable sur le serveur"}), 404
 
-    # Générer un nom de fichier unique pour le résultat texte de l'OCR
     timestamp = int(time.time())
     unique_id = uuid.uuid4().hex[:6]
     text_filename = f"ocr_result_{unique_id}_{timestamp}.txt"
 
-    recognized_text, text_path_or_error = ocr_image(image_path, text_filename)
+    recognized_text, text_path_or_error = ocr_image(image_path, text_filename, ocr_engine_choice=ocr_engine)
     if not recognized_text and text_path_or_error: # Si l'OCR a échoué
         return jsonify({"error": "L'OCR a échoué", "details": text_path_or_error}), 500
 
@@ -91,14 +93,17 @@ def process_tts():
     """
 
     data = request.get_json()
-    if not data or 'text' not in data:
-        return jsonify({"error": "Le texte est manquant"}), 400
+    text = data.get('text')
+    tts_engine = data.get('tts_engine', 'coqui') # 'coqui' par défaut
+
+    if not text:
+        return jsonify({"error": "Le paramètre 'text' est manquant"}), 400
 
     timestamp = int(time.time())
     unique_id = uuid.uuid4().hex[:6]
     audio_filename = f"audio_{unique_id}_{timestamp}.wav"
 
-    tts_success, audio_path_or_error = generate_tts(data['text'], audio_filename)
+    tts_success, audio_path_or_error = generate_tts(text, audio_filename, tts_engine=tts_engine)
     if not tts_success:
         return jsonify({"error": "La génération TTS a échoué", "details": audio_path_or_error}), 500
 

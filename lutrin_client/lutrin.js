@@ -8,6 +8,8 @@ const capturedImage = document.getElementById('captured-image');
 const ocrTextResult = document.getElementById('ocr-text-result');
 const audioPlayback = document.getElementById('audio-playback');
 const captureButton = document.getElementsByClassName('capture-button');
+const ocrEngineSelect = document.getElementById('ocr-engine-select');
+const ttsEngineSelect = document.getElementById('tts-engine-select');
 
 // Statut et messages
 const statusMessage = document.getElementById('status-message');
@@ -121,7 +123,8 @@ async function startCaptureAndOCR() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                image_filename: captureData.image_filename
+                image_filename: captureData.image_filename,
+                ocr_engine: ocrEngineSelect.value
             })
         });
         if (!ocrResponse.ok) {
@@ -142,7 +145,8 @@ async function startCaptureAndOCR() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                text: ocrData.text
+                text: ocrData.text,
+                tts_engine: ttsEngineSelect.value
             })
         });
         if (!ttsResponse.ok) {
@@ -200,7 +204,8 @@ async function startOCR(fichier) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                image_filename: fichier
+                image_filename: fichier,
+                ocr_engine: ocrEngineSelect.value
             })
         });
         if (!ocrResponse.ok) {
@@ -221,7 +226,8 @@ async function startOCR(fichier) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                text: ocrData.text
+                text: ocrData.text,
+                tts_engine: ttsEngineSelect.value
             })
         });
         if (!ttsResponse.ok) {
@@ -284,7 +290,10 @@ async function startTTS(fichier) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ text: textContent }) // Envoyer le contenu récupéré
+            body: JSON.stringify({
+                text: textContent,
+                tts_engine: ttsEngineSelect.value
+            }) // Envoyer le contenu récupéré
         });
         if (!ttsResponse.ok) {
             const errorText = await ttsResponse.text();
@@ -325,7 +334,10 @@ async function noOCR() {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ text: "Aucun texte détecté" }) // Envoyer le contenu récupéré
+        body: JSON.stringify({
+            text: "Aucun texte détecté",
+            tts_engine: ttsEngineSelect.value
+        }) // Envoyer le contenu récupéré
     });
     if (!ttsResponse.ok) {
         const errorText = await ttsResponse.text();
