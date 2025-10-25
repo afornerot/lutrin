@@ -102,7 +102,7 @@ status_all() {
 install_project() {
     BigTitle "Installation du projet Lutrin"
 
-    Title "Installation des dépendances système"
+    Title "Installation des dépendances système (hors Docker)"
     EchoOrange "Cette étape nécessite les droits super-utilisateur (sudo)."
     sudo apt update && sudo apt install -y python3 python3-pip git make tesseract-ocr tesseract-ocr-fra inotify-tools
     if [ $? -ne 0 ]; then
@@ -111,6 +111,33 @@ install_project() {
     fi
     EchoVert "Dépendances système installées."
     EchoBlanc
+
+    Title "Installation de Docker et Docker Compose (méthode officielle)"
+    # Vérifier si Docker est déjà installé
+    if ! command -v docker &> /dev/null; then
+        EchoOrange "Docker n'est pas détecté. Lancement de l'installation..."
+        # Ajout du dépôt officiel de Docker
+        sudo apt-get install -y ca-certificates curl
+        sudo install -m 0755 -d /etc/apt/keyrings
+        sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+        sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+        # Ajout du dépôt à la liste des sources Apt
+        echo \
+          "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+          $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+          sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        sudo apt-get update
+
+        # Installation des paquets Docker
+        sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+        EchoVert "Docker et Docker Compose installés avec succès."
+        EchoOrange "Pour utiliser Docker sans 'sudo', vous pouvez ajouter votre utilisateur au groupe 'docker' :"
+        EchoBleu "sudo usermod -aG docker \$USER"
+        EchoOrange "Vous devrez vous déconnecter et vous reconnecter pour que ce changement prenne effet."
+    else
+        EchoVert "Docker est déjà installé."
+    fi
 
     Title "Configuration des permissions"
     EchoVert "Script 'run.sh' rendu exécutable."
