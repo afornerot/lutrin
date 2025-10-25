@@ -4,8 +4,9 @@ import uuid
 
 from flask import Flask, Response, jsonify, send_from_directory, url_for, request
 from flask_cors import CORS
-from waitress import serve
-from services import camera_video, camera_image, ocr_image, generate_tts, BigTitle     
+from werkzeug.utils import secure_filename
+from waitress import serve 
+from services import ocr_image, generate_tts, BigTitle     
 from config import UPLOAD_FOLDER, FLASK_PORT
 
 # Configuration de Flask
@@ -27,37 +28,25 @@ def status():
         "version": "1.0",
     })
 
-@app.route('/video')
-def video():
-    """
-    Fournit le flux vidéo MJPEG en continu (Service Caméra).
-    """
-
-    return Response(camera_video(),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
-
-@app.route('/capture', methods=['POST']) # Étape 1: Capture
-def capture_image():
-    """
-    Capture une image depuis la webcam et la sauvegarde.
-    Retourne les informations sur le fichier image créé.
-    """
-
+@app.route('/upload', methods=['POST'])
+def upload_image():
+    if 'image' not in request.files:
+        return jsonify({"error": "Aucun fichier image n'a été envoyé"}), 400
+    
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify({"error": "Aucun fichier sélectionné"}), 400
+    
     timestamp = int(time.time())
     unique_id = uuid.uuid4().hex[:6]
-    img_filename = f"capture_{unique_id}_{timestamp}.jpg"
+    # Utilise secure_filename pour la sécurité, même si on le renomme après
+    original_filename = secure_filename(file.filename)
+    extension = os.path.splitext(original_filename)[1] or '.jpg'
+    new_filename = f"capture_{unique_id}_{timestamp}{extension}"
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
+    file.save(filepath)
     
-    success, result_path_or_error = camera_image(img_filename)
-    
-    if not success:
-        return jsonify({"error": "Capture échouée", "details": result_path_or_error}), 500
-
-    return jsonify({
-        "status": "success",
-        "image_filename": img_filename,
-        "image_path_local": result_path_or_error,
-        "image_url": url_for('serve_file', filename=img_filename, _external=True)
-    })
+    return jsonify({"status": "success", "image_filename": new_filename})
 
 @app.route('/ocr', methods=['POST']) # Étape 2: OCR
 def process_ocr():

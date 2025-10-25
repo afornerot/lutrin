@@ -88,6 +88,21 @@ async function checkApiStatus() {
     }
 }
 
+async function startLocalCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            }
+        });
+        videoStream.srcObject = stream;
+    } catch (error) {
+        console.error("Erreur d'accès à la caméra:", error);
+        showError("Impossible d'accéder à la caméra. Vérifiez les permissions dans votre navigateur.");
+    }
+}
+
 async function startCaptureAndOCR() {
     // 1. Désactiver le bouton et montrer le statut
     setCaptureButtonsState(true);
@@ -95,24 +110,36 @@ async function startCaptureAndOCR() {
     audioPlayback.removeAttribute('src');
     clearStats(); // Réinitialiser les stats
 
-    let captureStartTime, captureEndTime, ocrStartTime, ocrEndTime, ttsStartTime, ttsEndTime;
-    let captureDuration = null, ocrDuration = null, ttsDuration = null;
+    let uploadStartTime, uploadEndTime, ocrStartTime, ocrEndTime, ttsStartTime, ttsEndTime;
+    let uploadDuration = null, ocrDuration = null, ttsDuration = null;
 
     try {
-        // --- Étape 1: Capture de l'image ---
-        showStatus("1/3 - Capture de l'image...", false);
-        captureStartTime = performance.now();
-        const captureResponse = await fetch(`${API_BASE_URL}/capture`, {
-            method: 'POST'
+        // --- Étape 1: Capture et Upload de l'image ---
+        showStatus("1/3 - Capture et envoi de l'image...", false);
+        uploadStartTime = performance.now();
+
+        const canvas = document.createElement('canvas');
+        canvas.width = videoStream.videoWidth;
+        canvas.height = videoStream.videoHeight;
+        canvas.getContext('2d').drawImage(videoStream, 0, 0, canvas.width, canvas.height);
+        const imageDataUrl = canvas.toDataURL('image/jpeg');
+        capturedImage.src = imageDataUrl;
+
+        const blob = await (await fetch(imageDataUrl)).blob();
+        const formData = new FormData();
+        formData.append('image', blob, 'capture.jpg');
+
+        const captureResponse = await fetch(`${API_BASE_URL}/upload`, {
+            method: 'POST',
+            body: formData
         });
         if (!captureResponse.ok) {
             const errorText = await captureResponse.text(); // Lire la réponse comme du texte
             throw new Error(`Étape 1 (Capture) a échoué avec le statut ${captureResponse.status}: ${errorText}`);
         }
         const captureData = await captureResponse.json();
-        captureEndTime = performance.now();
-        captureDuration = captureEndTime - captureStartTime;
-        capturedImage.src = captureData.image_url + "?t=" + new Date().getTime();
+        uploadEndTime = performance.now();
+        uploadDuration = uploadEndTime - uploadStartTime;
 
         // --- Étape 2: Lancement de l'OCR ---
         showStatus("2/3 - Reconnaissance du texte (OCR)...", false);
@@ -169,7 +196,7 @@ async function startCaptureAndOCR() {
         showError(`Échec de l'opération : ${error.message || error}`);
     } finally {
         // Mettre à jour les statistiques
-        updateStats(captureDuration, ocrDuration, ttsDuration);
+        updateStats(uploadDuration, ocrDuration, ttsDuration);
         // Rétablir le bouton
         setCaptureButtonsState(false);
     }
@@ -283,6 +310,7 @@ async function startTTS(fichier) {
         ocrTextResult.value = textContent; // Afficher le texte dans la textarea
 
         // --- Étape 2: Génération du TTS ---
+        console.log(ttsEngineSelect.value);
         showStatus("2/2 - Génération de l'audio (TTS)...", false);
         ttsStartTime = performance.now();
         const ttsResponse = await fetch(`${API_BASE_URL}/tts`, {
@@ -346,8 +374,8 @@ async function noOCR() {
 }
 // Initialisation
 function init() {
-    // 1. Démarrer le flux vidéo
-    videoStream.src = `${API_BASE_URL}/video`;
+    // 1. Démarrer le flux vidéo local
+    startLocalCamera();
 
     // 2. Vérifier le statut de l'API toutes les 10 secondes
     checkApiStatus();

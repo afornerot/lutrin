@@ -89,8 +89,8 @@
                         <label class="block text-xs font-medium text-gray-700 mb-1 italic ">
                             Flux Vidéo = /video
                         </label>
-                        <img id="video-stream" src="" alt="Flux vidéo de la webcam"
-                            class="bg-gray-200 border border-gray-300">
+                        <video id="video-stream" autoplay playsinline
+                            class="bg-gray-200 border border-gray-300 w-full"></video>
                     </div>
 
                     <button id="capture-button" onclick="startCaptureAndOCR()"
@@ -147,8 +147,8 @@
                         <label class="block text-xs font-medium text-gray-700 italic">
                             Image Capturée = /capture
                         </label>
-                        <img id="captured-image" src="https://placehold.co/960x540/cccccc/333333?text=Image+Capturée"
-                            alt="Dernière image capturée" class="w-full h-auto rounded-lg border border-gray-300">
+                        <img id="captured-image" src="" alt="Dernière image capturée"
+                            class="w-full h-auto rounded-lg border border-gray-300">
                     </div>
                 </div>
 
