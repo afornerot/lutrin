@@ -12,3 +12,4 @@ lutrin_data/test*_optimized.png
 .DS_Store
 .vscode/
 *.local
+lutrin_coqui/coqui-data/

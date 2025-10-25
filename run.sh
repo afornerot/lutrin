@@ -102,13 +102,14 @@ status_all() {
 install_project() {
     BigTitle "Installation du projet Lutrin"
 
-    Title "Installation des dépendances système (hors Docker)"
+    Title "Installation des dépendances système"
     EchoOrange "Cette étape nécessite les droits super-utilisateur (sudo)."
-    sudo apt update && sudo apt install -y python3 python3-pip git make tesseract-ocr tesseract-ocr-fra inotify-tools
+    sudo apt update && sudo apt install -y python3 python3-pip git make inotify-tools
     if [ $? -ne 0 ]; then
         EchoRouge "L'installation des dépendances système a échoué."
         exit 1
     fi
+    EchoBlanc
     EchoVert "Dépendances système installées."
     EchoBlanc
 
@@ -140,12 +141,13 @@ install_project() {
     fi
 
     Title "Configuration des permissions"
+    chmod +x run.sh
     EchoVert "Script 'run.sh' rendu exécutable."
     EchoBlanc
 
     Title "Création de l'environnement virtuel Python"
     if [ -d "$API_DIR/venv" ]; then
-        EchoOrange "L'environnement virtuel existe déjà."
+        EchoVert "L'environnement virtuel existe déjà."
     else
         python3 -m venv "$API_DIR/venv"
         EchoVert "Environnement virtuel créé dans '$API_DIR/venv'."
@@ -154,6 +156,7 @@ install_project() {
 
     Title "Mise à jour du code source depuis Git"
     git pull
+    EchoVert "Code source mis à jour."
     EchoBlanc
 
     Title "Installation des dépendances Python"
@@ -161,6 +164,31 @@ install_project() {
     EchoVert "Dépendances Python installées avec succès."
     EchoBlanc
 
+    Title "Installation/Vérification de Coqui TTS"
+    cd lutrin_coqui
+
+    Echo "Mise à jour de l'image de Coqui"
+    sudo docker-compose pull
+   
+    local coqui_model_dir="./coqui-data/tts_models--multilingual--multi-dataset--xtts_v2"
+    if [ -d "$coqui_model_dir" ]; then
+        EchoVert "Le modèle Coqui TTS est déjà présent."
+    else
+        EchoOrange "Le modèle Coqui TTS n'a pas été trouvé. Téléchargement en cours..."
+        EchoBleu "Cette opération peut prendre plusieurs minutes et nécessite environ 2 Go d'espace disque."
+        sudo docker run --rm -it \
+            -v ./coqui-data:/root/.local/share/tts/ \
+            --entrypoint tts \
+            ghcr.io/coqui-ai/tts-cpu \
+            --model_name tts_models/multilingual/multi-dataset/xtts_v2 \
+            --list_speaker_idx
+        EchoVert "Modèle Coqui TTS téléchargé."
+    fi
+    Echo "Execution du service Coqui"
+    docker-compose up -d
+    cd ..
+
+    Title "Installation Terminée"
     EchoVert "✅ Installation terminée avec succès !"
     EchoBlanc "Lancez 'make start' pour démarrer les serveurs."
 }

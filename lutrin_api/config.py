@@ -17,11 +17,11 @@ PIPER_MODEL = os.path.join(BASE_DIR, PIPER_MODEL_RELATIVE)
 
 # Moteur OCR/TTS à utiliser
 OCR_IA = os.getenv('OCR_IA', 'paddle').lower()
-TTS_IA = os.getenv('TTS_IA', 'piper').lower()
+TTS_IA = os.getenv('TTS_IA', 'coqui').lower()
 
 # Jeton
 GROQ_TOKEN = os.getenv('GROQ_TOKEN', '')
-GEMINI_TOKEN = os.getenv('GEMINI_TOKEN', '')
+COQUI_TTS_URL = os.getenv('COQUI_TTS_URL', 'http://localhost:5002')
 
 # Port de communication flask
 FLASK_PORT = int(os.getenv('FLASK_PORT', 5000)) 
