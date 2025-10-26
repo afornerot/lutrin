@@ -18,6 +18,11 @@ API_PID_FILE="/tmp/lutrin_api.pid"
 CLIENT_PID_FILE="/tmp/lutrin_client.pid"
 CLIENT_CONFIG_FILE="$CLIENT_DIR/config.js"
 
+# Configuration SSL pour le serveur client
+CERT_DIR="lutrin_tools/certs"
+CERT_FILE="$CERT_DIR/cert.pem"
+KEY_FILE="$CERT_DIR/key.pem"
+
 # Fichiers de log pour les serveurs
 API_LOG_FILE="/tmp/lutrin_api.log"
 CLIENT_LOG_FILE="/tmp/lutrin_client.log"
@@ -72,9 +77,9 @@ start_client() {
         EchoOrange "Le serveur client semble déjà en cours d'exécution."
     else
         cd "$CLIENT_DIR"
-        nohup python3 -u -m http.server "$CLIENT_PORT" > "$CLIENT_LOG_FILE" 2>&1 & echo $! > "$CLIENT_PID_FILE"
+        nohup python3 -u ../lutrin_tools/https_server.py "$CLIENT_PORT" "../$CERT_FILE" "../$KEY_FILE" > "$CLIENT_LOG_FILE" 2>&1 & echo $! > "$CLIENT_PID_FILE"
         cd ..
-        EchoVert "Serveur client démarré avec le PID $(cat $CLIENT_PID_FILE) sur http://localhost:$CLIENT_PORT. Logs dans $CLIENT_LOG_FILE"
+        EchoVert "Serveur client démarré avec le PID $(cat $CLIENT_PID_FILE) sur https://localhost:$CLIENT_PORT. Logs dans $CLIENT_LOG_FILE"
     fi
     EchoBlanc
 }
@@ -134,7 +139,7 @@ install_project() {
 
     Title "Installation des dépendances système"
     EchoOrange "Cette étape nécessite les droits super-utilisateur (sudo)."
-    sudo apt update && sudo apt install -y python3 python3-pip python3-venv git make inotify-tools libgl1
+    sudo apt update && sudo apt install -y python3 python3-pip python3-venv git make inotify-tools libgl1 openssl
     if [ $? -ne 0 ]; then
         EchoRouge "L'installation des dépendances système a échoué."
         exit 1
@@ -146,6 +151,19 @@ install_project() {
     Title "Mise à jour du code source depuis Git"
     git pull
     EchoVert "Code source mis à jour."
+    EchoBlanc
+
+    Title "Génération du certificat SSL pour le serveur client"
+    if [ -f "$CERT_FILE" ] && [ -f "$KEY_FILE" ]; then
+        EchoVert "Le certificat SSL existe déjà."
+    else
+        EchoOrange "Génération d'un certificat SSL auto-signé..."
+        mkdir -p "$CERT_DIR"
+        openssl req -x509 -newkey rsa:2048 -keyout "$KEY_FILE" -out "$CERT_FILE" -days 365 -nodes \
+            -subj "/C=FR/ST=France/L=Paris/O=Lutrin/OU=Dev/CN=localhost"
+        EchoVert "Certificat généré avec succès."
+        EchoOrange "Note: Vous devrez accepter une exception de sécurité dans votre navigateur lors de la première connexion."
+    fi
     EchoBlanc
     
     Title "Installation de Docker et Docker Compose (méthode officielle)"
