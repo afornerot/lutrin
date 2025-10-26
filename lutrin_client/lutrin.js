@@ -132,9 +132,17 @@ function clearStats() {
     statTtsTime.textContent = 'N/A';
 }
 
+let apiCheckInterval; // Variable pour stocker l'ID de l'intervalle
+
 async function checkApiStatus() {
     try {
-        const response = await fetch(`${API_BASE_URL}/status`);
+        // On utilise un timeout pour ne pas attendre indéfiniment si le serveur est bloqué
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 secondes de timeout
+
+        const response = await fetch(`${API_BASE_URL}/status`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
         if (response.ok) {
             // L'API est EN LIGNE
             if (!isApiOnline) {
@@ -159,6 +167,17 @@ async function checkApiStatus() {
         }
         isApiOnline = false;
     }
+}
+
+function startApiCheck() {
+    if (!apiCheckInterval) {
+        apiCheckInterval = setInterval(checkApiStatus, 30000);
+    }
+}
+
+function stopApiCheck() {
+    clearInterval(apiCheckInterval);
+    apiCheckInterval = null;
 }
 
 function getApiHeaders() {
@@ -205,6 +224,7 @@ async function startCaptureAndOCR() {
     ocrTextResult.value = "";
     audioPlayback.removeAttribute('src');
     clearStats(); // Réinitialiser les stats
+    stopApiCheck(); // On arrête la vérification de statut pendant l'opération
 
     let uploadStartTime, uploadEndTime, ocrStartTime, ocrEndTime, ttsStartTime, ttsEndTime;
     let uploadDuration = null, ocrDuration = null, ttsDuration = null;
@@ -305,6 +325,7 @@ async function startCaptureAndOCR() {
         updateStats(uploadDuration, ocrDuration, ttsDuration);
         // Rétablir le bouton
         setCaptureButtonsState(false);
+        startApiCheck(); // On redémarre la vérification de statut
     }
 }
 
@@ -390,6 +411,7 @@ async function startOCR(fichier) {
         updateStats(captureDuration, ocrDuration, ttsDuration);
         // Rétablir le bouton
         setCaptureButtonsState(false);
+        startApiCheck(); // On redémarre la vérification de statut
     }
 }
 
@@ -400,6 +422,7 @@ async function startTTS(fichier) {
     ocrTextResult.value = "";
     audioPlayback.removeAttribute('src');
     clearStats(); // Réinitialiser les stats
+    stopApiCheck(); // On arrête la vérification de statut pendant l'opération
 
     let textFetchStartTime, textFetchEndTime, ttsStartTime, ttsEndTime;
     let textFetchDuration = null, ttsDuration = null;
@@ -458,6 +481,7 @@ async function startTTS(fichier) {
 
         // Rétablir le bouton
         setCaptureButtonsState(false);
+        startApiCheck(); // On redémarre la vérification de statut
 
         // Lire la capture du son
         const activeAudioPlayer = modeToggle.checked ? audioPlayback : userAudioPlayback;
@@ -652,7 +676,7 @@ function initializeApp() {
 
     // 2. Vérifier le statut de l'API toutes les 10 secondes
     checkApiStatus();
-    setInterval(checkApiStatus, 30000);
+    startApiCheck();
 
     // 3. Afficher l'IP actuelle dans le statut de l'API
     const ipDisplay = apiStatus; // Use the assigned apiStatus
