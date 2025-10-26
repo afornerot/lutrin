@@ -99,33 +99,34 @@
         <!-- =============================================================================== -->
         <div id="console-mode-content" class="p-3 hidden">
             <header class="text-center mb-4">
-                <h1 class="text-4xl font-extrabold text-blue-600">Lutrin - Console de Contrôle</h1>
-                <div class="flex justify-center items-center mt-2 relative">
+                <h1 class="text-4xl font-extrabold text-blue-600">Lutrin - Console</h1>
+                <div class="flex flex-col justify-center items-center mt-2 relative">
                     <p id="api-status" class="text-sm font-medium"></p>
-                    <button id="logout-button"
-                        class="ml-4 bg-red-500 hover:bg-red-700 text-white text-xs font-bold py-1 px-3 rounded-full focus:outline-none focus:shadow-outline">
-                        <i class="fas fa-sign-out-alt mr-1"></i>
-                        Déconnexion
-                    </button>
-                    <button id="open-engine-settings-console-button"
-                        class="ml-4 text-gray-600 hover:text-blue-500 focus:outline-none">
-                        <i class="fas fa-cogs fa-lg"></i>
-                    </button>
-
-                    <!-- Sélecteur de Mode -->
-                    <div class="absolute top-0 right-0">
+                    <div>
+                        <button id="logout-button" class="ml-4 text-gray-600 hover:text-blue-500 focus:outline-none">
+                            <i class="fas fa-sign-out-alt fa-lg mr-1"></i>
+                        </button>
+                        <button id="open-engine-settings-console-button"
+                            class="ml-4 text-gray-600 hover:text-blue-500 focus:outline-none">
+                            <i class="fas fa-cogs fa-lg"></i>
+                        </button>
+                    </div>
+                    <div>
                         <label for="mode-toggle" class="flex items-center cursor-pointer">
-                            <span class="mr-2 text-sm font-medium text-gray-700"><i class=" fas fa-user
-                                fa-2x"></i></span>
+                            <span class="mr-2 text-sm font-medium text-gray-700">
+                                <i class="fas fa-user fa-lg md:fa-2x"></i>
+                            </span>
                             <div class="relative">
                                 <input type="checkbox" id="mode-toggle" class="sr-only peer">
-                                <div class="w-14 h-8 bg-gray-300 rounded-full peer-checked:bg-blue-500"></div>
+                                <div class="w-11 h-6 md:w-14 md:h-8 bg-gray-300 rounded-full peer-checked:bg-blue-500">
+                                </div>
                                 <div
-                                    class="absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform peer-checked:translate-x-full">
+                                    class="absolute left-0.5 top-0.5 md:left-1 md:top-1 bg-white w-5 h-5 md:w-6 md:h-6 rounded-full transition-transform peer-checked:translate-x-5 md:peer-checked:translate-x-full">
                                 </div>
                             </div>
-                            <span class="ml-2 text-sm font-medium text-gray-700"><i
-                                    class="fas fa-desktop fa-2x"></i></span>
+                            <span class="ml-2 text-sm font-medium text-gray-700">
+                                <i class="fas fa-desktop fa-lg md:fa-2x"></i>
+                            </span>
                         </label>
                     </div>
                 </div>
@@ -299,12 +300,12 @@
             <div class="flex-shrink-0">
                 <div class="flex items-center">
                     <button id="user-mode-action-button"
-                        class="capture-button flex-grow bg-blue-600 hover:bg-blue-700 text-white font-bold text-2xl py-6 px-4 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300 flex items-center justify-center disabled:opacity-50">
+                        class="capture-button flex-grow bg-blue-600 hover:bg-blue-700 text-white font-bold text-2xl py-3 px-4 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300 flex items-center justify-center disabled:opacity-50">
                         <i class="fas fa-book-open mr-4"></i>
                         Lire la page
                     </button>
                     <button id="user-mode-stop-button"
-                        class="hidden w-64 bg-red-600 hover:bg-red-700 text-white font-bold text-2xl py-6 px-6 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-red-300">
+                        class="hidden w-2/5 bg-red-600 hover:bg-red-700 text-white font-bold text-2xl py-3 px-6 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-red-300">
                         <i class="fas fa-stop"></i>
                     </button>
                 </div>
@@ -327,15 +328,19 @@
             <!-- Sélecteur de Mode -->
             <div class="absolute" style="bottom: 130px; right:10px;">
                 <label for="mode-toggle" class="flex items-center cursor-pointer">
-                    <span class="mr-2 text-sm font-medium text-white"><i class="fas fa-user fa-2x"></i></span>
+                    <span class="mr-2 text-sm font-medium text-white hidden md:block">
+                        <i class="fas fa-user fa-lg md:fa-2x"></i>
+                    </span>
                     <div class="relative">
                         <input type="checkbox" id="mode-toggle" class="sr-only peer">
-                        <div class="w-14 h-8 bg-gray-300 rounded-full peer-checked:bg-blue-500"></div>
+                        <div class="w-8 h-5 md:w-14 md:h-8 bg-gray-300 rounded-full peer-checked:bg-blue-500"></div>
                         <div
-                            class="absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform peer-checked:translate-x-full">
+                            class="absolute left-0.5 top-0.5 md:left-1 md:top-1 bg-white w-4 h-4 md:w-6 md:h-6 rounded-full transition-transform peer-checked:translate-x-5 md:peer-checked:translate-x-full">
                         </div>
                     </div>
-                    <span class="ml-2 text-sm font-medium text-white"><i class="fas fa-desktop fa-2x"></i></span>
+                    <span class="ml-2 text-sm font-medium text-white">
+                        <i class="fas fa-desktop fa-lg md:fa-2x"></i>
+                    </span>
                 </label>
             </div>
 

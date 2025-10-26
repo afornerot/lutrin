@@ -754,4 +754,25 @@ document.addEventListener('DOMContentLoaded', () => {
             loginError.classList.remove('hidden');
         }
     });
+
+    // --- Logique du raccourci clavier (Touche Espace) ---
+    window.addEventListener('keydown', function (event) {
+        // On utilise la touche Espace (keyCode 32 ou key ' ')
+        if (event.key === ' ' || event.keyCode === 32) {
+            // Empêche l'action par défaut (ex: défilement de la page)
+            event.preventDefault();
+
+            // Détermine quel bouton d'action est actuellement visible et actif
+            if (modeToggle.checked) {
+                // Mode Console : on clique sur le bouton principal de capture
+                const mainCaptureButton = document.getElementById('capture-button');
+                if (mainCaptureButton && !mainCaptureButton.disabled) {
+                    mainCaptureButton.click();
+                }
+            } else {
+                // Mode Utilisateur : on clique sur le bouton d'action principal
+                userModeActionButton.click();
+            }
+        }
+    });
 });
