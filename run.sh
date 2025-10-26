@@ -300,7 +300,9 @@ clean_project() {
     BigTitle "Nettoyage du projet Lutrin"
     EchoOrange "Cette action va supprimer l'environnement virtuel."
     rm -rf "$API_DIR/venv"
+    rm -f "$CLIENT_CONFIG_FILE"
     EchoVert "Environnement virtuel supprimé."
+    EchoVert "Fichier de configuration client supprimé."
     EchoBlanc
 }
 
@@ -373,7 +375,7 @@ prompt_for_ip() {
         ip_address="$current_ip"
     else
         ip_address="$new_ip"
-    done
+    fi
 }
 
 # --- Point d'entrée ---
