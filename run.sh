@@ -16,12 +16,42 @@ CLIENT_PORT=8000
 # Fichiers pour stocker les PIDs (Process IDs) des serveurs
 API_PID_FILE="/tmp/lutrin_api.pid"
 CLIENT_PID_FILE="/tmp/lutrin_client.pid"
+CLIENT_CONFIG_FILE="$CLIENT_DIR/config.js"
 
 # Fichiers de log pour les serveurs
 API_LOG_FILE="/tmp/lutrin_api.log"
 CLIENT_LOG_FILE="/tmp/lutrin_client.log"
 
 # --- Fonctions de gestion des services ---
+
+generate_client_config() {
+    Title "Génération de la configuration client"
+    # 1. Détecter l'IP locale comme suggestion
+    local detected_ip=$(hostname -I | awk '{print $1}')
+
+    # Si hostname -I échoue ou retourne une chaîne vide, on se rabat sur localhost
+    if [ -z "$detected_ip" ]; then
+        detected_ip="localhost"
+    fi
+
+    # 2. Demander à l'utilisateur de confirmer ou de modifier l'IP et le port
+    read -p "Entrez l'adresse IP ou le nom d'hôte pour l'API [défaut: $detected_ip]: " user_ip
+    local final_ip=${user_ip:-$detected_ip}
+
+    read -p "Entrez le port pour l'API [défaut: $API_PORT]: " user_port
+    local final_port=${user_port:-$API_PORT}
+
+    EchoBleu "Configuration du client pour se connecter à : http://$final_ip:$final_port"
+
+    # 3. Écrire la configuration finale dans le fichier config.js
+    cat > "$CLIENT_CONFIG_FILE" << EOL
+// Fichier de configuration généré automatiquement par run.sh. NE PAS MODIFIER MANUELLEMENT.
+const IP_ADDRESS = "${final_ip}";
+const API_PORT = ${final_port};
+const API_BASE_URL = \`http://\${IP_ADDRESS}:\${API_PORT}\`;
+EOL
+    EchoVert "Fichier de configuration client '$CLIENT_CONFIG_FILE' généré."
+}
 
 start_api() {
     Title "Démarrage du serveur API Lutrin"
@@ -232,6 +262,10 @@ install_project() {
     fi
     EchoBlanc
     
+    # Générer la configuration client avec l'IP détectée
+    generate_client_config
+    EchoBlanc
+
     Title "Installation Terminée"
     EchoVert "✅ Installation terminée avec succès !"
     EchoBlanc "Lancez 'make start' pour démarrer les serveurs."
@@ -298,15 +332,8 @@ watch_api_changes() {
     # Intercepter le signal de sortie (Ctrl+C) pour appeler la fonction de nettoyage
     trap cleanup INT TERM
 
-    # Démarrage initial
-    stop_api
-    stop_client
-    start_api
-    start_client
-
-    # Lancer tail -f en arrière-plan et stocker son PID
-    tail -f "$API_LOG_FILE" &
-    TAIL_PID=$!
+    # Démarrage initial (la config est déjà générée par 'make install')
+    start_all_and_tail
 
     while true; do
         # Surveiller les événements de modification, création, suppression, déplacement de fichiers .py de manière récursive
@@ -322,8 +349,30 @@ watch_api_changes() {
         EchoVert "Reprise de la surveillance."
         EchoBlanc
         EchoBlanc
-        tail -f "$API_LOG_FILE" & # Lancer un nouveau tail
-        TAIL_PID=$!
+        start_tail
+    done
+}
+
+start_all_and_tail() {
+    stop_api
+    stop_client
+    start_api
+    start_client
+    start_tail
+}
+
+start_tail() {
+    tail -f "$API_LOG_FILE" &
+    TAIL_PID=$!
+}
+
+prompt_for_ip() {
+    local current_ip=$(hostname -I | awk '{print $1}')
+    read -p "Adresse IP détectée: $current_ip. Appuyez sur Entrée pour utiliser cette IP, ou entrez une nouvelle adresse: " new_ip
+    if [ -z "$new_ip" ]; then
+        ip_address="$current_ip"
+    else
+        ip_address="$new_ip"
     done
 }
 

@@ -1,7 +1,3 @@
-// --- Configuration ---
-const API_BASE_URL = "http://localhost:5000";
-const IP_ADDRESS = "localhost";
-
 // --- Éléments du DOM (déclarés ici, assignés dans initializeApp pour garantir DOM readiness) ---
 let videoStream;
 let capturedImage;
