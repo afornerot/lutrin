@@ -46,16 +46,26 @@ generate_client_config() {
     read -p "Entrez le port pour l'API [défaut: $API_PORT]: " user_port
     local final_port=${user_port:-$API_PORT}
 
-    EchoBleu "Configuration du client pour se connecter à : http://$final_ip:$final_port"
+    EchoBleu "Configuration du client pour se connecter à : https://$final_ip:$CLIENT_PORT (API sur http://$final_ip:$final_port)"
 
     # 3. Écrire la configuration finale dans le fichier config.js
     cat > "$CLIENT_CONFIG_FILE" << EOL
 // Fichier de configuration généré automatiquement par run.sh. NE PAS MODIFIER MANUELLEMENT.
 const IP_ADDRESS = "${final_ip}";
 const API_PORT = ${final_port};
+const CLIENT_PORT = ${CLIENT_PORT};
 const API_BASE_URL = \`http://\${IP_ADDRESS}:\${API_PORT}\`;
 EOL
     EchoVert "Fichier de configuration client '$CLIENT_CONFIG_FILE' généré."
+
+    # 4. Générer le certificat SSL en utilisant l'IP/hostname fourni
+    Title "Génération du certificat SSL pour le serveur client"
+    EchoOrange "Génération d'un certificat SSL auto-signé pour '$final_ip'..."
+    mkdir -p "$CERT_DIR"
+    openssl req -x509 -newkey rsa:2048 -keyout "$KEY_FILE" -out "$CERT_FILE" -days 365 -nodes \
+        -subj "/C=FR/ST=France/L=Paris/O=Lutrin/OU=Dev/CN=$final_ip"
+    EchoVert "Certificat généré avec succès."
+    EchoOrange "Note: Vous devrez accepter une exception de sécurité dans votre navigateur lors de la première connexion."
 }
 
 start_api() {
@@ -79,7 +89,10 @@ start_client() {
         cd "$CLIENT_DIR"
         nohup python3 -u ../lutrin_tools/https_server.py "$CLIENT_PORT" "../$CERT_FILE" "../$KEY_FILE" > "$CLIENT_LOG_FILE" 2>&1 & echo $! > "$CLIENT_PID_FILE"
         cd ..
-        EchoVert "Serveur client démarré avec le PID $(cat $CLIENT_PID_FILE) sur https://localhost:$CLIENT_PORT. Logs dans $CLIENT_LOG_FILE"
+        # Lire l'IP depuis le fichier de config pour un message correct
+        local client_ip=$(grep -oP 'const IP_ADDRESS = "\K[^"]+' "$CLIENT_CONFIG_FILE" || echo "localhost")
+        local client_port=$(grep -oP 'const CLIENT_PORT = \K[0-9]+' "$CLIENT_CONFIG_FILE" || echo "$CLIENT_PORT")
+        EchoVert "Serveur client démarré avec le PID $(cat $CLIENT_PID_FILE) sur https://$client_ip:$client_port. Logs dans $CLIENT_LOG_FILE"
     fi
     EchoBlanc
 }
@@ -130,8 +143,10 @@ status_service() {
 }
 
 status_all() {
-    status_service "Serveur API" "$API_PID_FILE" " sur http://localhost:$API_PORT"
-    status_service "Serveur client" "$CLIENT_PID_FILE" " sur http://localhost:$CLIENT_PORT"
+    local client_ip=$(grep -oP 'const IP_ADDRESS = "\K[^"]+' "$CLIENT_CONFIG_FILE" || echo "localhost")
+    local api_port=$(grep -oP 'const API_PORT = \K[0-9]+' "$CLIENT_CONFIG_FILE" || echo "$API_PORT")
+    status_service "Serveur API" "$API_PID_FILE" " sur http://$client_ip:$api_port"
+    status_service "Serveur client" "$CLIENT_PID_FILE" " sur https://$client_ip:$CLIENT_PORT"
 }
 
 install_project() {
@@ -151,19 +166,6 @@ install_project() {
     Title "Mise à jour du code source depuis Git"
     git pull
     EchoVert "Code source mis à jour."
-    EchoBlanc
-
-    Title "Génération du certificat SSL pour le serveur client"
-    if [ -f "$CERT_FILE" ] && [ -f "$KEY_FILE" ]; then
-        EchoVert "Le certificat SSL existe déjà."
-    else
-        EchoOrange "Génération d'un certificat SSL auto-signé..."
-        mkdir -p "$CERT_DIR"
-        openssl req -x509 -newkey rsa:2048 -keyout "$KEY_FILE" -out "$CERT_FILE" -days 365 -nodes \
-            -subj "/C=FR/ST=France/L=Paris/O=Lutrin/OU=Dev/CN=localhost"
-        EchoVert "Certificat généré avec succès."
-        EchoOrange "Note: Vous devrez accepter une exception de sécurité dans votre navigateur lors de la première connexion."
-    fi
     EchoBlanc
     
     Title "Installation de Docker et Docker Compose (méthode officielle)"
