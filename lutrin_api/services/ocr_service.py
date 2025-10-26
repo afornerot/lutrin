@@ -1,6 +1,7 @@
 # lutrin_api/services/ocr_service.py
 import os
 import base64
+import onnxruntime
 import requests
 from groq import Groq
 from paddleocr import PaddleOCR
@@ -14,6 +15,8 @@ def init_ocr_engine():
     """Initialise le moteur PaddleOCR. Appelé au démarrage du serveur."""
     global ocr_engine
     if ocr_engine is None:
+        # Masquer les avertissements de ONNX Runtime concernant l'absence de GPU
+        onnxruntime.set_default_logger_severity(3) # 3 = ERROR
         Log("Initialisation du moteur OCR (Paddle)...")
         try:
             ocr_engine = PaddleOCR(use_angle_cls=True, lang='fr')

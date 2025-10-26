@@ -1,5 +1,6 @@
 import os
 import wave
+import onnxruntime
 import requests
 
 from piper.voice import PiperVoice
@@ -13,6 +14,8 @@ def init_tts_engine():
     """Initialise le moteur Piper TTS. Appelé au démarrage du serveur."""
     global voice
     if voice is None and os.path.exists(PIPER_MODEL):
+        # Masquer les avertissements de ONNX Runtime concernant l'absence de GPU
+        onnxruntime.set_default_logger_severity(3) # 3 = ERROR
         Log("Initialisation du moteur TTS (Piper)...")
         try:
             voice = PiperVoice.load(PIPER_MODEL)
