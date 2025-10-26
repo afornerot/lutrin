@@ -185,7 +185,7 @@ install_project() {
         EchoVert "Modèle Coqui TTS téléchargé."
     fi
     Echo "Execution du service Coqui"
-    docker-compose up -d
+    sudo docker-compose up -d
     cd ..
 
     Title "Initialisation de la base de données"
