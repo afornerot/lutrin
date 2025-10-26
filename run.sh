@@ -104,7 +104,7 @@ install_project() {
 
     Title "Installation des dépendances système"
     EchoOrange "Cette étape nécessite les droits super-utilisateur (sudo)."
-    sudo apt update && sudo apt install -y python3 python3-pip git make inotify-tools
+    sudo apt update && sudo apt install -y python3 python3-pip python3-venv git make inotify-tools
     if [ $? -ne 0 ]; then
         EchoRouge "L'installation des dépendances système a échoué."
         exit 1
