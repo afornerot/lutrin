@@ -113,6 +113,11 @@ install_project() {
     EchoVert "Dépendances système installées."
     EchoBlanc
 
+    Title "Mise à jour du code source depuis Git"
+    git pull
+    EchoVert "Code source mis à jour."
+    EchoBlanc
+    
     Title "Installation de Docker et Docker Compose (méthode officielle)"
     # Vérifier si Docker est déjà installé
     if ! command -v docker &> /dev/null; then
@@ -140,11 +145,6 @@ install_project() {
         EchoVert "Docker est déjà installé."
     fi
 
-    Title "Configuration des permissions"
-    chmod +x run.sh
-    EchoVert "Script 'run.sh' rendu exécutable."
-    EchoBlanc
-
     Title "Création de l'environnement virtuel Python"
     if [ -d "$API_DIR/venv" ]; then
         EchoVert "L'environnement virtuel existe déjà."
@@ -152,16 +152,6 @@ install_project() {
         python3 -m venv "$API_DIR/venv"
         EchoVert "Environnement virtuel créé dans '$API_DIR/venv'."
     fi
-    EchoBlanc
-
-    Title "Mise à jour du code source depuis Git"
-    git pull
-    EchoVert "Code source mis à jour."
-    EchoBlanc
-
-    Title "Installation des dépendances Python"
-    "$VENV_PIP" install -r "$API_DIR/requirements.txt"
-    EchoVert "Dépendances Python installées avec succès."
     EchoBlanc
     
     Title "Installation/Vérification de Coqui TTS"
@@ -187,6 +177,14 @@ install_project() {
     Echo "Execution du service Coqui"
     sudo docker-compose up -d
     cd ..
+
+    Title "Installation des dépendances Python"
+    # S'assurer que pip est à jour dans le venv
+    "$VENV_PYTHON" -m pip install --upgrade pip
+    # Installer les requirements
+    "$VENV_PIP" install -r "$API_DIR/requirements.txt"
+    EchoVert "Dépendances Python installées avec succès."
+    EchoBlanc
 
     Title "Initialisation de la base de données"
     "$VENV_PYTHON" -c "from lutrin_api.services import auth_service; auth_service.init_db()"
