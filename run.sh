@@ -151,6 +151,8 @@ install_project() {
     else
         python3 -m venv "$API_DIR/venv"
         EchoVert "Environnement virtuel créé dans '$API_DIR/venv'."
+        "$VENV_PYTHON" -m ensurepip --upgrade
+        EchoVert "Pip a été installé/vérifié dans l'environnement virtuel."
     fi
     EchoBlanc
     
