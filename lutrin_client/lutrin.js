@@ -183,8 +183,8 @@ async function startLocalCamera(facingMode) {
         const stream = await navigator.mediaDevices.getUserMedia({
             video: {
                 facingMode: { ideal: facingMode },
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
+                width: { ideal: 4096 },
+                height: { ideal: 2160 }
             }
         });
         if (videoStream) videoStream.srcObject = stream;
