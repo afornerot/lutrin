@@ -756,12 +756,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Logique du raccourci clavier (Télécommande Selfie / Volume Haut) ---
+    // On utilise la phase de capture (true) pour intercepter l'événement le plus tôt possible,
+    // ce qui augmente les chances que preventDefault() fonctionne sur mobile.
     window.addEventListener('keydown', function (event) {
         // La télécommande envoie un événement "Volume Haut" (keyCode 175 ou key 'AudioVolumeUp')
         // On vérifie les deux pour une meilleure compatibilité.
         if (event.keyCode === 175 || event.key === 'AudioVolumeUp') {
-            // Empêche l'action par défaut (ex: défilement de la page)
+            // Empêche l'action par défaut (augmenter le volume) et arrête la propagation.
             event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
 
             // Détermine quel bouton d'action est actuellement visible et actif
             if (modeToggle.checked) {
@@ -775,5 +779,5 @@ document.addEventListener('DOMContentLoaded', () => {
                 userModeActionButton.click();
             }
         }
-    });
+    }, true);
 });
