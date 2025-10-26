@@ -54,7 +54,7 @@ generate_client_config() {
 const IP_ADDRESS = "${final_ip}";
 const API_PORT = ${final_port};
 const CLIENT_PORT = ${CLIENT_PORT};
-const API_BASE_URL = \`http://\${IP_ADDRESS}:\${API_PORT}\`;
+const API_BASE_URL = \`https://\${IP_ADDRESS}:\${API_PORT}\`;
 EOL
     EchoVert "Fichier de configuration client '$CLIENT_CONFIG_FILE' généré."
 
