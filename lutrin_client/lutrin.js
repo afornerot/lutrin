@@ -758,7 +758,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Logique du raccourci clavier (Touche Espace) ---
     window.addEventListener('keydown', function (event) {
         // On utilise la touche Espace (keyCode 32 ou key ' ')
-        if (event.key === ' ' || event.keyCode === 32) {
+        if (event.key === '175') {
             // Empêche l'action par défaut (ex: défilement de la page)
             event.preventDefault();
 
