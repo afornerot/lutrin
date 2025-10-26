@@ -54,6 +54,7 @@ let userStatusMessage;
 let userStatusText;
 let userErrorMessage;
 let userErrorText;
+let switchCameraButton;
 
 
 // Fonctions Utilitaires ---
@@ -167,16 +168,31 @@ function getApiHeaders() {
     return { 'X-API-Key': apiKey };
 }
 
-async function startLocalCamera() {
+let currentFacingMode = 'environment'; // 'environment' pour la caméra arrière, 'user' pour l'avant
+
+async function startLocalCamera(facingMode) {
+    // Arrêter le flux précédent s'il existe
+    if (videoStream && videoStream.srcObject) {
+        videoStream.srcObject.getTracks().forEach(track => track.stop());
+    }
+    if (userVideoStream && userVideoStream.srcObject) {
+        userVideoStream.srcObject.getTracks().forEach(track => track.stop());
+    }
+
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
             video: {
+                facingMode: { ideal: facingMode },
                 width: { ideal: 1280 },
                 height: { ideal: 720 }
             }
         });
         if (videoStream) videoStream.srcObject = stream;
         if (userVideoStream) userVideoStream.srcObject = stream;
+
+        // Vérifier si le navigateur a pu obtenir le mode souhaité
+        const videoTrack = stream.getVideoTracks()[0];
+        currentFacingMode = videoTrack.getSettings().facingMode || facingMode;
     } catch (error) {
         console.error("Erreur d'accès à la caméra:", error);
         showError("Impossible d'accéder à la caméra. Vérifiez les permissions dans votre navigateur.");
@@ -554,6 +570,12 @@ function initializeApp() {
     // Initialiser l'état du bouton d'action en mode utilisateur
     resetButtonToAction();
 
+    // --- Logique du bouton de changement de caméra ---
+    switchCameraButton.addEventListener('click', () => {
+        const newFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+        startLocalCamera(newFacingMode);
+    });
+
     // --- Logique de rafraîchissement manuel ---
     refreshButton.addEventListener('click', () => {
         location.reload();
@@ -620,7 +642,7 @@ function initializeApp() {
     });
 
     // 1. Démarrer le flux vidéo
-    startLocalCamera();
+    startLocalCamera(currentFacingMode);
 
     // Restaurer le mode UI
     const savedUIMode = localStorage.getItem('lutrin-ui-mode');
@@ -689,6 +711,7 @@ document.addEventListener('DOMContentLoaded', () => {
     userStatusText = document.getElementById('user-status-text');
     userErrorMessage = document.getElementById('user-error-message');
     userErrorText = document.getElementById('user-error-text');
+    switchCameraButton = document.getElementById('switch-camera-button');
 
     // Vérifier s'il y a une session active AVANT d'attacher les écouteurs de connexion
     if (checkSession()) return; // Si la session est valide, initializeApp a déjà été appelée, on arrête ici.
