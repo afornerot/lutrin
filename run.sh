@@ -46,15 +46,14 @@ generate_client_config() {
     read -p "Entrez le port pour l'API [défaut: $API_PORT]: " user_port
     local final_port=${user_port:-$API_PORT}
 
-    EchoBleu "Configuration du client pour se connecter à : https://$final_ip:$CLIENT_PORT (API sur http://$final_ip:$final_port)"
+    EchoBleu "Configuration de l'application sur : https://$final_ip:$CLIENT_PORT"
 
     # 3. Écrire la configuration finale dans le fichier config.js
     cat > "$CLIENT_CONFIG_FILE" << EOL
 // Fichier de configuration généré automatiquement par run.sh. NE PAS MODIFIER MANUELLEMENT.
 const IP_ADDRESS = "${final_ip}";
-const API_PORT = ${final_port};
 const CLIENT_PORT = ${CLIENT_PORT};
-const API_BASE_URL = \`https://\${IP_ADDRESS}:\${API_PORT}\`;
+const API_BASE_URL = "/api"; // L'API est maintenant servie sur le même domaine/port via le proxy
 EOL
     EchoVert "Fichier de configuration client '$CLIENT_CONFIG_FILE' généré."
 
@@ -76,7 +75,8 @@ start_api() {
         # Utilise le python du virtualenv directement pour plus de robustesse
         # L'option -u est cruciale pour désactiver la mise en tampon de la sortie et voir les logs en temps réel.
         nohup $VENV_PYTHON -u -m lutrin_api.server > "$API_LOG_FILE" 2>&1 & echo $! > "$API_PID_FILE"
-        EchoVert "Serveur API démarré avec le PID $(cat $API_PID_FILE) sur http://localhost:$API_PORT. Logs dans $API_LOG_FILE"
+        local api_ip=$(grep -oP 'const IP_ADDRESS = "\K[^"]+' "$CLIENT_CONFIG_FILE" || echo "localhost")
+        EchoVert "Serveur API démarré avec le PID $(cat $API_PID_FILE) sur http://127.0.0.1:$API_PORT. Logs dans $API_LOG_FILE"
     fi
     EchoBlanc
 }
@@ -87,7 +87,7 @@ start_client() {
         EchoOrange "Le serveur client semble déjà en cours d'exécution."
     else
         cd "$CLIENT_DIR"
-        nohup python3 -u ../lutrin_tools/https_server.py "$CLIENT_PORT" "../$CERT_FILE" "../$KEY_FILE" > "$CLIENT_LOG_FILE" 2>&1 & echo $! > "$CLIENT_PID_FILE"
+        nohup python3 -u ../lutrin_tools/https_server.py "$CLIENT_PORT" "$API_PORT" "../$CERT_FILE" "../$KEY_FILE" > "$CLIENT_LOG_FILE" 2>&1 & echo $! > "$CLIENT_PID_FILE"
         cd ..
         # Lire l'IP depuis le fichier de config pour un message correct
         local client_ip=$(grep -oP 'const IP_ADDRESS = "\K[^"]+' "$CLIENT_CONFIG_FILE" || echo "localhost")
@@ -118,8 +118,6 @@ stop_client() {
     else
         EchoOrange "Le serveur client n'était pas en cours d'exécution."
     fi
-    rm -rf $API_LOG_FILE
-    rm -rf $CLIENT_LOG_FILE
     EchoBlanc
 }
 
@@ -144,8 +142,7 @@ status_service() {
 
 status_all() {
     local client_ip=$(grep -oP 'const IP_ADDRESS = "\K[^"]+' "$CLIENT_CONFIG_FILE" || echo "localhost")
-    local api_port=$(grep -oP 'const API_PORT = \K[0-9]+' "$CLIENT_CONFIG_FILE" || echo "$API_PORT")
-    status_service "Serveur API" "$API_PID_FILE" " sur http://$client_ip:$api_port"
+    status_service "Serveur API" "$API_PID_FILE" " sur http://127.0.0.1:$API_PORT (via proxy)"
     status_service "Serveur client" "$CLIENT_PID_FILE" " sur https://$client_ip:$CLIENT_PORT"
 }
 
@@ -323,6 +320,9 @@ clean_project() {
     rm -f "$CLIENT_CONFIG_FILE"
     EchoVert "Environnement virtuel supprimé."
     EchoVert "Fichier de configuration client supprimé."
+    rm -f "$API_LOG_FILE"
+    rm -f "$CLIENT_LOG_FILE"
+    EchoVert "Fichiers de log supprimés."
     EchoBlanc
 }
 

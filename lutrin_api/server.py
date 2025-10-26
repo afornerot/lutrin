@@ -2,11 +2,12 @@ import os
 import time
 import uuid
 
-from functools import wraps 
+from functools import wraps
+import ssl
 from flask import Flask, Response, jsonify, send_from_directory, url_for, request, g
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
-from waitress import serve 
+from waitress import serve
 from .services import ocr_image, generate_tts, BigTitle, auth_service, ocr_service, tts_service
 from .config import UPLOAD_FOLDER, FLASK_PORT
 
@@ -128,7 +129,7 @@ def process_ocr():
     if not recognized_text and text_path_or_error: # Si l'OCR a échoué
         return jsonify({"error": "L'OCR a échoué", "details": text_path_or_error}), 500
 
-    return jsonify({"status": "success", "text": recognized_text, "text_filename": text_filename, "text_url": url_for('serve_file', filename=text_filename, _external=True)})
+    return jsonify({"status": "success", "text": recognized_text, "text_filename": text_filename, "text_url": url_for('serve_file', filename=text_filename)})
 
 @app.route('/tts', methods=['POST']) # Étape 3: TTS
 @api_key_required
@@ -159,7 +160,7 @@ def process_tts():
         "status": "success",
         "audio_filename": final_audio_filename,
         "audio_path_local": audio_path_or_error,
-        "audio_url": url_for('serve_file', filename=final_audio_filename, _external=True)
+        "audio_url": url_for('serve_file', filename=final_audio_filename)
     })
 
 @app.route('/file/<path:filename>')
@@ -194,4 +195,6 @@ if __name__ == '__main__':
     BigTitle("Serveur Lutrin démarré")
     ocr_service.init_ocr_engine()
     tts_service.init_tts_engine()
-    serve(app, host='0.0.0.0', port=FLASK_PORT, threads=6)
+
+    print(f"INFO: Démarrage du serveur API en HTTP sur le port {FLASK_PORT} (derrière le reverse proxy)")
+    serve(app, host='127.0.0.1', port=FLASK_PORT, threads=6)

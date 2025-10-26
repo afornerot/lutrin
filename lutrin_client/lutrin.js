@@ -306,7 +306,7 @@ async function startOCR(fichier) {
         // --- Étape 1: Chargement de l'image (simulé comme capture) ---
         showStatus("1/3 - Chargement de l'image de test...", false);
         captureStartTime = performance.now();
-        capturedImage.src = API_BASE_URL + "/file/" + fichier + "?t=" + new Date().getTime();
+        capturedImage.src = "file/" + fichier + "?t=" + new Date().getTime();
         // Simuler un petit délai pour le chargement visuel
         if (capturedImage) await new Promise(resolve => setTimeout(resolve, 200)); // Check if capturedImage is available
         captureEndTime = performance.now();
@@ -392,7 +392,7 @@ async function startTTS(fichier) {
         // --- Étape 1: Récupération du contenu du fichier texte ---
         showStatus("1/2 - Récupération du texte...", false);
         textFetchStartTime = performance.now();
-        const textFileUrl = `${API_BASE_URL}/file/${fichier}`;
+        const textFileUrl = `file/${fichier}`;
         const textResponse = await fetch(textFileUrl);
         if (!textResponse.ok) {
             throw new Error(`Étape 1 (Récupération texte) a échoué avec le statut ${textResponse.status}`);
@@ -634,7 +634,7 @@ function initializeApp() {
 
     // 3. Afficher l'IP actuelle dans le statut de l'API
     const ipDisplay = apiStatus; // Use the assigned apiStatus
-    ipDisplay.innerHTML = `<span class="font-bold">IP API : ${IP_ADDRESS}:5000</span> | `;
+    ipDisplay.innerHTML = `<span class="font-bold">Serveur : ${IP_ADDRESS}:${CLIENT_PORT}</span> | `;
 
     // 4. Init zone stat
     statusMessage.classList.remove('bg-red-100', 'text-red-800');
