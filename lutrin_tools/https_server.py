@@ -14,7 +14,12 @@ keyfile = sys.argv[3]
 server_address = ('0.0.0.0', port)
 httpd = http.server.HTTPServer(server_address, http.server.SimpleHTTPRequestHandler)
 
-httpd.socket = ssl.wrap_socket(httpd.socket, server_side=True, certfile=certfile, keyfile=keyfile, ssl_version=ssl.PROTOCOL_TLS)
+# Créer un contexte SSL (méthode moderne)
+context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+context.load_cert_chain(certfile=certfile, keyfile=keyfile)
+
+# Envelopper le socket du serveur avec le contexte SSL
+httpd.socket = context.wrap_socket(httpd.socket, server_side=True)
 
 print(f"Serving HTTPS on port {port}...")
 httpd.serve_forever()
