@@ -20,16 +20,19 @@ def init_tts_engine():
         except Exception as e:
             Error(f"Impossible de charger le modèle TTS Piper. Détails: {e}")
 
-def _delete_old_files():
+def _delete_old_files(user_id):
     """
-    Point d'entrée pour supprimer les anciens fichiers de résultat Audtio.
+    Supprime les anciens fichiers audio et capture pour un utilisateur spécifique.
     """
 
-    Title("Nettoyage des anciens fichiers de résultat Audio")
+    Title(f"Nettoyage des anciens fichiers Audio pour l'utilisateur ID: {user_id}")
 
     # On parcourt tous les fichiers dans le dossier UPLOAD_FOLDER
+    audio_prefix_to_delete = f"audio_{user_id}_"
+    capture_prefix_to_delete = f"capture_{user_id}_"
+
     for filename in os.listdir(UPLOAD_FOLDER):
-        if filename.startswith('audio_') and (filename.endswith('.wav') or filename.endswith('.mp3')):
+        if filename.startswith(audio_prefix_to_delete) or filename.startswith(capture_prefix_to_delete):
             try:
                 file_path_to_delete = os.path.join(UPLOAD_FOLDER, filename)
                 os.remove(file_path_to_delete)
@@ -90,15 +93,15 @@ def _generate_tts_coqui(text, audio_filename):
         Error(error_msg)
         return False, error_msg
     
-def generate_tts(text, audio_filename, tts_engine='coqui'):
+def generate_tts(text, audio_filename, tts_engine='coqui', user_id=None):
     """
     Aiguilleur principal pour le service TTS.
     """
 
     BigTitle(f"Traitement TTS avec le moteur : {tts_engine.upper()}")
-
-    # Suppression des anciens fichiers audio
-    _delete_old_files()
+    if user_id:
+        # Suppression des anciens fichiers audio de l'utilisateur
+        _delete_old_files(user_id)
 
     if not text or not text.strip():
         return False, "Le texte fourni est vide."

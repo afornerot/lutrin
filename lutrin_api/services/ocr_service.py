@@ -71,16 +71,18 @@ def _reordonner_double_page(resultat_ocr):
     
     return texte_final
 
-def _delete_old_files():
+def _delete_old_files(user_id):
     """
-    Point d'entrée pour supprimer les anciens fichiers de résultat OCR.
+    Supprime les anciens fichiers de résultat OCR pour un utilisateur spécifique.
     """
 
-    Title("Nettoyage des anciens fichiers de résultat OCR")
+    Title(f"Nettoyage des anciens fichiers OCR pour l'utilisateur ID: {user_id}")
 
     # On parcourt tous les fichiers dans le dossier UPLOAD_FOLDER
+    ocr_prefix_to_delete = f"ocr_result_{user_id}_"
+
     for filename in os.listdir(UPLOAD_FOLDER):
-        if filename.startswith('ocr_result_') and filename.endswith('.txt'):
+        if filename.startswith(ocr_prefix_to_delete):
             try:
                 file_path_to_delete = os.path.join(UPLOAD_FOLDER, filename)
                 os.remove(file_path_to_delete)
@@ -214,16 +216,16 @@ def _ocr_image_paddle(filepath, output_filename):
         Error(error_msg)
         return "", error_msg
 
-def ocr_image(filepath, output_filename, ocr_engine_choice='paddle'):
+def ocr_image(filepath, output_filename, ocr_engine_choice='paddle', user_id=None):
     """
     Aiguilleur principal pour le service OCR.
     Appelle le moteur local (PaddleOCR) ou une API externe en fonction de la configuration.
     """
 
     BigTitle(f"Traitement OCR avec le moteur : {ocr_engine_choice.upper()}")
-
-    # Suppression des anciens fichiers
-    _delete_old_files()
+    if user_id:
+        # Suppression des anciens fichiers de l'utilisateur
+        _delete_old_files(user_id)
     
     if ocr_engine_choice == 'groq':
         return _ocr_image_groq(filepath, output_filename)

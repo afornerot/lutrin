@@ -2,8 +2,8 @@ import os
 import time
 import uuid
 
-from functools import wraps
-from flask import Flask, Response, jsonify, send_from_directory, url_for, request
+from functools import wraps 
+from flask import Flask, Response, jsonify, send_from_directory, url_for, request, g
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from waitress import serve 
@@ -29,7 +29,8 @@ def api_key_required(f):
         if user is None:
             return jsonify({"error": "Clé d'API invalide ou non autorisée"}), 403
         
-        return f(*args, **kwargs)
+        g.user = user # Stocker l'utilisateur dans le contexte de la requête
+        return f(*args, **kwargs) 
     return decorated_function
 
 def admin_required(f):
@@ -43,7 +44,7 @@ def admin_required(f):
         user = auth_service.get_user_by_api_key(api_key)
         if user is None or user['role'] != 'ADMIN':
             return jsonify({"error": "Accès non autorisé. Droits administrateur requis."}), 403
-        
+        g.user = user
         return f(*args, **kwargs)
     return decorated_function
 
@@ -95,7 +96,7 @@ def upload_image():
     # Utilise secure_filename pour la sécurité, même si on le renomme après
     original_filename = secure_filename(file.filename)
     extension = os.path.splitext(original_filename)[1] or '.jpg'
-    new_filename = f"capture_{unique_id}_{timestamp}{extension}"
+    new_filename = f"capture_{g.user['id']}_{unique_id}_{timestamp}{extension}"
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
     file.save(filepath)
     
@@ -121,9 +122,9 @@ def process_ocr():
 
     timestamp = int(time.time())
     unique_id = uuid.uuid4().hex[:6]
-    text_filename = f"ocr_result_{unique_id}_{timestamp}.txt"
+    text_filename = f"ocr_result_{g.user['id']}_{unique_id}_{timestamp}.txt"
 
-    recognized_text, text_path_or_error = ocr_image(image_path, text_filename, ocr_engine_choice=ocr_engine)
+    recognized_text, text_path_or_error = ocr_image(image_path, text_filename, ocr_engine_choice=ocr_engine, user_id=g.user['id'])
     if not recognized_text and text_path_or_error: # Si l'OCR a échoué
         return jsonify({"error": "L'OCR a échoué", "details": text_path_or_error}), 500
 
@@ -145,9 +146,9 @@ def process_tts():
 
     timestamp = int(time.time())
     unique_id = uuid.uuid4().hex[:6]
-    audio_filename = f"audio_{unique_id}_{timestamp}.wav"
+    audio_filename = f"audio_{g.user['id']}_{unique_id}_{timestamp}.wav"
 
-    tts_success, audio_path_or_error = generate_tts(text, audio_filename, tts_engine=tts_engine)
+    tts_success, audio_path_or_error = generate_tts(text, audio_filename, tts_engine=tts_engine, user_id=g.user['id'])
     if not tts_success:
         return jsonify({"error": "La génération TTS a échoué", "details": audio_path_or_error}), 500
 

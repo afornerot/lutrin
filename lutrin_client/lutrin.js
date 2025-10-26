@@ -53,6 +53,11 @@ let userOcrResult;
 let userAudioPlayback;
 let userModeStopButton;
 let userModeActionButton;
+let userStatusOverlay;
+let userStatusMessage;
+let userStatusText;
+let userErrorMessage;
+let userErrorText;
 
 
 // Fonctions Utilitaires ---
@@ -63,24 +68,53 @@ let userModeActionButton;
  * @param {boolean} isSuccess - True si le message est un succès.
  */
 function showStatus(message, isError = false, isSuccess = false) {
+    // Mode Console
     errorMessage.classList.add('hidden');
     statusMessage.classList.remove('hidden', 'bg-yellow-100', 'text-yellow-800', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
-    if (statusText) statusText.textContent = message; // Check if statusText is available
+    if (statusText) statusText.textContent = message;
 
     if (isError) statusMessage.classList.add('bg-red-100', 'text-red-800');
     else if (isSuccess) statusMessage.classList.add('bg-green-100', 'text-green-800');
     else statusMessage.classList.add('bg-yellow-100', 'text-yellow-800');
+
+    // Mode Utilisateur
+    userStatusOverlay.classList.remove('hidden');
+    userErrorMessage.classList.add('hidden');
+    userStatusMessage.classList.remove('hidden');
+    userStatusText.textContent = message;
+
+    // Gestion des couleurs pour le mode utilisateur (pas de changement de fond, juste le message)
+    if (isError) {
+        userStatusMessage.classList.add('hidden');
+        userErrorMessage.classList.remove('hidden');
+        userErrorText.textContent = message;
+    } else {
+        // Pas de couleur spécifique pour succès/en cours pour l'instant, le loader suffit
+    }
 }
 
 function showError(message) {
+    // Mode Console
     errorMessage.textContent = message;
     errorMessage.classList.remove('hidden');
     statusMessage.classList.add('hidden');
+
+    // Mode Utilisateur
+    userStatusOverlay.classList.remove('hidden');
+    userStatusMessage.classList.add('hidden');
+    userErrorMessage.classList.remove('hidden');
+    userErrorText.textContent = message;
 }
 
 function hideStatus() {
+    // Mode Console
     statusMessage.classList.add('hidden');
     errorMessage.classList.add('hidden');
+
+    // Mode Utilisateur
+    userStatusOverlay.classList.add('hidden');
+    userStatusMessage.classList.remove('hidden');
+    userErrorMessage.classList.add('hidden');
 }
 
 function setCaptureButtonsState(disabled) {
@@ -168,11 +202,15 @@ async function startCaptureAndOCR() {
         showStatus("1/3 - Capture et envoi de l'image...", false);
         uploadStartTime = performance.now();
 
+        // Sélectionne le flux vidéo actif en fonction du mode UI
+        const activeVideoStream = modeToggle.checked ? videoStream : userVideoStream;
+
         const canvas = document.createElement('canvas');
-        canvas.width = videoStream.videoWidth;
-        canvas.height = videoStream.videoHeight;
-        if (videoStream) canvas.getContext('2d').drawImage(videoStream, 0, 0, canvas.width, canvas.height); // Check if videoStream is available
+        canvas.width = activeVideoStream.videoWidth;
+        canvas.height = activeVideoStream.videoHeight;
+        canvas.getContext('2d').drawImage(activeVideoStream, 0, 0, canvas.width, canvas.height);
         const imageDataUrl = canvas.toDataURL('image/jpeg');
+
         if (capturedImage) capturedImage.src = imageDataUrl; // Check if capturedImage is available
 
         const blob = await (await fetch(imageDataUrl)).blob();
@@ -480,11 +518,6 @@ function initializeApp() {
         }
     };
 
-    const setButtonToPlayPause = () => {
-        userModeActionButton.innerHTML = '<i class="fas fa-pause mr-4"></i> Pause / Lecture';
-        userModeActionButton.onclick = togglePlayPause;
-    };
-
     const resetButtonToAction = () => {
         userModeActionButton.innerHTML = userActionButtonContent;
         userModeActionButton.classList.remove('flex-grow');
@@ -502,13 +535,20 @@ function initializeApp() {
     userModeStopButton.addEventListener('click', stopAction);
 
     userAudioPlayback.addEventListener('play', () => {
-        setButtonToPlayPause();
+        hideStatus(); // Masque le message de statut dès que la lecture commence
+        userModeActionButton.onclick = togglePlayPause;
+        userModeActionButton.classList.add('flex-grow');
+        userModeActionButton.classList.remove('w-full');
+        userModeStopButton.classList.remove('hidden');
         userModeActionButton.innerHTML = '<i class="fas fa-pause mr-4"></i> Pause';
     });
 
     userAudioPlayback.addEventListener('pause', () => {
-        setButtonToPlayPause();
-        userModeActionButton.innerHTML = '<i class="fas fa-play mr-4"></i> Lecture';
+        // Ne rien faire si l'audio est terminé (currentTime est à 0 ou proche de la fin)
+        // L'événement 'ended' s'en chargera.
+        if (userAudioPlayback.currentTime > 0 && !userAudioPlayback.ended) {
+            userModeActionButton.innerHTML = '<i class="fas fa-play mr-4"></i> Lecture';
+        }
     });
 
     userAudioPlayback.addEventListener('ended', () => {
@@ -648,6 +688,11 @@ document.addEventListener('DOMContentLoaded', () => {
     userAudioPlayback = document.getElementById('user-audio-playback');
     userModeStopButton = document.getElementById('user-mode-stop-button');
     userModeActionButton = document.getElementById('user-mode-action-button');
+    userStatusOverlay = document.getElementById('user-status-overlay');
+    userStatusMessage = document.getElementById('user-status-message');
+    userStatusText = document.getElementById('user-status-text');
+    userErrorMessage = document.getElementById('user-error-message');
+    userErrorText = document.getElementById('user-error-text');
 
     // Vérifier s'il y a une session active AVANT d'attacher les écouteurs de connexion
     if (checkSession()) return; // Si la session est valide, initializeApp a déjà été appelée, on arrête ici.
