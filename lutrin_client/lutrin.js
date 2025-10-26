@@ -755,10 +755,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Logique du raccourci clavier (Touche Espace) ---
+    // --- Logique du raccourci clavier (Télécommande Selfie / Volume Haut) ---
     window.addEventListener('keydown', function (event) {
-        // On utilise la touche Espace (keyCode 32 ou key ' ')
-        if (event.key === '175') {
+        // La télécommande envoie un événement "Volume Haut" (keyCode 175 ou key 'AudioVolumeUp')
+        // On vérifie les deux pour une meilleure compatibilité.
+        if (event.keyCode === 175 || event.key === 'AudioVolumeUp') {
             // Empêche l'action par défaut (ex: défilement de la page)
             event.preventDefault();
 
