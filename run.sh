@@ -151,8 +151,13 @@ install_project() {
     else
         python3 -m venv "$API_DIR/venv"
         EchoVert "Environnement virtuel créé dans '$API_DIR/venv'."
-        "$VENV_PYTHON" -m ensurepip --upgrade
-        EchoVert "Pip a été installé/vérifié dans l'environnement virtuel."
+        # Sur certains systèmes, venv ne crée pas pip. On le force.
+        EchoBleu "Vérification et installation de pip dans l'environnement virtuel..."
+        curl -sS https://bootstrap.pypa.io/get-pip.py | "$VENV_PYTHON"
+        if [ $? -ne 0 ]; then
+            EchoRouge "L'installation de pip dans l'environnement virtuel a échoué."
+            exit 1
+        fi
     fi
     EchoBlanc
     
