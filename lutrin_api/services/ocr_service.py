@@ -5,16 +5,21 @@ import requests
 from groq import Groq
 from paddleocr import PaddleOCR
 from .logger_service import *
-from config import UPLOAD_FOLDER, GROQ_TOKEN
+from ..config import UPLOAD_FOLDER, GROQ_TOKEN
 
 # --- Initialisation des moteurs OCR (chargés une seule fois au démarrage) ---
 ocr_engine = None
-Log("Initialisation des moteurs OCR...")
-try:
-    ocr_engine = PaddleOCR(use_angle_cls=True, lang='fr')
-    Log("Moteur PaddleOCR chargé avec succès.")
-except Exception as e:
-    Error(f"Impossible de charger le moteur PaddleOCR. Détails: {e}. Le moteur Paddle sera indisponible.")
+
+def init_ocr_engine():
+    """Initialise le moteur PaddleOCR. Appelé au démarrage du serveur."""
+    global ocr_engine
+    if ocr_engine is None:
+        Log("Initialisation du moteur OCR (Paddle)...")
+        try:
+            ocr_engine = PaddleOCR(use_angle_cls=True, lang='fr')
+            Log("Moteur PaddleOCR chargé avec succès.")
+        except Exception as e:
+            Error(f"Impossible de charger le moteur PaddleOCR. Détails: {e}. Le moteur Paddle sera indisponible.")
 
 def _reordonner_double_page(resultat_ocr):
     """

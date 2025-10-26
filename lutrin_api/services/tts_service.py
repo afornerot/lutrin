@@ -4,19 +4,21 @@ import requests
 
 from piper.voice import PiperVoice
 from .logger_service import BigTitle, Title, Error, Success, Log
-from config import UPLOAD_FOLDER, PIPER_MODEL, COQUI_TTS_URL
+from ..config import UPLOAD_FOLDER, PIPER_MODEL, COQUI_TTS_URL
 
 # --- Initialisation des modèles TTS (chargés une seule fois au démarrage) ---
 voice = None
-Log("Initialisation des moteurs TTS...")
-if os.path.exists(PIPER_MODEL):
-    try:
-        voice = PiperVoice.load(PIPER_MODEL)
-        Log("Moteur TTS Piper chargé avec succès.")
-    except Exception as e:
-        Error(f"Impossible de charger le modèle TTS Piper. Détails: {e}")
-else:
-    Error(f"Modèle TTS Piper non trouvé à l'emplacement = {PIPER_MODEL}. Le moteur Piper sera indisponible.")
+
+def init_tts_engine():
+    """Initialise le moteur Piper TTS. Appelé au démarrage du serveur."""
+    global voice
+    if voice is None and os.path.exists(PIPER_MODEL):
+        Log("Initialisation du moteur TTS (Piper)...")
+        try:
+            voice = PiperVoice.load(PIPER_MODEL)
+            Log("Moteur TTS Piper chargé avec succès.")
+        except Exception as e:
+            Error(f"Impossible de charger le modèle TTS Piper. Détails: {e}")
 
 def _delete_old_files():
     """

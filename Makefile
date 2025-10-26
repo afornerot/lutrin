@@ -36,6 +36,7 @@ help:
 	@echo "Cibles disponibles:"
 	@echo "  $(YELLOW)install$(RESET)   	- Installe les dépendances système et configure l'environnement Python."
 	@echo "  $(YELLOW)start$(RESET)     	- Démarre les serveurs API et client en arrière-plan."
+	@echo "  $(YELLOW)add-user$(RESET)  	- Ajoute un nouvel utilisateur. Usage: make add-user user=myuser pass=mypass email=me@domain.com [role=USER]"
 	@echo "  $(YELLOW)stop$(RESET)      	- Arrête tous les serveurs."
 	@echo "  $(YELLOW)watch$(RESET)      	- Watch les modifications sur API server et le relance si besoin."
 	@echo "  $(YELLOW)status$(RESET)    	- Affiche le statut des serveurs."
@@ -47,6 +48,9 @@ help:
 
 install:
 	chmod +x run.sh && ./run.sh install
+
+add-user:
+	./run.sh add-user $(user) $(pass) $(email) $(role)
 
 update:
 	./run.sh update
@@ -73,4 +77,3 @@ clientlogs:
 
 clean:
 	./run.sh clean
-

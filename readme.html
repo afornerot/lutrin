@@ -36,6 +36,10 @@ make install
 <td>Installe / Met à jour les dépendances système, crée l'environnement virtuel et installe les paquets Python.</td>
 </tr>
 <tr>
+<td><code>make add-user</code></td>
+<td>Ajoute un nouvel utilisateur. <strong>Usage :</strong> <code>make add-user user=mon_user pass=mon_mot_de_passe email=mon_email role=USER,ADMIN</code></td>
+</tr>
+<tr>
 <td><code>make start</code></td>
 <td>Démarre les serveurs de l'API et du client en arrière-plan.</td>
 </tr>
@@ -69,7 +73,7 @@ make install
 </tr>
 </tbody>
 </table>
-<p>Une fois les serveurs démarrés avec <code>make start</code>, vous pouvez accéder à l'interface web à l'adresse : <strong>http://localhost:8000</strong></p>
+<p>Une fois les serveurs démarrés avec <code>make start</code>, vous pouvez accéder à l'interface web à l'adresse : <strong>http://localhost:8000</strong> Après avoir créé un utilisateur avec <code>make add-user</code>, la clé d'API générée s'affichera dans le terminal. Copiez cette clé et collez-la dans le champ &quot;Clé d'API&quot; de l'interface web pour pouvoir utiliser l'application.</p>
 <h2 id="configuration-lutrin-apienv">Configuration (<code>lutrin_api/.env</code>)</h2>
 <p>Le projet utilise des fichiers d'environnement pour gérer sa configuration, ce qui permet de séparer les paramètres de l'application du code source.</p>
 <ul>

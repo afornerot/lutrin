@@ -30,7 +30,7 @@ start_api() {
     else
         # Utilise le python du virtualenv directement pour plus de robustesse
         # L'option -u est cruciale pour désactiver la mise en tampon de la sortie et voir les logs en temps réel.
-        nohup $VENV_PYTHON -u $API_DIR/server.py > "$API_LOG_FILE" 2>&1 & echo $! > "$API_PID_FILE"
+        nohup $VENV_PYTHON -u -m lutrin_api.server > "$API_LOG_FILE" 2>&1 & echo $! > "$API_PID_FILE"
         EchoVert "Serveur API démarré avec le PID $(cat $API_PID_FILE) sur http://localhost:$API_PORT. Logs dans $API_LOG_FILE"
     fi
     EchoBlanc
@@ -163,7 +163,7 @@ install_project() {
     "$VENV_PIP" install -r "$API_DIR/requirements.txt"
     EchoVert "Dépendances Python installées avec succès."
     EchoBlanc
-
+    
     Title "Installation/Vérification de Coqui TTS"
     cd lutrin_coqui
 
@@ -188,9 +188,73 @@ install_project() {
     docker-compose up -d
     cd ..
 
+    Title "Initialisation de la base de données"
+    "$VENV_PYTHON" -c "from lutrin_api.services import auth_service; auth_service.init_db()"
+    EchoVert "Base de données prête."
+    EchoBlanc
+
+    Title "Vérification des utilisateurs"
+    USER_COUNT=$("$VENV_PYTHON" -c "from lutrin_api.services import auth_service; print(auth_service.count_users())")
+
+    if [ "$USER_COUNT" -eq 0 ]; then
+        EchoOrange "Aucun utilisateur trouvé. Création du premier compte administrateur."
+        
+        # Demander les informations à l'utilisateur
+        read -p "Entrez le nom d'utilisateur pour l'administrateur: " admin_user
+        while [ -z "$admin_user" ]; do
+            EchoRouge "Le nom d'utilisateur ne peut pas être vide."
+            read -p "Entrez le nom d'utilisateur pour l'administrateur: " admin_user
+        done
+
+        read -sp "Entrez le mot de passe pour l'administrateur (sera masqué): " admin_pass
+        echo
+        while [ -z "$admin_pass" ]; do
+            EchoRouge "Le mot de passe ne peut pas être vide."
+            read -sp "Entrez le mot de passe pour l'administrateur (sera masqué): " admin_pass
+            echo
+        done
+
+        read -p "Entrez l'email pour l'administrateur: " admin_email
+        while [ -z "$admin_email" ]; do
+            EchoRouge "L'email ne peut pas être vide."
+            read -p "Entrez l'email pour l'administrateur: " admin_email
+        done
+
+        # Appeler la fonction add_user avec les informations saisies et le rôle ADMIN
+        "$VENV_PYTHON" -c "from lutrin_api.services import auth_service; auth_service.add_user('$admin_user', '$admin_pass', '$admin_email', 'ADMIN')"
+    else
+        EchoVert "Des utilisateurs existent déjà dans la base de données."
+    fi
+    EchoBlanc
+    
     Title "Installation Terminée"
     EchoVert "✅ Installation terminée avec succès !"
     EchoBlanc "Lancez 'make start' pour démarrer les serveurs."
+}
+
+add_user_command() {
+    BigTitle "Ajout d'un nouvel utilisateur"
+    if [ -z "$2" ] || [ -z "$3" ] || [ -z "$4" ]; then
+        EchoRouge "Usage: $0 add-user <username> <password> <email> [role]"
+        exit 1
+    fi
+    local username="$2"
+    local password="$3"
+    local email="$4"
+    local role="${5:-USER}" # Le rôle est optionnel, 'USER' par défaut
+
+    if [ ! -f "$VENV_PYTHON" ]; then
+        EchoRouge "L'environnement virtuel n'est pas trouvé. Lancez d'abord 'make install'."
+        exit 1
+    fi
+
+    EchoBleu "Ajout de l'utilisateur '$username'..."
+    "$VENV_PYTHON" -c "
+from lutrin_api.services import auth_service
+auth_service.add_user('$username', '$password', '$email', '$role')
+"
+    EchoVert "Opération terminée."
+    EchoBlanc
 }
 
 clean_project() {
@@ -263,6 +327,9 @@ case "$1" in
     install)
         install_project
         ;;
+    add-user)
+        add_user_command "$@"
+        ;;
     start)
         BigTitle "Démarrage des services Lutrin"
         start_api
@@ -298,7 +365,7 @@ case "$1" in
         watch_api_changes
         ;;
     *)
-        EchoOrange "Usage: $0 {install|start|stop|watch|status|apilogs|clientlogs|clean"
+        EchoOrange "Usage: $0 {install|add-user|start|stop|watch|status|apilogs|clientlogs|clean}"
         EchoBlanc
         exit 1
         ;;

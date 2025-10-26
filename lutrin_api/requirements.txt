@@ -1,7 +1,5 @@
 Flask
 Pillow
-pytesseract
-opencv-python-headless
 waitress
 flask-cors
 python-dotenv
@@ -10,5 +8,3 @@ paddleocr
 paddlepaddle
 piper-tts
 groq
-google-genai
-google

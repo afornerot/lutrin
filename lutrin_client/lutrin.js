@@ -2,25 +2,58 @@
 const API_BASE_URL = "http://localhost:5000";
 const IP_ADDRESS = "localhost";
 
-// --- Éléments du DOM ---
-const videoStream = document.getElementById('video-stream');
-const capturedImage = document.getElementById('captured-image');
-const ocrTextResult = document.getElementById('ocr-text-result');
-const audioPlayback = document.getElementById('audio-playback');
-const captureButton = document.getElementsByClassName('capture-button');
-const ocrEngineSelect = document.getElementById('ocr-engine-select');
-const ttsEngineSelect = document.getElementById('tts-engine-select');
+// --- Éléments du DOM (déclarés ici, assignés dans initializeApp pour garantir DOM readiness) ---
+let videoStream;
+let capturedImage;
+let ocrTextResult;
+let audioPlayback;
+let captureButton; // NodeList, not a single element
+let ocrEngineSelect;
+let ttsEngineSelect;
+
+// --- Éléments de connexion ---
+let loginOverlay;
+let loginForm;
+let rememberMeCheckbox;
+let loginButton;
+let loginError;
+let mainContent;
+let offlineOverlay;
+let refreshButton;
+let logoutButton;
+let userLogoutButton;
+let modeToggle;
+let consoleModeContent;
+let userModeContent;
+
+// Éléments des réglages moteurs
+let engineSettingsOverlay;
+let closeEngineSettingsButton;
+let openEngineSettingsConsoleButton;
+let openEngineSettingsUserButton;
+
+
+let isApiOnline = true; // Pour suivre l'état de l'API
+let apiKey = null; // Variable globale pour stocker la clé d'API
 
 // Statut et messages
 const statusMessage = document.getElementById('status-message');
 const errorMessage = document.getElementById('error-message');
-const apiStatus = document.getElementById('api-status');
-const statusText = statusMessage.querySelector('span');
+let apiStatus;
+let statusText;
 
-// Éléments pour les statistiques
-const statCaptureTime = document.getElementById('stat-capture-time');
-const statOcrTime = document.getElementById('stat-ocr-time');
-const statTtsTime = document.getElementById('stat-tts-time');
+// Éléments pour les statistiques (déclarés ici, assignés dans initializeApp)
+let statCaptureTime;
+let statOcrTime;
+let statTtsTime;
+
+// Éléments du mode utilisateur
+let userVideoStream;
+let userOcrResult;
+let userAudioPlayback;
+let userModeStopButton;
+let userModeActionButton;
+
 
 // Fonctions Utilitaires ---
 /**
@@ -32,7 +65,7 @@ const statTtsTime = document.getElementById('stat-tts-time');
 function showStatus(message, isError = false, isSuccess = false) {
     errorMessage.classList.add('hidden');
     statusMessage.classList.remove('hidden', 'bg-yellow-100', 'text-yellow-800', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
-    statusText.textContent = message;
+    if (statusText) statusText.textContent = message; // Check if statusText is available
 
     if (isError) statusMessage.classList.add('bg-red-100', 'text-red-800');
     else if (isSuccess) statusMessage.classList.add('bg-green-100', 'text-green-800');
@@ -51,7 +84,7 @@ function hideStatus() {
 }
 
 function setCaptureButtonsState(disabled) {
-    for (const button of captureButton) {
+    if (captureButton) for (const button of captureButton) { // Check if captureButton is available
         button.disabled = disabled;
     }
 }
@@ -72,20 +105,36 @@ async function checkApiStatus() {
     try {
         const response = await fetch(`${API_BASE_URL}/status`);
         if (response.ok) {
+            // L'API est EN LIGNE
+            if (!isApiOnline) {
+                // Si l'API était hors ligne avant, on recharge la page pour tout réinitialiser
+                location.reload();
+            }
+            isApiOnline = true;
             const data = await response.json();
-            apiStatus.textContent = `API: EN LIGNE. Message: ${data.status}`;
-            apiStatus.classList.remove('text-red-500');
-            apiStatus.classList.add('text-green-500');
+            apiStatus.textContent = `API: EN LIGNE`;
+            if (apiStatus) apiStatus.classList.remove('text-red-500');
+            if (apiStatus) apiStatus.classList.add('text-green-500');
         } else {
-            apiStatus.textContent = `API: HORS LIGNE (Erreur HTTP ${response.status})`;
-            apiStatus.classList.remove('text-green-500');
-            apiStatus.classList.add('text-red-500');
+            // L'API répond mais avec une erreur
+            throw new Error(`Erreur HTTP ${response.status}`);
         }
     } catch (error) {
-        apiStatus.textContent = "API: HORS LIGNE (Impossible de se connecter)";
-        apiStatus.classList.remove('text-green-500');
-        apiStatus.classList.add('text-red-500');
+        // L'API est HORS LIGNE (erreur réseau)
+        if (isApiOnline) {
+            // C'est la première fois qu'on détecte la déconnexion
+            if (mainContent) mainContent.classList.add('hidden');
+            if (offlineOverlay) offlineOverlay.classList.remove('hidden');
+        }
+        isApiOnline = false;
     }
+}
+
+function getApiHeaders() {
+    if (!apiKey) {
+        throw new Error("Utilisateur non authentifié. La clé d'API est manquante.");
+    }
+    return { 'X-API-Key': apiKey };
 }
 
 async function startLocalCamera() {
@@ -96,7 +145,8 @@ async function startLocalCamera() {
                 height: { ideal: 720 }
             }
         });
-        videoStream.srcObject = stream;
+        if (videoStream) videoStream.srcObject = stream;
+        if (userVideoStream) userVideoStream.srcObject = stream;
     } catch (error) {
         console.error("Erreur d'accès à la caméra:", error);
         showError("Impossible d'accéder à la caméra. Vérifiez les permissions dans votre navigateur.");
@@ -121,9 +171,9 @@ async function startCaptureAndOCR() {
         const canvas = document.createElement('canvas');
         canvas.width = videoStream.videoWidth;
         canvas.height = videoStream.videoHeight;
-        canvas.getContext('2d').drawImage(videoStream, 0, 0, canvas.width, canvas.height);
+        if (videoStream) canvas.getContext('2d').drawImage(videoStream, 0, 0, canvas.width, canvas.height); // Check if videoStream is available
         const imageDataUrl = canvas.toDataURL('image/jpeg');
-        capturedImage.src = imageDataUrl;
+        if (capturedImage) capturedImage.src = imageDataUrl; // Check if capturedImage is available
 
         const blob = await (await fetch(imageDataUrl)).blob();
         const formData = new FormData();
@@ -131,7 +181,8 @@ async function startCaptureAndOCR() {
 
         const captureResponse = await fetch(`${API_BASE_URL}/upload`, {
             method: 'POST',
-            body: formData
+            headers: { ...getApiHeaders() },
+            body: formData,
         });
         if (!captureResponse.ok) {
             const errorText = await captureResponse.text(); // Lire la réponse comme du texte
@@ -147,7 +198,7 @@ async function startCaptureAndOCR() {
         const ocrResponse = await fetch(`${API_BASE_URL}/ocr`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                ...getApiHeaders(), 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 image_filename: captureData.image_filename,
@@ -161,7 +212,8 @@ async function startCaptureAndOCR() {
         const ocrData = await ocrResponse.json();
         ocrEndTime = performance.now();
         ocrDuration = ocrEndTime - ocrStartTime;
-        ocrTextResult.value = ocrData.text;
+        if (ocrTextResult) ocrTextResult.value = ocrData.text;
+        if (userOcrResult) userOcrResult.textContent = ocrData.text;
 
         // --- Étape 3: Génération du TTS ---
         showStatus("3/3 - Génération de l'audio (TTS)...", false);
@@ -169,7 +221,7 @@ async function startCaptureAndOCR() {
         const ttsResponse = await fetch(`${API_BASE_URL}/tts`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                ...getApiHeaders(), 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 text: ocrData.text,
@@ -183,9 +235,13 @@ async function startCaptureAndOCR() {
         const ttsData = await ttsResponse.json();
         ttsEndTime = performance.now();
         ttsDuration = ttsEndTime - ttsStartTime;
-        audioPlayback.src = ttsData.audio_url;
-        audioPlayback.load();
-        audioPlayback.play();
+
+        // Jouer l'audio sur le lecteur approprié en fonction du mode
+        const activeAudioPlayer = modeToggle.checked ? audioPlayback : userAudioPlayback;
+        activeAudioPlayer.src = ttsData.audio_url;
+        activeAudioPlayer.load();
+        activeAudioPlayer.play();
+
 
         // --- Fin de l'opération ---
         showStatus("Opération terminée avec succès !", false, true);
@@ -218,7 +274,7 @@ async function startOCR(fichier) {
         captureStartTime = performance.now();
         capturedImage.src = API_BASE_URL + "/file/" + fichier + "?t=" + new Date().getTime();
         // Simuler un petit délai pour le chargement visuel
-        await new Promise(resolve => setTimeout(resolve, 200));
+        if (capturedImage) await new Promise(resolve => setTimeout(resolve, 200)); // Check if capturedImage is available
         captureEndTime = performance.now();
         captureDuration = captureEndTime - captureStartTime;
 
@@ -228,7 +284,7 @@ async function startOCR(fichier) {
         const ocrResponse = await fetch(`${API_BASE_URL}/ocr`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                ...getApiHeaders(), 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 image_filename: fichier,
@@ -242,7 +298,8 @@ async function startOCR(fichier) {
         const ocrData = await ocrResponse.json();
         ocrEndTime = performance.now();
         ocrDuration = ocrEndTime - ocrStartTime;
-        ocrTextResult.value = ocrData.text;
+        if (ocrTextResult) ocrTextResult.value = ocrData.text;
+        if (userOcrResult) userOcrResult.textContent = ocrData.text;
 
         // --- Étape 3: Génération du TTS ---
         showStatus("3/3 - Génération de l'audio (TTS)...", false);
@@ -250,7 +307,7 @@ async function startOCR(fichier) {
         const ttsResponse = await fetch(`${API_BASE_URL}/tts`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                ...getApiHeaders(), 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 text: ocrData.text,
@@ -264,9 +321,11 @@ async function startOCR(fichier) {
         const ttsData = await ttsResponse.json();
         ttsEndTime = performance.now();
         ttsDuration = ttsEndTime - ttsStartTime;
-        audioPlayback.src = ttsData.audio_url;
-        audioPlayback.load();
-        audioPlayback.play();
+
+        const activeAudioPlayer = modeToggle.checked ? audioPlayback : userAudioPlayback;
+        activeAudioPlayer.src = ttsData.audio_url;
+        activeAudioPlayer.load();
+        activeAudioPlayer.play();
 
         // --- Fin de l'opération ---
         showStatus("Opération terminée avec succès !", false, true);
@@ -307,7 +366,7 @@ async function startTTS(fichier) {
         const textContent = await textResponse.text();
         textFetchEndTime = performance.now();
         textFetchDuration = textFetchEndTime - textFetchStartTime;
-        ocrTextResult.value = textContent; // Afficher le texte dans la textarea
+        if (ocrTextResult) ocrTextResult.value = textContent; // Afficher le texte dans la textarea
 
         // --- Étape 2: Génération du TTS ---
         console.log(ttsEngineSelect.value);
@@ -316,7 +375,7 @@ async function startTTS(fichier) {
         const ttsResponse = await fetch(`${API_BASE_URL}/tts`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                ...getApiHeaders(), 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 text: textContent,
@@ -330,10 +389,10 @@ async function startTTS(fichier) {
         const ttsData = await ttsResponse.json();
         ttsEndTime = performance.now();
         ttsDuration = ttsEndTime - ttsStartTime;
-        audioPlayback.src = ttsData.audio_url;
-        audioPlayback.load();
 
-
+        const activeAudioPlayer = modeToggle.checked ? audioPlayback : userAudioPlayback;
+        activeAudioPlayer.src = ttsData.audio_url;
+        activeAudioPlayer.load();
 
         // --- Fin de l'opération ---
         showStatus("Opération terminée avec succès !", false, true);
@@ -351,7 +410,8 @@ async function startTTS(fichier) {
         setCaptureButtonsState(false);
 
         // Lire la capture du son
-        audioPlayback.play();
+        const activeAudioPlayer = modeToggle.checked ? audioPlayback : userAudioPlayback;
+        if (activeAudioPlayer) activeAudioPlayer.play();
 
     }
 }
@@ -360,7 +420,7 @@ async function noOCR() {
     const ttsResponse = await fetch(`${API_BASE_URL}/tts`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            ...getApiHeaders(), 'Content-Type': 'application/json'
         },
         body: JSON.stringify({
             text: "Aucun texte détecté",
@@ -373,16 +433,171 @@ async function noOCR() {
     }
 }
 // Initialisation
-function init() {
-    // 1. Démarrer le flux vidéo local
+
+function checkSession() {
+    const now = new Date().getTime();
+    const oneHour = 60 * 60 * 1000;
+    let sessionData = null;
+
+    // Essayer de récupérer la session depuis localStorage (si "Rester connecté" était coché)
+    const localSession = localStorage.getItem('lutrin-session');
+    if (localSession) {
+        sessionData = JSON.parse(localSession);
+    } else {
+        // Sinon, essayer sessionStorage (session normale)
+        const sessionSession = sessionStorage.getItem('lutrin-session');
+        if (sessionSession) {
+            sessionData = JSON.parse(sessionSession);
+        }
+    }
+
+    if (sessionData && sessionData.apiKey && sessionData.loginTime) {
+        // Vérifier si la session a expiré (plus d'une heure)
+        if (now - sessionData.loginTime < oneHour) {
+            apiKey = sessionData.apiKey;
+            loginOverlay.classList.add('hidden');
+            if (mainContent) mainContent.classList.remove('hidden');
+            if (initializeApp) initializeApp(); // Ensure initializeApp is defined and callable
+            return true; // Session valide trouvée
+        } else {
+            // Nettoyer la session expirée
+            localStorage.removeItem('lutrin-session');
+            sessionStorage.removeItem('lutrin-session');
+        }
+    }
+    return false; // Aucune session valide
+}
+
+function initializeApp() {
+    // --- Logique du bouton d'action en mode utilisateur ---
+    const userActionButtonContent = userModeActionButton.innerHTML; // Sauvegarde du contenu initial
+
+    const togglePlayPause = () => {
+        if (userAudioPlayback.paused) {
+            userAudioPlayback.play();
+        } else {
+            userAudioPlayback.pause();
+        }
+    };
+
+    const setButtonToPlayPause = () => {
+        userModeActionButton.innerHTML = '<i class="fas fa-pause mr-4"></i> Pause / Lecture';
+        userModeActionButton.onclick = togglePlayPause;
+    };
+
+    const resetButtonToAction = () => {
+        userModeActionButton.innerHTML = userActionButtonContent;
+        userModeActionButton.classList.remove('flex-grow');
+        userModeActionButton.classList.add('w-full');
+        userModeStopButton.classList.add('hidden');
+        userModeActionButton.onclick = startCaptureAndOCR;
+    };
+
+    // --- Logique du bouton Stop ---
+    const stopAction = () => {
+        userAudioPlayback.pause();
+        userAudioPlayback.currentTime = 0; // Rembobine l'audio
+        resetButtonToAction();
+    };
+    userModeStopButton.addEventListener('click', stopAction);
+
+    userAudioPlayback.addEventListener('play', () => {
+        setButtonToPlayPause();
+        userModeActionButton.innerHTML = '<i class="fas fa-pause mr-4"></i> Pause';
+    });
+
+    userAudioPlayback.addEventListener('pause', () => {
+        setButtonToPlayPause();
+        userModeActionButton.innerHTML = '<i class="fas fa-play mr-4"></i> Lecture';
+    });
+
+    userAudioPlayback.addEventListener('ended', () => {
+        resetButtonToAction();
+    });
+
+    // Initialiser l'état du bouton d'action en mode utilisateur
+    resetButtonToAction();
+
+    // --- Logique de rafraîchissement manuel ---
+    refreshButton.addEventListener('click', () => {
+        location.reload();
+    });
+
+    // --- Logique de déconnexion ---
+    const logoutAction = () => {
+        // Nettoyer la clé d'API et les stockages de session
+        apiKey = null;
+        localStorage.removeItem('lutrin-session');
+        sessionStorage.removeItem('lutrin-session');
+        // Recharger la page pour revenir à l'écran de connexion
+        location.reload();
+    };
+    logoutButton.addEventListener('click', logoutAction);
+    userLogoutButton.addEventListener('click', logoutAction);
+
+    // --- Logique d'ouverture/fermeture des réglages moteurs ---
+    const openEngineSettings = () => engineSettingsOverlay.classList.remove('hidden');
+    const closeEngineSettings = () => engineSettingsOverlay.classList.add('hidden');
+
+    openEngineSettingsConsoleButton.addEventListener('click', openEngineSettings);
+    openEngineSettingsUserButton.addEventListener('click', openEngineSettings);
+    closeEngineSettingsButton.addEventListener('click', closeEngineSettings);
+    engineSettingsOverlay.addEventListener('click', (e) => {
+        // Ferme l'overlay si on clique sur le fond semi-transparent
+        if (e.target === engineSettingsOverlay) {
+            closeEngineSettings();
+        }
+    });
+
+    // --- Logique de changement de mode ---
+    const setUIMode = (isConsoleMode) => {
+        if (isConsoleMode) {
+            consoleModeContent.classList.remove('hidden');
+            userModeContent.classList.add('hidden');
+        } else {
+            consoleModeContent.classList.add('hidden');
+            userModeContent.classList.remove('hidden');
+        }
+        localStorage.setItem('lutrin-ui-mode', isConsoleMode ? 'console' : 'user');
+    };
+
+    modeToggle.addEventListener('change', (e) => {
+        setUIMode(e.target.checked);
+    });
+
+
+    // --- Restauration et sauvegarde des choix de moteurs ---
+    const savedOcrEngine = localStorage.getItem('lutrin-ocr-engine');
+    if (savedOcrEngine) {
+        ocrEngineSelect.value = savedOcrEngine;
+    }
+    ocrEngineSelect.addEventListener('change', (e) => {
+        localStorage.setItem('lutrin-ocr-engine', e.target.value);
+    });
+
+    const savedTtsEngine = localStorage.getItem('lutrin-tts-engine');
+    if (savedTtsEngine) {
+        ttsEngineSelect.value = savedTtsEngine;
+    }
+    ttsEngineSelect.addEventListener('change', (e) => {
+        localStorage.setItem('lutrin-tts-engine', e.target.value);
+    });
+
+    // 1. Démarrer le flux vidéo
     startLocalCamera();
+
+    // Restaurer le mode UI
+    const savedUIMode = localStorage.getItem('lutrin-ui-mode');
+    const isConsole = savedUIMode === 'console';
+    modeToggle.checked = isConsole;
+    setUIMode(isConsole);
 
     // 2. Vérifier le statut de l'API toutes les 10 secondes
     checkApiStatus();
     setInterval(checkApiStatus, 30000);
 
     // 3. Afficher l'IP actuelle dans le statut de l'API
-    const ipDisplay = document.getElementById('api-status');
+    const ipDisplay = apiStatus; // Use the assigned apiStatus
     ipDisplay.innerHTML = `<span class="font-bold">IP API : ${IP_ADDRESS}:5000</span> | `;
 
     // 4. Init zone stat
@@ -390,4 +605,89 @@ function init() {
     statusMessage.classList.add('bg-yellow-100', 'text-yellow-800');
 }
 
-window.onload = init;
+// Au chargement de la page, on vérifie s'il y a une session active.
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialiser TOUS les éléments du DOM ici pour garantir leur disponibilité.
+    videoStream = document.getElementById('video-stream');
+    capturedImage = document.getElementById('captured-image');
+    ocrTextResult = document.getElementById('ocr-text-result');
+    audioPlayback = document.getElementById('audio-playback');
+    captureButton = document.getElementsByClassName('capture-button');
+    ocrEngineSelect = document.getElementById('ocr-engine-select');
+    ttsEngineSelect = document.getElementById('tts-engine-select');
+    apiStatus = document.getElementById('api-status');
+    statusText = statusMessage.querySelector('span');
+    statCaptureTime = document.getElementById('stat-capture-time');
+    statOcrTime = document.getElementById('stat-ocr-time');
+    statTtsTime = document.getElementById('stat-tts-time');
+
+    // Initialiser les éléments du DOM qui sont toujours présents (login, offline overlay)
+    loginOverlay = document.getElementById('login-overlay');
+    loginForm = document.getElementById('login-form');
+    rememberMeCheckbox = document.getElementById('remember-me');
+    loginButton = document.getElementById('login-button');
+    loginError = document.getElementById('login-error');
+    mainContent = document.getElementById('main-content');
+    offlineOverlay = document.getElementById('offline-overlay');
+    refreshButton = document.getElementById('refresh-button');
+    logoutButton = document.getElementById('logout-button');
+    userLogoutButton = document.getElementById('user-logout-button');
+
+    // Éléments des réglages moteurs
+    engineSettingsOverlay = document.getElementById('engine-settings-overlay');
+    closeEngineSettingsButton = document.getElementById('close-engine-settings-button');
+    openEngineSettingsConsoleButton = document.getElementById('open-engine-settings-console-button');
+    openEngineSettingsUserButton = document.getElementById('open-engine-settings-user-button');
+
+    // Éléments des modes
+    modeToggle = document.getElementById('mode-toggle');
+    consoleModeContent = document.getElementById('console-mode-content');
+    userModeContent = document.getElementById('user-mode-content');
+    userVideoStream = document.getElementById('user-video-stream');
+    userOcrResult = document.getElementById('user-ocr-result');
+    userAudioPlayback = document.getElementById('user-audio-playback');
+    userModeStopButton = document.getElementById('user-mode-stop-button');
+    userModeActionButton = document.getElementById('user-mode-action-button');
+
+    // Vérifier s'il y a une session active AVANT d'attacher les écouteurs de connexion
+    if (checkSession()) return; // Si la session est valide, initializeApp a déjà été appelée, on arrête ici.
+
+    // Attacher l'écouteur de connexion
+    loginButton.addEventListener('click', async () => {
+        loginError.classList.add('hidden');
+        const username = loginForm.username.value;
+        const password = loginForm.password.value;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || `Erreur HTTP ${response.status}`);
+            }
+
+            apiKey = data.api_key;
+            const sessionData = {
+                apiKey: apiKey,
+                loginTime: new Date().getTime()
+            };
+
+            if (rememberMeCheckbox.checked) {
+                localStorage.setItem('lutrin-session', JSON.stringify(sessionData));
+            } else {
+                sessionStorage.setItem('lutrin-session', JSON.stringify(sessionData));
+            }
+
+            loginOverlay.classList.add('hidden');
+            mainContent.classList.remove('hidden');
+            initializeApp();
+        } catch (error) {
+            loginError.textContent = `Échec de la connexion : ${error.message}`;
+            loginError.classList.remove('hidden');
+        }
+    });
+});

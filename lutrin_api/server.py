@@ -2,12 +2,13 @@ import os
 import time
 import uuid
 
+from functools import wraps
 from flask import Flask, Response, jsonify, send_from_directory, url_for, request
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from waitress import serve 
-from services import ocr_image, generate_tts, BigTitle     
-from config import UPLOAD_FOLDER, FLASK_PORT
+from .services import ocr_image, generate_tts, BigTitle, auth_service, ocr_service, tts_service
+from .config import UPLOAD_FOLDER, FLASK_PORT
 
 # Configuration de Flask
 app = Flask(__name__)
@@ -15,6 +16,36 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Activation de CORS pour toutes les routes
 CORS(app)
+
+# --- Décorateur pour la protection par clé d'API ---
+def api_key_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        api_key = request.headers.get('X-API-Key')
+        if not api_key:
+            return jsonify({"error": "Clé d'API manquante dans l'en-tête 'X-API-Key'"}), 401
+        
+        user = auth_service.get_user_by_api_key(api_key)
+        if user is None:
+            return jsonify({"error": "Clé d'API invalide ou non autorisée"}), 403
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_required(f):
+    """Décorateur pour les routes nécessitant des droits administrateur."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        api_key = request.headers.get('X-API-Key')
+        if not api_key:
+            return jsonify({"error": "Clé d'API manquante"}), 401
+        
+        user = auth_service.get_user_by_api_key(api_key)
+        if user is None or user['role'] != 'ADMIN':
+            return jsonify({"error": "Accès non autorisé. Droits administrateur requis."}), 403
+        
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route('/status')
 def status():
@@ -28,8 +59,29 @@ def status():
         "version": "1.0",
     })
 
+@app.route('/login', methods=['POST'])
+def login():
+    """Authentifie un utilisateur et retourne une clé d'API."""
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({"error": "Nom d'utilisateur et mot de passe requis"}), 400
+
+    api_key = auth_service.authenticate_user(username, password)
+    if api_key:
+        return jsonify({"status": "success", "api_key": api_key})
+    else:
+        return jsonify({"error": "Identifiants invalides"}), 401
+
 @app.route('/upload', methods=['POST'])
+@api_key_required
 def upload_image():
+    """
+    upload une image sur le serveur
+    """
+
     if 'image' not in request.files:
         return jsonify({"error": "Aucun fichier image n'a été envoyé"}), 400
     
@@ -39,6 +91,7 @@ def upload_image():
     
     timestamp = int(time.time())
     unique_id = uuid.uuid4().hex[:6]
+
     # Utilise secure_filename pour la sécurité, même si on le renomme après
     original_filename = secure_filename(file.filename)
     extension = os.path.splitext(original_filename)[1] or '.jpg'
@@ -49,6 +102,7 @@ def upload_image():
     return jsonify({"status": "success", "image_filename": new_filename})
 
 @app.route('/ocr', methods=['POST']) # Étape 2: OCR
+@api_key_required
 def process_ocr():
     """
     Prend un nom de fichier image en entrée, exécute l'OCR et retourne le texte.
@@ -76,6 +130,7 @@ def process_ocr():
     return jsonify({"status": "success", "text": recognized_text, "text_filename": text_filename, "text_url": url_for('serve_file', filename=text_filename, _external=True)})
 
 @app.route('/tts', methods=['POST']) # Étape 3: TTS
+@api_key_required
 def process_tts():
     """
     Prend du texte en entrée, génère un fichier audio et retourne ses informations.
@@ -114,7 +169,28 @@ def serve_file(filename):
 
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+@app.route('/user/get-api-key', methods=['POST'])
+@admin_required
+def get_user_api_key():
+    """
+    Retourne la clé d'API pour un utilisateur donné
+    """
+
+    data = request.get_json()
+    username = data.get('username')
+
+    if not username:
+        return jsonify({"error": "Le nom d'utilisateur est manquant"}), 400
+
+    api_key = auth_service.get_api_key_by_username(username)
+    if api_key:
+        return jsonify({"status": "success", "username": username, "api_key": api_key})
+    else:
+        return jsonify({"error": f"Utilisateur '{username}' non trouvé"}), 404
+
 # Lancement du serveur de production Waitress sur toutes les interfaces (0.0.0.0)
 if __name__ == '__main__':
     BigTitle("Serveur Lutrin démarré")
+    ocr_service.init_ocr_engine()
+    tts_service.init_tts_engine()
     serve(app, host='0.0.0.0', port=FLASK_PORT, threads=6)

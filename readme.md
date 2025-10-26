@@ -3,7 +3,7 @@
 Projet d'interface web pour contrôler une caméra sur un Raspberry Pi, effectuer une reconnaissance optique de caractères (OCR) sur les images capturées et générer une synthèse vocale (TTS) du texte reconnu.
 
 ## Installation
- 
+
 ```
 sudo apt install -y python3 python3-pip git make tesseract-ocr tesseract-ocr-fra
 git clone https://github.com/afornerot/lutrin.git
@@ -15,20 +15,22 @@ make install
 
 Le projet est géré via des commandes `make` simples et intuitives.
 
-| Commande        | Description                                                                                                               |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `make install`  | Installe / Met à jour les dépendances système, crée l'environnement virtuel et installe les paquets Python.               |
-| `make start`    | Démarre les serveurs de l'API et du client en arrière-plan.                                                               |
-| `make stop`     | Arrête proprement les deux serveurs.                                                                                      |
-| `make restart`  | Redémarre les serveurs (équivaut à `make stop && make start`).                                                            |
-| `make watch`    | Redémarre le server API lors d'une modification d'un source python et log le server API                                   |
-| `make status`   | Affiche le statut actuel des serveurs (en cours d'exécution ou arrêtés).                                                  |
-| `make update`   | Met à jour le projet : arrête les serveurs, récupère les dernières modifications depuis Git, puis redémarre les serveurs. |
-| `make clean`    | Nettoie le projet en supprimant l'environnement virtuel Python.                                                           |
-| `make`          | Affiche un message d'aide listant toutes les commandes disponibles.                                                       |
+| Commande        | Description                                                                                                                   |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `make install`  | Installe / Met à jour les dépendances système, crée l'environnement virtuel et installe les paquets Python.                   |
+| `make add-user` | Ajoute un nouvel utilisateur. **Usage :** `make add-user user=mon_user pass=mon_mot_de_passe email=mon_email role=USER,ADMIN` |
+| `make start`    | Démarre les serveurs de l'API et du client en arrière-plan.                                                                   |
+| `make stop`     | Arrête proprement les deux serveurs.                                                                                          |
+| `make restart`  | Redémarre les serveurs (équivaut à `make stop && make start`).                                                                |
+| `make watch`    | Redémarre le server API lors d'une modification d'un source python et log le server API                                       |
+| `make status`   | Affiche le statut actuel des serveurs (en cours d'exécution ou arrêtés).                                                      |
+| `make update`   | Met à jour le projet : arrête les serveurs, récupère les dernières modifications depuis Git, puis redémarre les serveurs.     |
+| `make clean`    | Nettoie le projet en supprimant l'environnement virtuel Python.                                                               |
+| `make`          | Affiche un message d'aide listant toutes les commandes disponibles.                                                           |
 
 Une fois les serveurs démarrés avec `make start`, vous pouvez accéder à l'interface web à l'adresse : **http://localhost:8000**
-
+Après avoir créé un utilisateur avec `make add-user`, la clé d'API générée s'affichera dans le terminal. Copiez cette clé et collez-la dans le champ "Clé d'API" de l'interface web pour pouvoir utiliser l'application.
+ 
 ## Configuration (`lutrin_api/.env`)
 
 Le projet utilise des fichiers d'environnement pour gérer sa configuration, ce qui permet de séparer les paramètres de l'application du code source.

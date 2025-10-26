@@ -27,6 +27,9 @@ FLASK_PORT = int(os.getenv('FLASK_PORT', 5000))
 # Définir le chemin des uploads
 UPLOAD_FOLDER = os.path.join(BASE_DIR, '../lutrin_data/')
 
+# Définir le chemin de la base de données
+DATABASE_PATH = os.path.join(BASE_DIR, '../lutrin_data/database.db')
+
 # Création du répertoire de stockage s'il n'existe pas
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
