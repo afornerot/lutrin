@@ -87,8 +87,8 @@ start_client() {
     if [ -f "$CLIENT_PID_FILE" ]; then
         EchoOrange "Le serveur client semble déjà en cours d'exécution."
     else
-        cd "$CLIENT_DIR"
-        nohup python3 -u ../lutrin_tools/https_server.py "$CLIENT_PORT" "$API_PORT" "../$CERT_FILE" "../$KEY_FILE" > "$CLIENT_LOG_FILE" 2>&1 & echo $! > "$CLIENT_PID_FILE"
+        cd "$CLIENT_DIR" # On est déjà dans le répertoire lutrin_client
+        nohup python3 -u server.py "$CLIENT_PORT" "$API_PORT" "../$CERT_FILE" "../$KEY_FILE" > "$CLIENT_LOG_FILE" 2>&1 & echo $! > "$CLIENT_PID_FILE"
         cd ..
         # Lire l'IP depuis le fichier de config pour un message correct
         local client_ip=$(grep -oP 'const IP_ADDRESS = "\K[^"]+' "$CLIENT_CONFIG_FILE" || echo "localhost")

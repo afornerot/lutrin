@@ -1,19 +1,34 @@
 import http.server
 import ssl
 import sys
+import os
 import requests
 from urllib.parse import urlparse
 
 class ReverseProxyHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         self.api_base_url = kwargs.pop('api_base_url', 'http://localhost:5000')
+        # Définir le répertoire de base pour les fichiers statiques
+        # C'est le répertoire où se trouve ce script (lutrin_client)
+        self.client_base_dir = os.path.join(os.path.dirname(__file__))
         super().__init__(*args, **kwargs)
+
+    def translate_path(self, path):
+        # Utilise le répertoire de base du client pour la recherche de fichiers
+        return super().translate_path(path)
 
     def do_GET(self):
         if self.path.startswith('/api/') or self.path.startswith('/file/'):
             self.proxy_request()
         else:
-            super().do_GET()
+            # Gérer le fallback pour les routes SPA
+            requested_path = self.path.split('?')[0]
+            file_path = os.path.join(self.client_base_dir, requested_path.lstrip('/'))
+            if os.path.exists(file_path) and os.path.isfile(file_path):
+                super().do_GET() # Servir le fichier statique s'il existe
+            else:
+                self.path = '/index.html' # Sinon, servir index.html
+                super().do_GET()
 
     def do_POST(self):
         if self.path.startswith('/api/'):

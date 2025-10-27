@@ -36,7 +36,7 @@ export function logout() {
     sessionStorage.removeItem(TOKEN_KEY);
 
     // Forcer le rechargement de la page vers la mire de connexion pour nettoyer tout l'état.
-    window.location.hash = '#/login';
+    history.replaceState(null, '', '/login'); // Utilise history.replaceState
     location.reload();
 }
 

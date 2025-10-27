@@ -1,4 +1,5 @@
 // js/services/ui.js
+import { navigateTo } from '../router.js';
 
 /**
  * Gère l'ouverture et la fermeture de l'overlay des réglages.
@@ -27,12 +28,12 @@ function setupModeToggle() {
     const modeToggles = document.querySelectorAll('#mode-toggle'); // Il peut y en avoir un dans chaque vue
     if (modeToggles.length === 0) return;
 
-    const isConsole = window.location.hash === '#/console';
+    const isConsole = window.location.pathname === '/console';
 
     modeToggles.forEach(toggle => {
         toggle.checked = isConsole;
         toggle.addEventListener('change', (e) => {
-            window.location.hash = e.target.checked ? '#/console' : '#/user';
+            navigateTo(e.target.checked ? '/console' : '/user');
         });
     });
 }
