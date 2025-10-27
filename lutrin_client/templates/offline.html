@@ -1,0 +1,12 @@
+<!-- templates/offline.html -->
+<div id="offline-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-90 flex items-center justify-center z-50 hidden">
+    <div class="text-center text-white">
+        <div class="w-16 h-16 border-8 border-dashed rounded-full animate-spin loader-white mx-auto"></div>
+        <h2 class="text-3xl font-bold mt-8">API Hors Ligne</h2>
+        <p class="text-xl mt-2">En attente de la reconnexion du serveur...</p>
+        <button id="refresh-button"
+            class="mt-8 bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline text-lg">
+            <i class="fas fa-sync-alt mr-2"></i> Rafraîchir
+        </button>
+    </div>
+</div>

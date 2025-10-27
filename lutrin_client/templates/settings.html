@@ -1,0 +1,30 @@
+<!-- templates/settings.html -->
+<div id="engine-settings-overlay"
+    class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md relative">
+        <button id="close-engine-settings-button"
+            class="absolute top-2 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+        <h2 class="text-2xl font-semibold text-gray-700 flex items-center mb-4">
+            <i class="fas fa-cogs w-6 text-center mr-2 text-gray-500"></i>
+            Moteurs d'IA
+        </h2>
+        <div class="grid grid-cols-1 gap-4 mt-2">
+            <div>
+                <label for="ocr-engine-select" class="block text-sm font-medium text-gray-700">Moteur OCR</label>
+                <select id="ocr-engine-select" name="ocr-engine"
+                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                    <option value="paddle">Paddle (Local)</option>
+                    <option value="groq" selected>Groq (Qualité)</option>
+                </select>
+            </div>
+            <div>
+                <label for="tts-engine-select" class="block text-sm font-medium text-gray-700">Moteur TTS</label>
+                <select id="tts-engine-select" name="tts-engine"
+                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                    <option value="piper" selected>Piper (Rapide)</option>
+                    <option value="coqui">Coqui (Qualité)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>

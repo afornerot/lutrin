@@ -13,5 +13,5 @@ lutrin_data/test*_optimized.png
 .vscode/
 *.local
 lutrin_coqui/coqui-data/
-lutrin_client/config.js
+lutrin_client/js/config.js
 lutrin_tools/certs

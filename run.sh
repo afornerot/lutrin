@@ -16,7 +16,7 @@ CLIENT_PORT=8000
 # Fichiers pour stocker les PIDs (Process IDs) des serveurs
 API_PID_FILE="/tmp/lutrin_api.pid"
 CLIENT_PID_FILE="/tmp/lutrin_client.pid"
-CLIENT_CONFIG_FILE="$CLIENT_DIR/config.js"
+CLIENT_CONFIG_FILE="$CLIENT_DIR/js/config.js"
 
 # Configuration SSL pour le serveur client
 CERT_DIR="lutrin_tools/certs"
@@ -50,21 +50,22 @@ generate_client_config() {
 
     # 3. Écrire la configuration finale dans le fichier config.js
     cat > "$CLIENT_CONFIG_FILE" << EOL
-// Fichier de configuration généré automatiquement par run.sh. NE PAS MODIFIER MANUELLEMENT.
-const IP_ADDRESS = "${final_ip}";
-const CLIENT_PORT = ${CLIENT_PORT};
-const API_BASE_URL = "/api"; // L'API est maintenant servie sur le même domaine/port via le proxy
+export const API_BASE_URL = 'https://${final_ip}:${CLIENT_PORT}/api';
 EOL
     EchoVert "Fichier de configuration client '$CLIENT_CONFIG_FILE' généré."
 
     # 4. Générer le certificat SSL en utilisant l'IP/hostname fourni
-    Title "Génération du certificat SSL pour le serveur client"
-    EchoOrange "Génération d'un certificat SSL auto-signé pour '$final_ip'..."
-    mkdir -p "$CERT_DIR"
-    openssl req -x509 -newkey rsa:2048 -keyout "$KEY_FILE" -out "$CERT_FILE" -days 365 -nodes \
-        -subj "/C=FR/ST=France/L=Paris/O=Lutrin/OU=Dev/CN=$final_ip"
-    EchoVert "Certificat généré avec succès."
-    EchoOrange "Note: Vous devrez accepter une exception de sécurité dans votre navigateur lors de la première connexion."
+    Title "Vérification/Génération du certificat SSL"
+    if [ -f "$CERT_FILE" ] && [ -f "$KEY_FILE" ]; then
+        EchoVert "Certificat SSL existant trouvé. Aucune génération nécessaire."
+    else
+        EchoOrange "Génération d'un certificat SSL auto-signé pour '$final_ip'..."
+        mkdir -p "$CERT_DIR"
+        openssl req -x509 -newkey rsa:2048 -keyout "$KEY_FILE" -out "$CERT_FILE" -days 365 -nodes \
+            -subj "/C=FR/ST=France/L=Paris/O=Lutrin/OU=Dev/CN=$final_ip"
+        EchoVert "Certificat généré avec succès."
+        EchoOrange "Note: Vous devrez accepter une exception de sécurité dans votre navigateur lors de la première connexion."
+    fi
 }
 
 start_api() {
