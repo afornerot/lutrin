@@ -10,7 +10,7 @@
     </div>
 
     <div class="flex justify-between items-center mb-6 flex-shrink-0">
-        <h1 class="text-3xl font-bold">Mes E-books</h1>
+        <h1 id="epub-main-title" class="text-3xl font-bold">Mes E-books</h1>
         <button id="add-epub-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
             <i class="fas fa-plus mr-2"></i> Ajouter
         </button>
@@ -19,11 +19,14 @@
     <!-- Input de fichier caché -->
     <input type="file" id="epub-file-input" class="hidden" accept=".epub">
 
-    <div id="epub-content-container" class="flex-grow flex flex-col">
-        <p id="epub-placeholder" class="text-gray-500 m-auto">Aucun e-book pour le moment. Cliquez sur "Ajouter" pour
-            commencer.</p>
-        <textarea id="epub-text-content"
-            class="w-full h-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 resize-none text-gray-800 hidden"
-            placeholder="Le texte de l'e-book apparaîtra ici..." readonly></textarea>
+    <div id="epub-list-container" class="flex-grow">
+        <div id="epub-placeholder"
+            class="hidden text-gray-500 m-auto text-center h-full flex flex-col justify-center items-center">
+            <i class="fas fa-book-dead fa-4x mb-4"></i>
+            <p>Votre bibliothèque est vide. Cliquez sur "Ajouter" pour commencer.</p>
+        </div>
+        <div id="epub-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6">
+            <!-- Les cartes des livres seront injectées ici par JavaScript -->
+        </div>
     </div>
 </div>

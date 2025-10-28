@@ -207,12 +207,12 @@ def add_new_epub():
     if not file.filename.lower().endswith('.epub'):
         return jsonify({"error": "Le fichier doit être au format .epub"}), 400
 
-    success, content_or_error = epub_service.add_epub(file, g.user['id'])
+    success, data_or_error = epub_service.add_epub(file, g.user['id'])
 
     if success:
-        return jsonify({"status": "success", "text": content_or_error})
+        return jsonify({"status": "success", "data": data_or_error})
     else:
-        return jsonify({"error": "Le traitement de l'EPUB a échoué", "details": content_or_error}), 500
+        return jsonify({"error": "Le traitement de l'EPUB a échoué", "details": data_or_error}), 500
 
 # Lancement du serveur de production Waitress sur toutes les interfaces (0.0.0.0)
 if __name__ == '__main__':
