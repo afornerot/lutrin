@@ -2,16 +2,21 @@
 import { initLoginView } from './views/login.js';
 import { initConsoleView } from './views/console.js';
 import { initUserView } from './views/user.js';
+import { initEpubsView } from './views/epubs.js';
+import { initHeader } from './services/ui.js';
 import { checkAuth, logout } from './auth.js';
 
 const routes = {
     '/login': { template: '/templates/login.html', init: initLoginView, public: true },
     '/console': { template: '/templates/console.html', init: initConsoleView },
-    '/user': { template: '/templates/user.html', init: initUserView }
+    '/user': { template: '/templates/user.html', init: initUserView },
+    '/epubs': { template: '/templates/epubs.html', init: initEpubsView }
 };
 
 const appContainer = document.getElementById('app-container');
 const headerContainer = document.getElementById('main-header');
+
+let headerInitialized = false;
 
 async function navigate() {
     const path = window.location.pathname;
@@ -19,6 +24,32 @@ async function navigate() {
 
     // Protéger les routes non publiques
     const isAuthenticated = checkAuth();
+
+    if (isAuthenticated && !route.public) {
+        const cacheBuster = `?v=${new Date().getTime()}`;
+        const response = await fetch(`/templates/header.html${cacheBuster}`);
+        headerContainer.innerHTML = await response.text();
+        const navElement = headerContainer.querySelector('nav');
+
+        initHeader();
+
+        if (path === "/user") { // Cas spécial pour la vue utilisateur en plein écran
+            appContainer.classList.remove('ml-16');
+            navElement?.classList.remove('h-screen');
+            navElement?.classList.add('opacity-50');
+        } else {
+            appContainer.classList.add('ml-16');
+            navElement?.classList.add('h-screen');
+            navElement?.classList.remove('opacity-50');
+        }
+
+    } else if (!isAuthenticated) {
+        headerContainer.innerHTML = ''; // Vider le header si non authentifié
+        appContainer.classList.remove('mr-16'); // Retirer la marge
+        headerInitialized = false;
+    }
+
+
     if (!route.public && !isAuthenticated) {
         history.replaceState(null, '', '/login'); // Redirige sans ajouter à l'historique
         navigate(); // Appel récursif pour charger la nouvelle vue
@@ -33,7 +64,8 @@ async function navigate() {
     }
 
     // Charger le template HTML de la vue
-    const response = await fetch(route.template);
+    const cacheBuster = `?v=${new Date().getTime()}`;
+    const response = await fetch(`${route.template}${cacheBuster}`);
     if (!response.ok) {
         // Gérer les erreurs de chargement de template
         appContainer.innerHTML = `<p>Erreur: Impossible de charger la vue ${path}.</p>`;

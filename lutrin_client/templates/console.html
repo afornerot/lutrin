@@ -1,38 +1,11 @@
 <!-- templates/console.html -->
-<div id="console-mode-content" class="p-3">
-    <header class="text-center mb-4">
-        <h1 class="text-4xl font-extrabold text-blue-600">Lutrin - Console</h1>
+<div class="container mx-auto p-4">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Console</h1>
         <div class="flex flex-col justify-center items-center mt-2 relative">
-            <p id="api-status" class="text-sm font-medium"></p>
-            <div>
-                <button id="logout-button" class="ml-4 text-gray-600 hover:text-blue-500 focus:outline-none">
-                    <i class="fas fa-sign-out-alt fa-lg mr-1"></i>
-                </button>
-                <button id="open-engine-settings-console-button"
-                    class="ml-4 text-gray-600 hover:text-blue-500 focus:outline-none">
-                    <i class="fas fa-cogs fa-lg"></i>
-                </button>
-            </div>
-            <div>
-                <label for="mode-toggle" class="flex items-center cursor-pointer">
-                    <span class="mr-2 text-sm font-medium text-gray-700">
-                        <i class="fas fa-user fa-lg md:fa-2x"></i>
-                    </span>
-                    <div class="relative">
-                        <input type="checkbox" id="mode-toggle" class="sr-only peer">
-                        <div class="w-11 h-6 md:w-14 md:h-8 bg-gray-300 rounded-full peer-checked:bg-blue-500">
-                        </div>
-                        <div
-                            class="absolute left-0.5 top-0.5 md:left-1 md:top-1 bg-white w-5 h-5 md:w-6 md:h-6 rounded-full transition-transform peer-checked:translate-x-5 md:peer-checked:translate-x-full">
-                        </div>
-                    </div>
-                    <span class="ml-2 text-sm font-medium text-gray-700">
-                        <i class="fas fa-desktop fa-lg md:fa-2x"></i>
-                    </span>
-                </label>
-            </div>
+            <p id="api-status" class="text-sm font-medium text-green-500">API: EN LIGNE</p>
         </div>
-    </header>
+    </div>
 
     <!-- Zone de Statut/Chargement -->
     <div id="status-message" class="p-3 bg-yellow-100 text-yellow-800 rounded-lg hidden mb-4 font-medium flex-shrink-0">

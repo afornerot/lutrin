@@ -30,35 +30,23 @@ CLIENT_LOG_FILE="/tmp/lutrin_client.log"
 # --- Fonctions de gestion des services ---
 
 generate_client_config() {
-    Title "Génération de la configuration client"
-    # 1. Détecter l'IP locale comme suggestion
-    local detected_ip=$(hostname -I | awk '{print $1}')
-
-    # Si hostname -I échoue ou retourne une chaîne vide, on se rabat sur localhost
-    if [ -z "$detected_ip" ]; then
-        detected_ip="localhost"
-    fi
-
-    # 2. Demander à l'utilisateur de confirmer ou de modifier l'IP et le port
-    read -p "Entrez l'adresse IP ou le nom d'hôte pour l'API [défaut: $detected_ip]: " user_ip
-    local final_ip=${user_ip:-$detected_ip}
-
-    read -p "Entrez le port pour l'API [défaut: $API_PORT]: " user_port
-    local final_port=${user_port:-$API_PORT}
-
-    EchoBleu "Configuration de l'application sur : https://$final_ip:$CLIENT_PORT"
-
-    # 3. Écrire la configuration finale dans le fichier config.js
-    cat > "$CLIENT_CONFIG_FILE" << EOL
-export const API_BASE_URL = 'https://${final_ip}:${CLIENT_PORT}/api';
-EOL
-    EchoVert "Fichier de configuration client '$CLIENT_CONFIG_FILE' généré."
-
-    # 4. Générer le certificat SSL en utilisant l'IP/hostname fourni
     Title "Vérification/Génération du certificat SSL"
     if [ -f "$CERT_FILE" ] && [ -f "$KEY_FILE" ]; then
         EchoVert "Certificat SSL existant trouvé. Aucune génération nécessaire."
     else
+        # 1. Détecter l'IP locale comme suggestion
+        local detected_ip=$(hostname -I | awk '{print $1}')
+
+        # Si hostname -I échoue ou retourne une chaîne vide, on se rabat sur localhost
+        if [ -z "$detected_ip" ]; then
+            detected_ip="localhost"
+        fi
+
+        # 2. Demander à l'utilisateur de confirmer ou de modifier l'IP et le port
+        read -p "Entrez l'adresse IP ou le nom d'hôte pour l'API [défaut: $detected_ip]: " user_ip
+        local final_ip=${user_ip:-$detected_ip}
+
+        # 3. Générer le certificat SSL en utilisant l'IP/hostname fourni
         EchoOrange "Génération d'un certificat SSL auto-signé pour '$final_ip'..."
         mkdir -p "$CERT_DIR"
         openssl req -x509 -newkey rsa:2048 -keyout "$KEY_FILE" -out "$CERT_FILE" -days 365 -nodes \
@@ -66,6 +54,7 @@ EOL
         EchoVert "Certificat généré avec succès."
         EchoOrange "Note: Vous devrez accepter une exception de sécurité dans votre navigateur lors de la première connexion."
     fi
+    EchoBlanc
 }
 
 start_api() {

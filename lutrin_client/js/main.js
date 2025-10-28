@@ -1,6 +1,7 @@
 // js/main.js
 import { initRouter } from './router.js';
 import { checkAuth } from './auth.js';
+import { initSharedUI } from './services/ui.js';
 import { initApiStatus } from './services/apiStatus.js';
 
 /**
@@ -27,6 +28,7 @@ async function loadGlobalTemplates() {
 async function bootstrap() {
     console.log("Application Lutrin Client démarrée.");
     await loadGlobalTemplates(); // Charger les templates globaux en premier
+    initSharedUI(); // Initialiser les éléments partagés comme la modale
     initApiStatus(); // Initialise la surveillance de l'API
     initRouter(); // Initialise le routeur qui gère les changements de vue
 }

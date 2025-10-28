@@ -8,7 +8,7 @@ from flask import Flask, Response, jsonify, send_from_directory, url_for, reques
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from waitress import serve
-from .services import ocr_image, generate_tts, BigTitle, auth_service, ocr_service, tts_service
+from .services import ocr_image, generate_tts, BigTitle, auth_service, ocr_service, tts_service, epub_service
 from .config import UPLOAD_FOLDER, FLASK_PORT
 
 # Configuration de Flask
@@ -189,6 +189,30 @@ def get_user_api_key():
         return jsonify({"status": "success", "username": username, "api_key": api_key})
     else:
         return jsonify({"error": f"Utilisateur '{username}' non trouvé"}), 404
+
+@app.route('/epub/add', methods=['POST'])
+@api_key_required
+def add_new_epub():
+    """
+    Upload un fichier EPUB et lance son traitement.
+    """
+    if 'epub_file' not in request.files:
+        return jsonify({"error": "Aucun fichier EPUB n'a été envoyé (champ 'epub_file')"}), 400
+    
+    file = request.files['epub_file']
+    if file.filename == '':
+        return jsonify({"error": "Aucun fichier sélectionné"}), 400
+
+    # Vérification de l'extension .epub
+    if not file.filename.lower().endswith('.epub'):
+        return jsonify({"error": "Le fichier doit être au format .epub"}), 400
+
+    success, content_or_error = epub_service.add_epub(file, g.user['id'])
+
+    if success:
+        return jsonify({"status": "success", "text": content_or_error})
+    else:
+        return jsonify({"error": "Le traitement de l'EPUB a échoué", "details": content_or_error}), 500
 
 # Lancement du serveur de production Waitress sur toutes les interfaces (0.0.0.0)
 if __name__ == '__main__':

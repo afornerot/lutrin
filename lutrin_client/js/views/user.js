@@ -1,6 +1,4 @@
 // js/views/user.js
-import { logout } from '../auth.js';
-import { initSharedUI } from '../services/ui.js';
 import { startCamera, getCurrentFacingMode } from '../services/camera.js';
 import { startApiCheck, stopApiCheck } from '../services/apiStatus.js';
 import { processFullCycle } from '../services/processing.js';
@@ -80,14 +78,9 @@ export function initUserView() {
     ocrEngineSelect = document.getElementById('ocr-engine-select'); // Récupéré du template settings.html
     ttsEngineSelect = document.getElementById('tts-engine-select'); // Récupéré du template settings.html
 
-    const userLogoutButton = document.getElementById('user-logout-button'); // Bouton de déconnexion
     const switchCameraButton = document.getElementById('switch-camera-button'); // Bouton de changement de caméra
 
-    // 2. Initialiser les modules de service
-    initSharedUI();
-
     // 3. Attacher les écouteurs d'événements
-    userLogoutButton?.addEventListener('click', logout);
     userModeActionButton?.addEventListener('click', handleUserActionButtonClick);
 
     switchCameraButton?.addEventListener('click', () => {
