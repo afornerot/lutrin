@@ -1,5 +1,6 @@
 // js/views/epubs.js
 import { postWithFile } from '../api.js';
+import { navigateTo } from '../router.js';
 import { addEpubToDB, getEpubsForUser } from '../services/db_service.js';
 import { getAuthUser } from '../auth.js';
 
@@ -31,7 +32,8 @@ async function handleFileSelected(event) {
         // Enrichir l'objet avec l'ID de l'utilisateur avant de le sauvegarder
         const dataToStore = {
             ...epubData,
-            userId: currentUser
+            userId: currentUser,
+            readingProgress: { lastChapterRead: 0 } // Initialiser la progression
         };
 
         const newId = await addEpubToDB(dataToStore);
@@ -84,8 +86,9 @@ async function loadAndDisplayEpubs() {
                     <h3 class="mt-2 text-sm font-bold text-gray-800 truncate">${epub.metadata.title}</h3>
                     <p class="text-xs text-gray-500 truncate">${epub.metadata.authors.join(', ')}</p>
                 `;
-                // TODO: Ajouter un événement au clic pour ouvrir le livre
-                // card.addEventListener('click', () => openEpubReader(epub.id));
+                card.addEventListener('click', () => {
+                    navigateTo(`/epub?id=${epub.id}`);
+                });
                 epubGrid.appendChild(card);
             });
         }

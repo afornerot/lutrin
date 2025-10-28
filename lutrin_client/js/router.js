@@ -2,12 +2,14 @@
 import { initLoginView } from './views/login.js';
 import { initConsoleView } from './views/console.js';
 import { initUserView } from './views/user.js';
+import { initEpubDetailView } from './views/epub.js';
 import { initEpubsView } from './views/epubs.js';
 import { initHeader } from './services/ui.js';
 import { checkAuth, logout } from './auth.js';
 
 const routes = {
     '/login': { template: '/templates/login.html', init: initLoginView, public: true },
+    '/epub': { template: '/templates/epub.html', init: initEpubDetailView },
     '/console': { template: '/templates/console.html', init: initConsoleView },
     '/user': { template: '/templates/user.html', init: initUserView },
     '/epubs': { template: '/templates/epubs.html', init: initEpubsView }
@@ -19,7 +21,7 @@ const headerContainer = document.getElementById('main-header');
 let headerInitialized = false;
 
 async function navigate() {
-    const path = window.location.pathname;
+    const path = window.location.pathname.split('?')[0]; // Ignorer les paramètres de requête pour trouver la route
     const route = routes[path] || routes['/login']; // Fallback vers /login si la route n'est pas trouvée ou si on est à la racine "/"
 
     // Protéger les routes non publiques
@@ -75,7 +77,8 @@ async function navigate() {
 
     // Exécuter le script d'initialisation de la vue
     if (route.init) {
-        route.init();
+        const urlParams = new URLSearchParams(window.location.search);
+        route.init(urlParams); // Passer les paramètres à la fonction d'initialisation
     }
 }
 

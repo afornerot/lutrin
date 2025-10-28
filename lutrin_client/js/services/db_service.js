@@ -67,3 +67,39 @@ export async function getEpubsForUser(userId) {
         request.onerror = (event) => reject(event.target.error);
     });
 }
+
+/**
+ * Récupère un EPUB par son ID.
+ * @param {number} id - L'ID de l'EPUB à récupérer.
+ * @returns {Promise<object|undefined>} L'objet EPUB ou undefined s'il n'est pas trouvé.
+ */
+export async function getEpubById(id) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([EPUB_STORE_NAME], 'readonly');
+        const store = transaction.objectStore(EPUB_STORE_NAME);
+        const request = store.get(id);
+
+        request.onsuccess = () => {
+            resolve(request.result);
+        };
+        request.onerror = (event) => reject(event.target.error);
+    });
+}
+
+/**
+ * Met à jour un enregistrement EPUB existant dans la base de données.
+ * @param {object} epubData - L'objet EPUB complet à sauvegarder (doit inclure l'ID).
+ * @returns {Promise<number>} L'ID de l'enregistrement mis à jour.
+ */
+export async function updateEpub(epubData) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([EPUB_STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(EPUB_STORE_NAME);
+        const request = store.put(epubData); // 'put' met à jour si la clé existe, sinon ajoute.
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = (event) => reject(event.target.error);
+    });
+}

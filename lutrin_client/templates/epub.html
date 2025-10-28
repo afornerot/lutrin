@@ -1,0 +1,44 @@
+<!-- /templates/epub.html -->
+<div id="epub-detail-container" class="container mx-auto p-4 md:p-8 h-full">
+
+    <!-- Indicateur de chargement -->
+    <div id="epub-loading" class="flex items-center justify-center h-full">
+        <div class="text-center">
+            <div class="w-12 h-12 border-4 border-dashed rounded-full loader mb-4 mx-auto"></div>
+            <p class="text-gray-500">Chargement du livre...</p>
+        </div>
+    </div>
+
+    <!-- Contenu du livre (initialement caché) -->
+    <div id="epub-content" class="hidden grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Colonne de gauche : Couverture et informations -->
+        <div id="epub-left-panel">
+            <div id="epub-cover" class="mb-8">
+                <!-- La couverture sera injectée ici -->
+            </div>
+            <div id="epub-info">
+                <!-- Les informations du livre seront injectées ici -->
+            </div>
+        </div>
+        <!-- Colonne de droite : Texte du livre -->
+        <div id="epub-text-panel"></div>
+    </div>
+
+    <!-- Conteneur pour les erreurs -->
+    <div id="epub-error-container"></div>
+
+    <!-- Barre de lecture audio fixe en bas -->
+    <div id="epub-audio-player-bar"
+        class="hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
+        <div class="container mx-auto flex items-center justify-center">
+            <button id="epub-play-audio-button"
+                class="bg-blue-600 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-700 transition-colors flex items-center justify-center w-48">
+                <i class="fas fa-play mr-3"></i>
+                <span>Écouter</span>
+            </button>
+            <!-- L'élément audio est contrôlé par JS -->
+            <audio id="epub-audio-player"></audio>
+        </div>
+    </div>
+
+</div>
