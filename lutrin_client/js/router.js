@@ -18,10 +18,18 @@ const routes = {
 const appContainer = document.getElementById('app-container');
 const headerContainer = document.getElementById('main-header');
 
-let headerInitialized = false;
+let currentCleanupFunction = null; // Pour stocker la fonction de nettoyage de la vue actuelle
 
 async function navigate() {
     const path = window.location.pathname.split('?')[0]; // Ignorer les paramètres de requête pour trouver la route
+
+    // --- Étape de nettoyage ---
+    // Si une fonction de nettoyage pour la vue précédente existe, on l'exécute.
+    if (currentCleanupFunction) {
+        currentCleanupFunction();
+        currentCleanupFunction = null; // On la réinitialise
+    }
+
     const route = routes[path] || routes['/login']; // Fallback vers /login si la route n'est pas trouvée ou si on est à la racine "/"
 
     // Protéger les routes non publiques
@@ -35,20 +43,19 @@ async function navigate() {
 
         initHeader();
 
-        if (path === "/user") { // Cas spécial pour la vue utilisateur en plein écran
+        /*if (path === "/user") { // Cas spécial pour la vue utilisateur en plein écran
             appContainer.classList.remove('ml-16');
             navElement?.classList.remove('h-screen');
             navElement?.classList.add('opacity-50');
-        } else {
-            appContainer.classList.add('ml-16');
-            navElement?.classList.add('h-screen');
-            navElement?.classList.remove('opacity-50');
-        }
+        } else {*/
+        appContainer.classList.add('ml-16');
+        navElement?.classList.add('h-screen');
+        navElement?.classList.remove('opacity-50');
+        /*}*/
 
     } else if (!isAuthenticated) {
         headerContainer.innerHTML = ''; // Vider le header si non authentifié
         appContainer.classList.remove('mr-16'); // Retirer la marge
-        headerInitialized = false;
     }
 
 
@@ -78,7 +85,7 @@ async function navigate() {
     // Exécuter le script d'initialisation de la vue
     if (route.init) {
         const urlParams = new URLSearchParams(window.location.search);
-        route.init(urlParams); // Passer les paramètres à la fonction d'initialisation
+        currentCleanupFunction = await route.init(urlParams); // Stocker la fonction de nettoyage retournée
     }
 }
 

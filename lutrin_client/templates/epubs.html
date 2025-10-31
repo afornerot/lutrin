@@ -1,17 +1,18 @@
 <!-- /templates/epubs.html -->
-<div class="container mx-auto p-4 h-full flex flex-col">
+<div class="container mx-auto p-4 md:p-8 h-full flex flex-col">
     <!-- Modale de statut d'upload -->
     <div id="epub-upload-status-overlay"
         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20 hidden">
         <div class="p-6 bg-white rounded-xl shadow-lg font-medium flex flex-col items-center">
             <div class="w-10 h-10 border-4 border-dashed rounded-full loader mb-4"></div>
-            <span id="epub-upload-status-text">Envoi en cours...</span>
+            <span id="epub-upload-status-text">Traitement en cours...</span>
         </div>
     </div>
 
-    <div class="flex justify-between items-center mb-6 flex-shrink-0">
-        <h1 id="epub-main-title" class="text-3xl font-bold">Mes E-books</h1>
-        <button id="add-epub-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+    <div class="flex justify-between items-center mb-8 flex-shrink-0">
+        <h1 class="text-4xl font-bold text-gray-800">Ma Bibliothèque</h1>
+        <button id="add-epub-button"
+            class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700 transition-colors flex items-center">
             <i class="fas fa-plus mr-2"></i> Ajouter
         </button>
     </div>
@@ -19,14 +20,35 @@
     <!-- Input de fichier caché -->
     <input type="file" id="epub-file-input" class="hidden" accept=".epub">
 
-    <div id="epub-list-container" class="flex-grow">
+    <div id="epub-list-container" class="flex-grow overflow-y-auto">
+        <!-- Section En cours -->
+        <div id="in-progress-section" class="mb-12">
+            <h2 class="text-2xl font-semibold text-gray-700 border-b-2 border-blue-500 pb-2 mb-6">En cours</h2>
+            <div id="in-progress-grid"
+                class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6"></div>
+            <p id="in-progress-placeholder" class="text-gray-500 hidden">Aucun livre en cours de lecture.</p>
+        </div>
+
+        <!-- Section Non lus -->
+        <div id="not-started-section" class="mb-12">
+            <h2 class="text-2xl font-semibold text-gray-700 border-b-2 border-gray-300 pb-2 mb-6">Non lus</h2>
+            <div id="not-started-grid"
+                class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6"></div>
+            <p id="not-started-placeholder" class="text-gray-500 hidden">Aucun livre non lu.</p>
+        </div>
+
+        <!-- Section Lus -->
+        <div id="finished-section">
+            <h2 class="text-2xl font-semibold text-gray-700 border-b-2 border-gray-300 pb-2 mb-6">Lus</h2>
+            <div id="finished-grid"
+                class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6"></div>
+            <p id="finished-placeholder" class="text-gray-500 hidden">Aucun livre terminé.</p>
+        </div>
+
         <div id="epub-placeholder"
             class="hidden text-gray-500 m-auto text-center h-full flex flex-col justify-center items-center">
             <i class="fas fa-book-dead fa-4x mb-4"></i>
             <p>Votre bibliothèque est vide. Cliquez sur "Ajouter" pour commencer.</p>
-        </div>
-        <div id="epub-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6">
-            <!-- Les cartes des livres seront injectées ici par JavaScript -->
         </div>
     </div>
 </div>

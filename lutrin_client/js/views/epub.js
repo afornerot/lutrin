@@ -57,7 +57,7 @@ function displayEpubDetails(epub) {
 
     // --- Logique du lecteur audio ---
 
-    const chapters = epub.text.split('\n\n');
+    const chapters = epub.text.split('\n\n').filter(chapter => chapter.trim() !== '');
     let isPlaying = false;
     let isStopped = true;
     let isFetching = false;
@@ -109,7 +109,8 @@ function displayEpubDetails(epub) {
             console.log(`Audio pour le chapitre ${chapterIndex} pré-chargé et stocké localement.`);
         } catch (error) {
             console.error(`Erreur lors de la génération de l'audio pour le chapitre ${chapterIndex}:`, error);
-            // On pourrait vouloir gérer l'erreur, par exemple en essayant à nouveau plus tard.
+            // Marquer le chapitre comme ayant échoué pour qu'on puisse réessayer plus tard.
+            audioQueue.set(chapterIndex, 'failed');
         } finally {
             isFetching = false;
         }
@@ -130,8 +131,13 @@ function displayEpubDetails(epub) {
             return;
         }
 
+        // Sauvegarder la progression dès qu'on commence à jouer un chapitre
+        epub.readingProgress.lastChapterRead = chapterIndex;
+        await updateEpub({ ...epub }); // On envoie une copie pour être sûr
+        console.log(`Progression sauvegardée au début du chapitre ${chapterIndex}`);
+
         // Si l'audio n'est pas prêt, on l'attend
-        if (!audioQueue.has(chapterIndex)) {
+        if (!audioQueue.has(chapterIndex) || audioQueue.get(chapterIndex) === 'failed') {
             updateButtonState('loading', 'Génération...');
             await generateAudioForChapter(chapterIndex);
         }
@@ -179,24 +185,12 @@ function displayEpubDetails(epub) {
     });
 
     audioPlayer.addEventListener('ended', async () => {
-        // Sauvegarder la progression du chapitre qui vient de se terminer
-        epub.readingProgress.lastChapterRead = currentPlaybackIndex;
-        await updateEpub(epub);
-        console.log(`Progression sauvegardée au chapitre ${currentPlaybackIndex}`);
-
         currentPlaybackIndex++;
         if (!isStopped) {
             playChapter(currentPlaybackIndex);
         }
     });
 
-    // Nettoyage quand on quitte la vue (le routeur ne le fait pas automatiquement)
-    // On peut améliorer ça avec un système de "démontage" de vue dans le routeur.
-    // Pour l'instant, on s'assure que l'audio s'arrête si on navigue ailleurs.
-    // Et on nettoie les Blob URLs pour éviter les fuites de mémoire.
-    window.addEventListener('beforeunload', () => {
-        audioQueue.forEach(url => URL.revokeObjectURL(url));
-    });
 }
 
 /**
@@ -214,9 +208,24 @@ export async function initEpubDetailView(urlParams) {
 
     try {
         const epub = await getEpubById(epubId);
-        if (epub) displayEpubDetails(epub);
+        if (epub) {
+            displayEpubDetails(epub);
+            // Retourne la fonction de nettoyage pour que le routeur puisse l'utiliser
+            return () => {
+                console.log("Nettoyage de la vue EPUB...");
+                const audioPlayer = document.getElementById('epub-audio-player');
+                if (audioPlayer) {
+                    audioPlayer.pause();
+                    audioPlayer.removeAttribute('src');
+                }
+                // Note: La gestion de la file d'attente (audioQueue) est interne à displayEpubDetails
+                // et sera perdue avec la navigation, ce qui est acceptable.
+                // Les Blob URLs seront éventuellement nettoyées par le garbage collector du navigateur.
+            };
+        }
     } catch (error) {
         console.error("Erreur lors de la récupération de l'EPUB:", error);
         if (errorContainer) errorContainer.innerHTML = '<p class="text-red-500">Impossible de charger les détails de ce livre.</p>';
     }
+    return null; // Pas de fonction de nettoyage si la vue n'a pas pu être initialisée
 }
