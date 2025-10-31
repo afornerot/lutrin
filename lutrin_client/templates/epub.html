@@ -28,6 +28,61 @@
     <!-- Conteneur pour les erreurs -->
     <div id="epub-error-container"></div>
 
+    <!-- Overlay pour modifier le style -->
+    <div id="edit-style-overlay"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Modifier le genre</h3>
+            <div>
+                <label for="edit-style-input" class="sr-only">Genre</label>
+                <input type="text" id="edit-style-input"
+                    class="block w-full shadow-sm text-base border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 py-2 px-3">
+            </div>
+            <div class="mt-5 sm:mt-6 flex justify-end space-x-3">
+                <button type="button" id="cancel-edit-style"
+                    class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none">
+                    Annuler
+                </button>
+                <button type="button" id="save-edit-style"
+                    class="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none">
+                    Sauvegarder
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay pour modifier la série -->
+    <div id="edit-series-overlay"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Modifier la série</h3>
+            <div class="space-y-4">
+                <div>
+                    <label for="edit-series-name-input" class="block text-sm font-medium text-gray-700">Nom de la
+                        série</label>
+                    <input type="text" id="edit-series-name-input"
+                        class="mt-1 block w-full shadow-sm text-base border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 py-2 px-3">
+                </div>
+                <div>
+                    <label for="edit-series-number-input" class="block text-sm font-medium text-gray-700">Numéro dans la
+                        série</label>
+                    <input type="number" id="edit-series-number-input"
+                        class="mt-1 block w-full shadow-sm text-base border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 py-2 px-3">
+                </div>
+            </div>
+            <div class="mt-5 sm:mt-6 flex justify-end space-x-3">
+                <button type="button" id="cancel-edit-series"
+                    class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none">
+                    Annuler
+                </button>
+                <button type="button" id="save-edit-series"
+                    class="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none">
+                    Sauvegarder
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Barre de lecture audio fixe en bas -->
     <div id="epub-audio-player-bar"
         class="hidden fixed bottom-0 left-16 right-0 bg-white border-t border-gray-200 shadow-lg">

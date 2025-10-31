@@ -46,10 +46,10 @@ function displayEpubDetails(epub) {
         
         <div class="flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-600 mb-4">
             ${epub.metadata.style ? `
-                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">${epub.metadata.style}</span>
+                <span id="edit-style-trigger" class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full cursor-pointer hover:bg-blue-200 transition-colors">${epub.metadata.style}</span>
             ` : ''}
             ${epub.metadata.series ? `
-                <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                <span id="edit-series-trigger" class="bg-green-100 text-green-800 px-2 py-1 rounded-full cursor-pointer hover:bg-green-200 transition-colors">
                     ${epub.metadata.series}
                     ${epub.metadata.series_number ? ` - Vol. ${epub.metadata.series_number}` : ''}
                 </span>
@@ -77,6 +77,84 @@ function displayEpubDetails(epub) {
             }
         });
     }
+
+    // --- Logique de l'overlay de modification ---
+    const editStyleOverlay = document.getElementById('edit-style-overlay');
+    const editStyleTrigger = document.getElementById('edit-style-trigger');
+    const editStyleInput = document.getElementById('edit-style-input');
+    const saveStyleButton = document.getElementById('save-edit-style');
+    const cancelStyleButton = document.getElementById('cancel-edit-style');
+    const editSeriesOverlay = document.getElementById('edit-series-overlay');
+    const editSeriesTrigger = document.getElementById('edit-series-trigger');
+    const editSeriesNameInput = document.getElementById('edit-series-name-input');
+    const editSeriesNumberInput = document.getElementById('edit-series-number-input');
+    const saveSeriesButton = document.getElementById('save-edit-series');
+    const cancelSeriesButton = document.getElementById('cancel-edit-series');
+
+    const showEditOverlay = () => {
+        if (editStyleInput) editStyleInput.value = epub.metadata.style || '';
+        if (editStyleOverlay) editStyleOverlay.classList.remove('hidden');
+    };
+
+    const hideEditOverlay = () => {
+        if (editStyleOverlay) editStyleOverlay.classList.add('hidden');
+    };
+
+    const saveStyleChange = async () => {
+        const newStyle = editStyleInput.value.trim();
+        if (newStyle !== (epub.metadata.style || '')) {
+            // Mettre à jour l'objet epub en mémoire
+            epub.metadata.style = newStyle;
+            // Sauvegarder dans la base de données
+            await updateEpub(epub);
+            // Mettre à jour l'affichage du badge
+            if (editStyleTrigger) {
+                editStyleTrigger.textContent = newStyle;
+            }
+        }
+        hideEditOverlay();
+    };
+
+    editStyleTrigger?.addEventListener('click', showEditOverlay);
+    cancelStyleButton?.addEventListener('click', hideEditOverlay);
+    saveStyleButton?.addEventListener('click', saveStyleChange);
+    editStyleOverlay?.addEventListener('click', (e) => { if (e.target === editStyleOverlay) hideEditOverlay(); }); // Clic sur le fond
+
+    const showEditSeriesOverlay = () => {
+        if (editSeriesNameInput) editSeriesNameInput.value = epub.metadata.series || '';
+        if (editSeriesNumberInput) editSeriesNumberInput.value = epub.metadata.series_number || '';
+        if (editSeriesOverlay) editSeriesOverlay.classList.remove('hidden');
+    };
+
+    const hideEditSeriesOverlay = () => {
+        if (editSeriesOverlay) editSeriesOverlay.classList.add('hidden');
+    };
+
+    const saveSeriesChange = async () => {
+        const newSeriesName = editSeriesNameInput.value.trim();
+        const newSeriesNumber = editSeriesNumberInput.value ? parseInt(editSeriesNumberInput.value, 10) : null;
+
+        const hasChanged = newSeriesName !== (epub.metadata.series || '') || newSeriesNumber !== (epub.metadata.series_number || null);
+
+        if (hasChanged) {
+            // Mettre à jour l'objet epub en mémoire
+            epub.metadata.series = newSeriesName;
+            epub.metadata.series_number = newSeriesNumber;
+            // Sauvegarder dans la base de données
+            await updateEpub(epub);
+            // Mettre à jour l'affichage du badge
+            if (editSeriesTrigger) {
+                editSeriesTrigger.textContent = `${newSeriesName}${newSeriesNumber ? ` - Vol. ${newSeriesNumber}` : ''}`;
+            }
+        }
+        hideEditSeriesOverlay();
+    };
+
+    editSeriesTrigger?.addEventListener('click', showEditSeriesOverlay);
+    cancelSeriesButton?.addEventListener('click', hideEditSeriesOverlay);
+    saveSeriesButton?.addEventListener('click', saveSeriesChange);
+    editSeriesOverlay?.addEventListener('click', (e) => { if (e.target === editSeriesOverlay) hideEditSeriesOverlay(); });
+
 
     // --- Logique du lecteur audio ---
 
