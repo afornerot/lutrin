@@ -1,6 +1,7 @@
 import os
 import time
 import uuid
+import asyncio
 
 from functools import wraps
 import ssl
@@ -25,13 +26,13 @@ def api_key_required(f):
         api_key = request.headers.get('X-API-Key')
         if not api_key:
             return jsonify({"error": "Clé d'API manquante dans l'en-tête 'X-API-Key'"}), 401
-        
+
         user = auth_service.get_user_by_api_key(api_key)
         if user is None:
             return jsonify({"error": "Clé d'API invalide ou non autorisée"}), 403
-        
-        g.user = user # Stocker l'utilisateur dans le contexte de la requête
-        return f(*args, **kwargs) 
+
+        g.user = user  # Stocker l'utilisateur dans le contexte de la requête
+        return f(*args, **kwargs)
     return decorated_function
 
 def admin_required(f):

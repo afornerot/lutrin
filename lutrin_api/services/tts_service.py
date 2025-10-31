@@ -106,7 +106,7 @@ def generate_tts(text, audio_filename, tts_engine='coqui', user_id=None):
         # Suppression des anciens fichiers audio de l'utilisateur
         _delete_old_files(user_id)
 
-    if not text or not text.strip():
+    if not text or not text.strip() or len(text.strip()) < 2:
         return False, "Le texte fourni est vide."
     
     if tts_engine == 'piper':

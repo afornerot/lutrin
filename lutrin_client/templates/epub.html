@@ -10,9 +10,9 @@
     </div>
 
     <!-- Contenu du livre (initialement caché) -->
-    <div id="epub-content" class="hidden grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div id="epub-content" class="hidden grid grid-cols-1 md:grid-cols-3 gap-8 flex-grow overflow-hidden">
         <!-- Colonne de gauche : Couverture et informations -->
-        <div id="epub-left-panel">
+        <div id="epub-left-panel" class="overflow-y-auto md:col-span-1">
             <div id="epub-cover" class="mb-8">
                 <!-- La couverture sera injectée ici -->
             </div>
@@ -20,8 +20,9 @@
                 <!-- Les informations du livre seront injectées ici -->
             </div>
         </div>
+
         <!-- Colonne de droite : Texte du livre -->
-        <div id="epub-text-panel"></div>
+        <div id="epub-text-panel" class="flex flex-col overflow-hidden md:col-span-2"></div>
     </div>
 
     <!-- Conteneur pour les erreurs -->
@@ -29,17 +30,37 @@
 
     <!-- Barre de lecture audio fixe en bas -->
     <div id="epub-audio-player-bar"
-        class="hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
+        class="hidden fixed bottom-0 left-16 right-0 bg-white border-t border-gray-200 shadow-lg">
         <div class="flex-shrink-0">
+            <div class="px-4 pt-2 pb-1 bg-gray-50">
+                <input type="range" id="epub-chapter-slider"
+                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                <div id="epub-chapter-display" class="text-center text-sm text-gray-600 mt-1">Chapitre 1 / 1</div>
+            </div>
+
             <div class="flex items-center">
-                <button id="epub-play-audio-button"
-                    class="capture-button w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-2xl py-3 px-4 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300 flex items-center justify-center disabled:opacity-50">
-                    <i class="fas fa-play mr-4"></i>
-                    <span>Écouter</span>
+                <button id="epub-prev-10-chapter-button"
+                    class="w-24 bg-gray-600 hover:bg-gray-700 text-white font-bold text-2xl py-3 px-6 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-gray-300 disabled:opacity-50">
+                    <i class="fas fa-fast-backward"></i>
                 </button>
-                <button id="epub-stop-audio-button"
-                    class="hidden w-2/5 bg-red-600 hover:bg-red-700 text-white font-bold text-2xl py-3 px-6 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-red-300">
-                    <i class="fas fa-stop"></i>
+                <button id="epub-prev-chapter-button"
+                    class="w-24 bg-gray-600 hover:bg-gray-700 text-white font-bold text-2xl py-3 px-6 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-gray-300 disabled:opacity-50">
+                    <i class="fas fa-step-backward"></i>
+                </button>
+
+                <button id="epub-play-audio-button"
+                    class="capture-button flex-grow bg-blue-600 hover:bg-blue-700 text-white font-bold text-2xl py-3 px-4 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300 flex items-center justify-center disabled:opacity-50">
+                    <i class="fas fa-play mr-4"></i>
+                    <span class="truncate">Écouter</span>
+                </button>
+
+                <button id="epub-next-chapter-button"
+                    class="w-24 bg-gray-600 hover:bg-gray-700 text-white font-bold text-2xl py-3 px-6 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-gray-300 disabled:opacity-50">
+                    <i class="fas fa-step-forward"></i>
+                </button>
+                <button id="epub-next-10-chapter-button"
+                    class="w-24 bg-gray-600 hover:bg-gray-700 text-white font-bold text-2xl py-3 px-6 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-gray-300 disabled:opacity-50">
+                    <i class="fas fa-fast-forward"></i>
                 </button>
             </div>
             <!-- Le lecteur audio est maintenant visible -->

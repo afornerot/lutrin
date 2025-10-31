@@ -1,5 +1,5 @@
 <!-- /templates/epubs.html -->
-<div class="container mx-auto p-4 md:p-8 h-full flex flex-col">
+<div class="container mx-auto p-4 md:p-8 h-full flex flex-col bg-gray-50">
     <!-- Modale de statut d'upload -->
     <div id="epub-upload-status-overlay"
         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20 hidden">
@@ -9,16 +9,47 @@
         </div>
     </div>
 
-    <div class="flex justify-between items-center mb-8 flex-shrink-0">
+    <div class="flex justify-between items-center mb-6 flex-shrink-0">
         <h1 class="text-4xl font-bold text-gray-800">Ma Bibliothèque</h1>
         <button id="add-epub-button"
-            class="bg-blue-600 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-700 transition-colors flex items-center">
+            class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center shadow-sm hover:shadow-md">
             <i class="fas fa-plus mr-2"></i> Ajouter
         </button>
     </div>
 
     <!-- Input de fichier caché -->
     <input type="file" id="epub-file-input" class="hidden" accept=".epub">
+
+    <!-- Barre de filtres -->
+    <div id="filters-bar"
+        class="bg-white p-4 rounded-lg shadow-sm mb-8 flex-shrink-0 flex flex-wrap items-center gap-4">
+        <!-- Filtre par style -->
+        <div class="flex-grow min-w-[150px]">
+            <label for="style-filter" class="block text-sm font-medium text-gray-700">Genre</label>
+            <select id="style-filter"
+                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"></select>
+        </div>
+        <!-- Filtre par série -->
+        <div class="flex-grow min-w-[150px]">
+            <label for="series-filter" class="block text-sm font-medium text-gray-700">Série</label>
+            <select id="series-filter"
+                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"></select>
+        </div>
+        <!-- Toggle pour masquer les lus -->
+        <div class="flex items-center pt-6">
+            <label for="hide-finished-toggle" class="flex items-center cursor-pointer">
+                <div class="relative">
+                    <input type="checkbox" id="hide-finished-toggle" class="sr-only peer">
+                    <div class="block bg-gray-200 w-14 h-8 rounded-full peer-checked:bg-blue-600 transition-colors">
+                    </div>
+                    <div
+                        class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform peer-checked:translate-x-full">
+                    </div>
+                </div>
+                <div class="ml-3 text-gray-700 font-medium">Masquer les lus</div>
+            </label>
+        </div>
+    </div>
 
     <div id="epub-list-container" class="flex-grow overflow-y-auto">
         <!-- Section En cours -->
