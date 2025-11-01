@@ -62,7 +62,7 @@ def status():
         "version": "1.0",
     })
 
-@app.route('/login', methods=['POST'])
+@app.route('/auth/login', methods=['POST'])
 def login():
     """Authentifie un utilisateur et retourne une clé d'API."""
     data = request.get_json()
@@ -72,9 +72,9 @@ def login():
     if not username or not password:
         return jsonify({"error": "Nom d'utilisateur et mot de passe requis"}), 400
 
-    api_key = auth_service.authenticate_user(username, password)
-    if api_key:
-        return jsonify({"status": "success", "api_key": api_key})
+    auth_result = auth_service.authenticate_user(username, password)
+    if auth_result:
+        return jsonify({"status": "success", **auth_result})
     else:
         return jsonify({"error": "Identifiants invalides"}), 401
 

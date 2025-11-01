@@ -109,10 +109,10 @@ def authenticate_user(username, password):
 
         if user and check_password_hash(user['password_hash'], password):
             Success(f"Authentification réussie pour l'utilisateur '{username}'.")
-            return user['api_key']
+            return {'api_key': user['api_key'], 'role': user['role']}
         else:
             Error(f"Échec de l'authentification pour l'utilisateur '{username}'.")
-            return None
+            return None # Retourne None en cas d'échec
     except Exception as e:
         Error(f"Erreur lors de l'authentification de l'utilisateur : {e}")
         return None

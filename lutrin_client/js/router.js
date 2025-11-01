@@ -4,13 +4,13 @@ import { initConsoleView } from './views/console.js';
 import { initUserView } from './views/user.js';
 import { initEpubDetailView } from './views/epub.js';
 import { initEpubsView } from './views/epubs.js';
-import { initHeader } from './services/ui.js';
-import { checkAuth, logout } from './auth.js';
+import { initHeader, updateHeaderNav } from './services/ui.js';
+import { checkAuth, getAuthUserRole } from './auth.js';
 
 const routes = {
     '/login': { template: '/templates/login.html', init: initLoginView, public: true },
     '/epub': { template: '/templates/epub.html', init: initEpubDetailView },
-    '/console': { template: '/templates/console.html', init: initConsoleView },
+    '/console': { template: '/templates/console.html', init: initConsoleView, requiresAdmin: true },
     '/user': { template: '/templates/user.html', init: initUserView },
     '/epubs': { template: '/templates/epubs.html', init: initEpubsView }
 };
@@ -35,6 +35,15 @@ async function navigate() {
     // Protéger les routes non publiques
     const isAuthenticated = checkAuth();
 
+    // 1. Vérifier les droits d'administrateur si nécessaire
+    if (route.requiresAdmin && getAuthUserRole() !== 'ADMIN') {
+        console.warn(`Accès non autorisé à ${path} pour le rôle '${getAuthUserRole()}'. Redirection vers /user.`);
+        // Rediriger vers une page par défaut pour les non-admins
+        navigateTo('/user');
+        return;
+    }
+
+
     if (isAuthenticated && !route.public) {
         const cacheBuster = `?v=${new Date().getTime()}`;
         const response = await fetch(`/templates/header.html${cacheBuster}`);
@@ -42,6 +51,7 @@ async function navigate() {
         const navElement = headerContainer.querySelector('nav');
 
         initHeader();
+        updateHeaderNav(); // Met à jour les liens admin
 
         /*if (path === "/user") { // Cas spécial pour la vue utilisateur en plein écran
             appContainer.classList.remove('ml-16');

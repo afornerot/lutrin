@@ -280,24 +280,26 @@ install_project() {
 
 add_user_command() {
     BigTitle "Ajout d'un nouvel utilisateur"
-    if [ -z "$2" ] || [ -z "$3" ] || [ -z "$4" ]; then
+    # On lit les variables directement, car elles sont passées par le Makefile
+    if [ -z "$user" ] || [ -z "$pass" ] || [ -z "$email" ]; then
         EchoRouge "Usage: $0 add-user <username> <password> <email> [role]"
+        EchoRouge "Ou via make: make add-user user=<username> pass=<password> email=<email> [role=<role>]"
         exit 1
     fi
-    local username="$2"
-    local password="$3"
-    local email="$4"
-    local role="${5:-USER}" # Le rôle est optionnel, 'USER' par défaut
+    local username_val="$user"
+    local password_val="$pass"
+    local email_val="$email"
+    local role_val="${role:-USER}" # Le rôle est optionnel, 'USER' par défaut
 
     if [ ! -f "$VENV_PYTHON" ]; then
         EchoRouge "L'environnement virtuel n'est pas trouvé. Lancez d'abord 'make install'."
         exit 1
     fi
 
-    EchoBleu "Ajout de l'utilisateur '$username'..."
+    EchoBleu "Ajout de l'utilisateur '$username_val'..."
     "$VENV_PYTHON" -c "
 from lutrin_api.services import auth_service
-auth_service.add_user('$username', '$password', '$email', '$role')
+auth_service.add_user('$username_val', '$password_val', '$email_val', '$role_val')
 "
     EchoVert "Opération terminée."
     EchoBlanc
