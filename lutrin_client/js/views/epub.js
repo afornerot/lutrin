@@ -36,7 +36,15 @@ function displayEpubDetails(epub) {
 
     // Afficher la couverture
     coverContainer.innerHTML = `
-        <img src="${epub.cover_image || 'assets/placeholder-cover.png'}" alt="Couverture de ${epub.metadata.title}" class="w-full h-auto object-cover rounded-lg shadow-lg">
+        <div id="epub-cover-wrapper" class="relative group ${!epub.cover_image ? 'cursor-pointer' : ''}">
+            <img src="${epub.cover_image || 'assets/placeholder-cover.png'}" alt="Couverture de ${epub.metadata.title}" class="w-full h-auto object-cover rounded-lg shadow-lg">
+            ${!epub.cover_image ? `
+                <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white text-center p-4 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                    <span>Cliquer pour ajouter une couverture</span>
+                </div>
+            ` : ''}
+        </div>
+        <input type="file" id="cover-upload-input" class="hidden" accept="image/png, image/jpeg, image/webp">
     `;
 
     // Afficher les informations
@@ -45,18 +53,18 @@ function displayEpubDetails(epub) {
         <p class="text-xl text-gray-600 mb-4">par ${epub.metadata.authors.join(', ')}</p>
         
         <div class="flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-600 mb-4">
-            ${epub.metadata.style ? `
-                <span id="edit-style-trigger" class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full cursor-pointer hover:bg-blue-200 transition-colors">${epub.metadata.style}</span>
-            ` : ''}
-            ${epub.metadata.series ? `
-                <span id="edit-series-trigger" class="bg-green-100 text-green-800 px-2 py-1 rounded-full cursor-pointer hover:bg-green-200 transition-colors">
-                    ${epub.metadata.series}
-                    ${epub.metadata.series_number ? ` - Vol. ${epub.metadata.series_number}` : ''}
-                </span>
-            ` : ''}
+            <span id="edit-style-trigger" class="px-2 py-1 rounded-full cursor-pointer transition-colors ${epub.metadata.style
+            ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+        }">${epub.metadata.style || 'Genre indéterminé'}</span>
+
+            <span id="edit-series-trigger" class="px-2 py-1 rounded-full cursor-pointer transition-colors ${epub.metadata.series
+            ? 'bg-green-100 text-green-800 hover:bg-green-200'
+            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+        }">${(epub.metadata.series ? `${epub.metadata.series}${epub.metadata.series_number ? ` - Vol. ${epub.metadata.series_number}` : ''}` : 'Série indéterminée')}</span>
         </div>
 
-        ${epub.metadata.description ? `<p class="text-gray-700 mb-6">${epub.metadata.description}</p>` : ''}
+        ${epub.metadata.description ? `<p id="epub-description" class="text-gray-700 mb-6 cursor-pointer relative">${epub.metadata.description}</p>` : ''}
 
         <div class="flex space-x-4">
             <button id="delete-epub-button" class="bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded hover:bg-gray-400 transition-colors">
@@ -64,6 +72,39 @@ function displayEpubDetails(epub) {
             </button>
         </div>
     `;
+
+    infoContainer.insertAdjacentHTML('afterend', '<audio id="epub-description-audio-player" class="hidden"></audio>');
+
+    // --- Logique d'upload de la couverture ---
+    const coverWrapper = document.getElementById('epub-cover-wrapper');
+    const coverUploadInput = document.getElementById('cover-upload-input');
+
+    if (coverWrapper && coverUploadInput) {
+        coverWrapper.addEventListener('click', () => {
+            // On ne déclenche l'upload que s'il n'y a pas déjà une couverture
+            if (!epub.cover_image) {
+                coverUploadInput.click();
+            }
+        });
+
+        coverUploadInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const newCoverImage = e.target.result;
+
+                // Mettre à jour l'objet en mémoire et dans la DB
+                epub.cover_image = newCoverImage;
+                await updateEpub(epub);
+
+                // Rafraîchir l'affichage de la couverture
+                displayEpubDetails(epub);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
 
     // --- Logique de suppression ---
     const deleteButton = document.getElementById('delete-epub-button');
@@ -154,6 +195,55 @@ function displayEpubDetails(epub) {
     cancelSeriesButton?.addEventListener('click', hideEditSeriesOverlay);
     saveSeriesButton?.addEventListener('click', saveSeriesChange);
     editSeriesOverlay?.addEventListener('click', (e) => { if (e.target === editSeriesOverlay) hideEditSeriesOverlay(); });
+
+    // --- Logique TTS pour la description ---
+    const descriptionElement = document.getElementById('epub-description');
+    const descriptionAudioPlayer = document.getElementById('epub-description-audio-player');
+    let isDescriptionPlaying = false;
+
+    if (descriptionElement && descriptionAudioPlayer) {
+        descriptionElement.addEventListener('click', async () => {
+            if (isDescriptionPlaying) {
+                descriptionAudioPlayer.pause();
+                descriptionAudioPlayer.currentTime = 0;
+                isDescriptionPlaying = false;
+                descriptionElement.querySelector('i')?.remove(); // Enlève l'icône
+                return;
+            }
+
+            const descriptionText = epub.metadata.description;
+            if (!descriptionText) return;
+
+            // Afficher une icône de chargement
+            const loadingIcon = document.createElement('i');
+            loadingIcon.className = 'fas fa-spinner fa-spin text-gray-500 absolute top-0 right-0 mt-1 mr-1';
+            descriptionElement.appendChild(loadingIcon);
+
+            try {
+                isDescriptionPlaying = true;
+                const ttsEngine = document.getElementById('tts-engine-select')?.value || 'coqui';
+                const ttsResult = await runTTS(descriptionText, ttsEngine);
+
+                // Remplacer l'icône de chargement par une icône de lecture
+                loadingIcon.className = 'fas fa-volume-up text-gray-500 absolute top-0 right-0 mt-1 mr-1';
+
+                descriptionAudioPlayer.src = ttsResult.audio_url;
+                descriptionAudioPlayer.play();
+
+                descriptionAudioPlayer.onended = () => {
+                    isDescriptionPlaying = false;
+                    descriptionElement.querySelector('i')?.remove();
+                };
+
+            } catch (error) {
+                console.error("Erreur TTS pour la description:", error);
+                isDescriptionPlaying = false;
+                descriptionElement.querySelector('i')?.remove();
+                alert("Impossible de générer l'audio pour la description.");
+            }
+        });
+    }
+
 
 
     // --- Logique du lecteur audio ---
