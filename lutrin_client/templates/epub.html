@@ -1,6 +1,11 @@
 <!-- /templates/epub.html -->
 <div id="epub-detail-container" class="container mx-auto p-4 md:p-8 h-full">
 
+    <!-- Barre supérieure fixe -->
+    <div id="epub-top-bar"
+        class="hidden fixed top-0 left-16 right-0 bg-white bg-opacity-90 backdrop-blur-sm shadow-md p-3 flex items-center justify-between z-20">
+    </div>
+
     <!-- Indicateur de chargement -->
     <div id="epub-loading" class="flex items-center justify-center h-full">
         <div class="text-center">
@@ -10,7 +15,7 @@
     </div>
 
     <!-- Contenu du livre (initialement caché) -->
-    <div id="epub-content" class="hidden grid grid-cols-1 md:grid-cols-3 gap-8 flex-grow overflow-hidden">
+    <div id="epub-content" class="hidden grid grid-cols-1 md:grid-cols-3 gap-8 flex-grow overflow-hidden pt-20">
         <!-- Colonne de gauche : Couverture et informations -->
         <div id="epub-left-panel" class="overflow-y-auto md:col-span-1">
             <div id="epub-cover" class="mb-8">
@@ -95,26 +100,26 @@
 
             <div class="flex items-center">
                 <button id="epub-prev-10-chapter-button"
-                    class="w-24 bg-gray-600 hover:bg-gray-700 text-white font-bold text-2xl py-3 px-6 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-gray-300 disabled:opacity-50">
+                    class="w-24 bg-gray-600 hover:bg-gray-700 text-white font-bold text-2xl py-3 px-1 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-gray-300 disabled:opacity-50">
                     <i class="fas fa-fast-backward"></i>
                 </button>
                 <button id="epub-prev-chapter-button"
-                    class="w-24 bg-gray-600 hover:bg-gray-700 text-white font-bold text-2xl py-3 px-6 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-gray-300 disabled:opacity-50">
+                    class="w-24 bg-gray-600 hover:bg-gray-700 text-white font-bold text-2xl py-3 px-1 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-gray-300 disabled:opacity-50">
                     <i class="fas fa-step-backward"></i>
                 </button>
 
                 <button id="epub-play-audio-button"
-                    class="capture-button flex-grow bg-blue-600 hover:bg-blue-700 text-white font-bold text-2xl py-3 px-4 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300 flex items-center justify-center disabled:opacity-50">
-                    <i class="fas fa-play mr-4"></i>
-                    <span class="truncate">Écouter</span>
+                    class="flex-grow bg-blue-600 hover:bg-blue-700 text-white font-bold text-2xl py-3 px-6 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-gray-300 disabled:opacity-50">
+                    <i class="fas fa-play"></i>
+                    <span class="truncate hidden sm:inline ml-3">Écouter</span>
                 </button>
 
                 <button id="epub-next-chapter-button"
-                    class="w-24 bg-gray-600 hover:bg-gray-700 text-white font-bold text-2xl py-3 px-6 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-gray-300 disabled:opacity-50">
+                    class="w-24 bg-gray-600 hover:bg-gray-700 text-white font-bold text-2xl py-3 px-1 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-gray-300 disabled:opacity-50">
                     <i class="fas fa-step-forward"></i>
                 </button>
                 <button id="epub-next-10-chapter-button"
-                    class="w-24 bg-gray-600 hover:bg-gray-700 text-white font-bold text-2xl py-3 px-6 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-gray-300 disabled:opacity-50">
+                    class="w-24 bg-gray-600 hover:bg-gray-700 text-white font-bold text-2xl py-3 px-1 transition duration-150 ease-in-out shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-gray-300 disabled:opacity-50">
                     <i class="fas fa-fast-forward"></i>
                 </button>
             </div>

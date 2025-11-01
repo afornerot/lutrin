@@ -164,6 +164,43 @@ def _enhance_with_open_library(metadata, isbn=None):
         Error(f"Erreur lors de l'appel à l'API Open Library : {e}")
         return metadata
 
+def _compact_html(html: bytes) -> bytes:
+    """
+    - Décodage (UTF‑8 ou autre encodage détecté)
+    - Remplacement des retours à la ligne, tabulations, multiples espaces
+    - Retour en bytes (prêt pour BeautifulSoup)
+    """
+    # Décodage (la plupart des epub sont en UTF‑8)
+    txt = html.decode('utf-8', errors='ignore')
+
+    # 1️⃣ Supprimer les sauts de ligne à l’intérieur des balises
+    #    (remplace \n, \r, \t par un simple espace)
+    txt = re.sub(r'[\r\n\t]+', ' ', txt)
+
+    # 2️⃣ Collapser plusieurs espaces consécutifs
+    txt = re.sub(r' {2,}', ' ', txt)
+
+    # 3️⃣ (Optionnel) enlever les espaces avant/ après les balises
+    txt = re.sub(r'\s*(<[^>]+>)\s*', r'\1', txt)
+
+    return txt.encode('utf-8')
+def _clean_paragraph(text: str) -> str:
+    """
+    Nettoie le texte d'un paragraphe :
+    - supprime les espaces multiples,
+    - remplace les sauts de ligne internes par un espace,
+    - garde un saut de ligne final (pour séparer les paragraphes).
+    """
+
+    # Enlève les retours chariot éventuels
+    text = text.replace("\r", "")
+    # Collapse les espaces/tabs multiples
+    text = re.sub(r"[ \t]+", " ", text)
+    # Collapse plusieurs sauts de ligne en un seul
+    text = re.sub(r"\n+", "\n", text)
+    # Strip en début/fin
+    return text.strip()
+
 def add_epub(file_storage, user_id):
     """
     Traite un fichier EPUB uploadé, en extrait le texte brut, les métadonnées
@@ -240,39 +277,24 @@ def add_epub(file_storage, user_id):
                 Success("Image de couverture extraite et encodée en Base64.")
 
         Title("Traitement du texte du livre")
-        all_text_fragments = []
+        texts = []
 
         # Parcourir tous les documents (chapitres, etc.) du livre
         for item in book.get_items_of_type(ITEM_DOCUMENT):
-            # Obtenir le contenu HTML du chapitre
-            html_content = item.get_content()
+            # Nettoyage du HTML brut
+            cleaned_html = _compact_html(item.get_content())
+            soup = BeautifulSoup(cleaned_html, 'html.parser')
             
-            # Utiliser BeautifulSoup pour parser le HTML
-            soup = BeautifulSoup(html_content, 'html.parser')
-            
-            # Remplacer les balises <br> par un marqueur unique.
-            br_marker = "::BR::"
-            for br in soup.find_all("br"):
-                br.replace_with(br_marker)
-
-            # Itérer sur les éléments de bloc pour préserver les paragraphes
-            # et nettoyer les sauts de ligne inutiles à l'intérieur de chaque bloc.
-            # On cible les balises qui représentent généralement un paragraphe ou un titre.
-            # On traite chaque élément de bloc comme un fragment de texte séparé.
-            for element in soup.find_all(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div']):
-                # .get_text(strip=True) enlève les espaces superflus au début/fin.
-                # ' '.join(...split()) normalise les espaces multiples et les sauts de ligne à l'intérieur d'un paragraphe en un seul espace.
-                paragraph_text = ' '.join(element.get_text(strip=True).split())
-
-                # Rétablir les sauts de ligne à partir du marqueur.
-                paragraph_text = paragraph_text.replace(br_marker, "\n\n")
-                
-                # Même si le paragraphe est vide (contient juste &nbsp;), on le garde pour préserver les sauts de ligne.
-                # Un paragraphe vide sera représenté par une chaîne vide, qui deviendra un saut de ligne lors du .join().
-                all_text_fragments.append(paragraph_text)
+            # On récupère les paragraphes <p>, <h1‑h6>, <pre>…
+            for tag in soup.find_all(["p", "h1", "h2", "h3", "h4", "h5", "h6", "pre"]):
+                raw = tag.get_text(separator=" ", strip=True)
+                if raw:
+                    cleaned = _clean_paragraph(raw)
+                    if cleaned:
+                        texts.append(cleaned)
 
         # Joindre les fragments avec un double saut de ligne pour simuler des paragraphes.
-        full_text = "\n\n".join(all_text_fragments).strip()
+        full_text = "\n\n".join(texts).strip()
         Success(f"Extraction de {len(full_text)} caractères depuis '{file_storage.filename}'.")
 
         # --- Assemblage du résultat final ---
