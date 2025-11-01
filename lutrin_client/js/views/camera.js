@@ -43,7 +43,7 @@ async function handleCameraActionButtonClick() {
     stopApiCheck(); // On suspend la vérification de statut
     try {
         showCameraStatus("Traitement en cours...", false);
-        const result = await processFullCycle(cameraVideoStream, ocrEngineSelect.value, ttsEngineSelect.value);
+        const result = await processFullCycle(cameraVideoStream);
 
         if (result.audio_url) {
             cameraAudioPlayback.src = result.audio_url;

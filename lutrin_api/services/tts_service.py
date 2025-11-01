@@ -69,10 +69,9 @@ def _generate_tts_coqui(text, audio_filename):
     """
     Génère un fichier audio .wav à partir du texte en utilisant l'API Coqui TTS.
     """
+
     Title("Traitement du texte par Coqui TTS")
     try:
-        # L'API Coqui XTTS nécessite un speaker_id et une langue.
-        # 'fr' pour le français. Le speaker_id est un exemple, à adapter si besoin.
         payload = {
             "text": text,
             "speaker_id": "Viktor Eka",
@@ -96,7 +95,7 @@ def _generate_tts_coqui(text, audio_filename):
         Error(error_msg)
         return False, error_msg
     
-def generate_tts(text, audio_filename, tts_engine='coqui', user_id=None):
+def generate_tts(text, audio_filename, tts_engine='piper', user_id=None):
     """
     Aiguilleur principal pour le service TTS.
     """

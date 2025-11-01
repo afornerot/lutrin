@@ -36,10 +36,10 @@ export async function uploadCapturedImage(imageBlob) {
 /**
  * Effectue la reconnaissance optique de caractères (OCR) sur une image.
  * @param {string} imageFilename - Le nom du fichier image sur le serveur.
- * @param {string} ocrEngine - Le moteur OCR à utiliser.
  * @returns {Promise<{text: string}>} Les données de la réponse de l'API, incluant le texte reconnu.
  */
-export async function runOCR(imageFilename, ocrEngine) {
+export async function runOCR(imageFilename) {
+    const ocrEngine = localStorage.getItem('lutrin_ocr_engine') || 'paddle';
     return post('/ocr', {
         image_filename: imageFilename,
         ocr_engine: ocrEngine
@@ -49,13 +49,13 @@ export async function runOCR(imageFilename, ocrEngine) {
 /**
  * Génère de la synthèse vocale (TTS) à partir d'un texte.
  * @param {string} text - Le texte à convertir en audio.
- * @param {string} ttsEngine - Le moteur TTS à utiliser.
  * @returns {Promise<{audio_url: string}>} Les données de la réponse de l'API, incluant l'URL de l'audio.
  */
-export async function runTTS(text, ttsEngine) {
+export async function runTTS(text) {
     if (!text || text.trim() === "") {
         throw new Error("Aucun texte fourni pour la synthèse vocale.");
     }
+    const ttsEngine = localStorage.getItem('lutrin_tts_engine') || 'piper';
     return post('/tts', {
         text: text,
         tts_engine: ttsEngine
@@ -79,11 +79,9 @@ export async function fetchTestTextFile(filename) {
 /**
  * Orchestre le cycle complet : capture, upload, OCR, TTS.
  * @param {HTMLVideoElement} videoElement - L'élément vidéo pour la capture.
- * @param {string} ocrEngine - Le moteur OCR à utiliser.
- * @param {string} ttsEngine - Le moteur TTS à utiliser.
  * @returns {Promise<{audio_url: string, ocr_text: string, imageDataUrl: string, stats: {capture: number, upload: number, ocr: number, tts: number}}>}
  */
-export async function processFullCycle(videoElement, ocrEngine, ttsEngine) {
+export async function processFullCycle(videoElement) {
     let captureStartTime, captureEndTime, uploadStartTime, uploadEndTime, ocrStartTime, ocrEndTime, ttsStartTime, ttsEndTime;
     let captureDuration = null, uploadDuration = null, ocrDuration = null, ttsDuration = null;
     let imageDataUrl = null;
@@ -106,7 +104,7 @@ export async function processFullCycle(videoElement, ocrEngine, ttsEngine) {
 
         // 3. OCR
         ocrStartTime = performance.now();
-        const ocrData = await runOCR(captureData.image_filename, ocrEngine);
+        const ocrData = await runOCR(captureData.image_filename);
         ocrEndTime = performance.now();
         ocrDuration = ocrEndTime - ocrStartTime;
         ocrText = ocrData.text;
@@ -114,7 +112,7 @@ export async function processFullCycle(videoElement, ocrEngine, ttsEngine) {
         // 4. TTS
         if (ocrText && ocrText.trim() !== "") {
             ttsStartTime = performance.now();
-            const ttsData = await runTTS(ocrText, ttsEngine);
+            const ttsData = await runTTS(ocrText);
             ttsEndTime = performance.now();
             ttsDuration = ttsEndTime - ttsStartTime;
             audioUrl = ttsData.audio_url;

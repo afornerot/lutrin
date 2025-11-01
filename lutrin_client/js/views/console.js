@@ -70,7 +70,7 @@ async function startCaptureAndOCR() {
 
         showConsoleStatus("2/3 - Reconnaissance du texte (OCR)...", false);
         const ocrStartTime = performance.now();
-        const ocrData = await runOCR(captureData.image_filename, ocrEngineSelect.value);
+        const ocrData = await runOCR(captureData.image_filename);
         const ocrEndTime = performance.now();
         ocrDuration = ocrEndTime - ocrStartTime;
         if (ocrTextResult) ocrTextResult.value = ocrData.text;
@@ -78,7 +78,7 @@ async function startCaptureAndOCR() {
         showConsoleStatus("3/3 - Génération de l'audio (TTS)...", false);
         if (ocrData.text && ocrData.text.trim() !== "") {
             const ttsStartTime = performance.now();
-            const ttsData = await runTTS(ocrData.text, ttsEngineSelect.value);
+            const ttsData = await runTTS(ocrData.text);
             const ttsEndTime = performance.now();
             ttsDuration = ttsEndTime - ttsStartTime;
             audioPlayback.src = ttsData.audio_url;
@@ -117,7 +117,7 @@ async function startOCRFromFile(filename) {
         await new Promise(resolve => setTimeout(resolve, 200)); // Petit délai pour l'affichage
 
         const ocrStartTime = performance.now();
-        const ocrData = await runOCR(filename, ocrEngineSelect.value);
+        const ocrData = await runOCR(filename);
         const ocrEndTime = performance.now();
         ocrDuration = ocrEndTime - ocrStartTime;
         if (ocrTextResult) ocrTextResult.value = ocrData.text;
@@ -125,7 +125,7 @@ async function startOCRFromFile(filename) {
         showConsoleStatus("2/2 - Génération de l'audio (TTS)...", false);
         if (ocrData.text && ocrData.text.trim() !== "") {
             const ttsStartTime = performance.now();
-            const ttsData = await runTTS(ocrData.text, ttsEngineSelect.value);
+            const ttsData = await runTTS(ocrData.text);
             const ttsEndTime = performance.now();
             ttsDuration = ttsEndTime - ttsStartTime;
             audioPlayback.src = ttsData.audio_url;
@@ -167,7 +167,7 @@ async function startTTSFromFile(filename) {
 
         showConsoleStatus("2/2 - Génération de l'audio (TTS)...", false);
         const ttsStartTime = performance.now();
-        const ttsData = await runTTS(textContent, ttsEngineSelect.value);
+        const ttsData = await runTTS(textContent);
         const ttsEndTime = performance.now();
         ttsDuration = ttsEndTime - ttsStartTime;
         audioPlayback.src = ttsData.audio_url;

@@ -40,7 +40,30 @@ export function updateHeaderNav() {
 export function initSharedUI() {
     // Logique pour la modale des moteurs
     const settingsOverlay = document.getElementById('engine-settings-overlay');
+    const ocrEngineSelect = document.getElementById('ocr-engine-select');
+    const ttsEngineSelect = document.getElementById('tts-engine-select');
     const closeSettingsButton = document.getElementById('close-engine-settings-button');
+
+    const OCR_ENGINE_KEY = 'lutrin_ocr_engine';
+    const TTS_ENGINE_KEY = 'lutrin_tts_engine';
+
+    // --- Sauvegarde des préférences ---
+    ocrEngineSelect?.addEventListener('change', (e) => {
+        localStorage.setItem(OCR_ENGINE_KEY, e.target.value);
+        console.log(`Moteur OCR sauvegardé : ${e.target.value}`);
+    });
+
+    ttsEngineSelect?.addEventListener('change', (e) => {
+        localStorage.setItem(TTS_ENGINE_KEY, e.target.value);
+        console.log(`Moteur TTS sauvegardé : ${e.target.value}`);
+    });
+
+    // --- Restauration des préférences au chargement ---
+    const savedOcrEngine = localStorage.getItem(OCR_ENGINE_KEY);
+    const savedTtsEngine = localStorage.getItem(TTS_ENGINE_KEY);
+
+    if (savedOcrEngine && ocrEngineSelect) ocrEngineSelect.value = savedOcrEngine;
+    if (savedTtsEngine && ttsEngineSelect) ttsEngineSelect.value = savedTtsEngine;
 
     // Gère la fermeture de la modale
     closeSettingsButton?.addEventListener('click', () => {

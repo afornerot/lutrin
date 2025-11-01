@@ -1,5 +1,6 @@
 import { getEpubById, updateEpub, deleteEpubFromDB } from '../services/db_service.js';
 import { runTTS } from '../services/processing.js';
+import { startApiCheck, stopApiCheck } from '../services/apiStatus.js';
 import { navigateTo } from '../router.js';
 
 /**
@@ -220,9 +221,10 @@ function displayEpubDetails(epub) {
             descriptionElement.appendChild(loadingIcon);
 
             try {
+                stopApiCheck(); // On suspend la vérification pendant le TTS
                 isDescriptionPlaying = true;
-                const ttsEngine = document.getElementById('tts-engine-select')?.value || 'coqui';
-                const ttsResult = await runTTS(descriptionText, ttsEngine);
+                const ttsResult = await runTTS(descriptionText);
+
 
                 // Remplacer l'icône de chargement par une icône de lecture
                 loadingIcon.className = 'fas fa-volume-up text-gray-500 absolute top-0 right-0 mt-1 mr-1';
@@ -240,6 +242,8 @@ function displayEpubDetails(epub) {
                 isDescriptionPlaying = false;
                 descriptionElement.querySelector('i')?.remove();
                 alert("Impossible de générer l'audio pour la description.");
+            } finally {
+                startApiCheck(); // On réactive la vérification
             }
         });
     }
@@ -251,9 +255,9 @@ function displayEpubDetails(epub) {
     const chapters = epub.text.split('\n\n').filter(chapter => chapter.trim() !== '');
     let isPlaying = false;
     let isStopped = true;
-    let isFetching = false;
     let currentPlaybackIndex = epub.readingProgress?.lastChapterRead || 0;
     const audioQueue = new Map(); // Pour stocker les URL audio pré-chargées
+    const fetchingPromises = new Map(); // Pour suivre les générations audio en cours
 
     // --- Affichage du texte par chapitres ---
     textContainer.innerHTML = `
@@ -289,47 +293,61 @@ function displayEpubDetails(epub) {
     };
 
     const generateAudioForChapter = async (chapterIndex) => {
-        if (isFetching || audioQueue.has(chapterIndex) || chapterIndex >= chapters.length) {
+        // Si l'audio existe déjà, est en cours de génération, ou si l'index est invalide, on ne fait rien.
+        if (audioQueue.has(chapterIndex) || fetchingPromises.has(chapterIndex) || chapterIndex >= chapters.length) {
             return;
         }
-        isFetching = true;
-        try {
-            const textToRead = chapters[chapterIndex];
-            console.log(`${chapterIndex} = ${textToRead}`);
 
-            if (!textToRead || textToRead.trim() === '') {
-                audioQueue.set(chapterIndex, 'silent'); // Marqueur pour les chapitres vides
-                return;
+        // Crée une promesse pour cette génération et la stocke
+        const generationPromise = (async () => {
+            try {
+                const textToRead = chapters[chapterIndex];
+                console.log(`Début de la génération pour le chapitre ${chapterIndex}`);
+
+                try {
+                    const textToRead = chapters[chapterIndex];
+                    console.log(`${chapterIndex} = ${textToRead}`);
+
+                    if (!textToRead || textToRead.trim() === '') {
+                        audioQueue.set(chapterIndex, 'silent'); // Marqueur pour les chapitres vides
+                        return;
+                    }
+
+                    stopApiCheck(); // On suspend la vérification pendant le TTS
+                    // 1. Obtenir l'URL de l'audio depuis le backend
+                    const ttsResult = await runTTS(textToRead);
+
+                    // Gérer le cas où le TTS considère le texte comme vide (même si le client ne le pensait pas)
+                    if (ttsResult.error && ttsResult.details && ttsResult.details.includes("Le texte fourni est vide")) {
+                        audioQueue.set(chapterIndex, 'silent');
+                        return;
+                    }
+
+                    // 2. Télécharger l'audio et le stocker en tant que Blob
+                    const audioResponse = await fetch(ttsResult.audio_url);
+                    if (!audioResponse.ok) {
+                        throw new Error(`Impossible de télécharger l'audio depuis ${ttsResult.audio_url}`);
+                    }
+                    const audioBlob = await audioResponse.blob();
+
+                    // 3. Créer une URL locale pour ce Blob et la stocker dans notre file d'attente
+                    const localAudioUrl = URL.createObjectURL(audioBlob);
+                    audioQueue.set(chapterIndex, localAudioUrl);
+                    console.log(`Audio pour le chapitre ${chapterIndex} pré-chargé et stocké localement.`);
+                } catch (error) {
+                    console.error(`Erreur lors de la génération de l'audio pour le chapitre ${chapterIndex}:`, error);
+                    // Marquer le chapitre comme ayant échoué pour qu'on puisse réessayer plus tard.
+                    audioQueue.set(chapterIndex, 'error'); // On le traite comme une erreur pour ne pas bloquer la lecture.
+                } finally {
+                    startApiCheck(); // On réactive la vérification
+                }
+            } finally {
+                // Une fois la génération terminée (succès ou échec), on retire la promesse de la map.
+                fetchingPromises.delete(chapterIndex);
+                console.log(`Génération terminée pour le chapitre ${chapterIndex}`);
             }
-            const ttsEngine = document.getElementById('tts-engine-select')?.value || 'coqui';
-
-            // 1. Obtenir l'URL de l'audio depuis le backend
-            const ttsResult = await runTTS(textToRead, ttsEngine);
-
-            // Gérer le cas où le TTS considère le texte comme vide (même si le client ne le pensait pas)
-            if (!ttsResult.success && ttsResult.message && ttsResult.message.includes("Le texte fourni est vide")) {
-                audioQueue.set(chapterIndex, 'silent');
-                return;
-            }
-
-            // 2. Télécharger l'audio et le stocker en tant que Blob
-            const audioResponse = await fetch(ttsResult.audio_url);
-            if (!audioResponse.ok) {
-                throw new Error(`Impossible de télécharger l'audio depuis ${ttsResult.audio_url}`);
-            }
-            const audioBlob = await audioResponse.blob();
-
-            // 3. Créer une URL locale pour ce Blob et la stocker dans notre file d'attente
-            const localAudioUrl = URL.createObjectURL(audioBlob);
-            audioQueue.set(chapterIndex, localAudioUrl);
-            console.log(`Audio pour le chapitre ${chapterIndex} pré-chargé et stocké localement.`);
-        } catch (error) {
-            console.error(`Erreur lors de la génération de l'audio pour le chapitre ${chapterIndex}:`, error);
-            // Marquer le chapitre comme ayant échoué pour qu'on puisse réessayer plus tard.
-            audioQueue.set(chapterIndex, 'silent'); // On le traite comme un chapitre silencieux pour ne pas bloquer la lecture.
-        } finally {
-            isFetching = false;
-        }
+        })();
+        fetchingPromises.set(chapterIndex, generationPromise);
     };
 
     const highlightAndScrollToChapter = (chapterIndex) => {
@@ -387,12 +405,19 @@ function displayEpubDetails(epub) {
         // Si l'audio n'est pas prêt, on le génère et on attend qu'il le soit.
         if (!audioQueue.has(chapterIndex)) {
             updateButtonState('loading', 'Génération...');
-            await generateAudioForChapter(chapterIndex);
+            // Si une génération n'est pas déjà en cours, on la lance.
+            if (!fetchingPromises.has(chapterIndex)) {
+                generateAudioForChapter(chapterIndex);
+            }
+            // Dans tous les cas (qu'on vienne de la lancer ou qu'elle était déjà en cours), on attend qu'elle se termine.
+            if (fetchingPromises.has(chapterIndex)) {
+                await fetchingPromises.get(chapterIndex);
+            }
         }
 
         const audioUrl = audioQueue.get(chapterIndex); // On récupère l'URL maintenant qu'on est sûr qu'elle existe.
 
-        if (audioUrl && audioUrl !== 'silent') {
+        if (audioUrl && audioUrl !== 'silent' && audioUrl !== 'error') {
             audioPlayer.src = audioUrl;
             audioPlayer.play();
             return true; // Lecture démarrée avec succès
@@ -550,6 +575,7 @@ function displayEpubDetails(epub) {
     audioPlayer.addEventListener('ended', async () => {
         currentPlaybackIndex++;
         let chapterPlayed = false;
+        // On continue tant qu'on n'a pas joué un chapitre, qu'on n'est pas à la fin du livre et que l'utilisateur n'a pas stoppé la lecture.
         while (!chapterPlayed && currentPlaybackIndex < chapters.length && !isStopped) {
             updateNavButtonsState();
             chapterPlayed = await playChapter(currentPlaybackIndex);
