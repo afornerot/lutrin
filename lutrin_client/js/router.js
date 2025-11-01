@@ -1,7 +1,7 @@
 // js/router.js
 import { initLoginView } from './views/login.js';
 import { initConsoleView } from './views/console.js';
-import { initUserView } from './views/user.js';
+import { initCameraView } from './views/camera.js';
 import { initEpubDetailView } from './views/epub.js';
 import { initEpubsView } from './views/epubs.js';
 import { initHeader, updateHeaderNav } from './services/ui.js';
@@ -9,9 +9,9 @@ import { checkAuth, getAuthUserRole } from './auth.js';
 
 const routes = {
     '/login': { template: '/templates/login.html', init: initLoginView, public: true },
+    '/camera': { template: '/templates/camera.html', init: initCameraView },
     '/epub': { template: '/templates/epub.html', init: initEpubDetailView },
     '/console': { template: '/templates/console.html', init: initConsoleView, requiresAdmin: true },
-    '/user': { template: '/templates/user.html', init: initUserView },
     '/epubs': { template: '/templates/epubs.html', init: initEpubsView }
 };
 
@@ -38,8 +38,8 @@ async function navigate() {
     // 1. Vérifier les droits d'administrateur si nécessaire
     if (route.requiresAdmin && getAuthUserRole() !== 'ADMIN') {
         console.warn(`Accès non autorisé à ${path} pour le rôle '${getAuthUserRole()}'. Redirection vers /user.`);
-        // Rediriger vers une page par défaut pour les non-admins
-        navigateTo('/user');
+        // Rediriger vers la page caméra par défaut pour les non-admins
+        navigateTo('/camera');
         return;
     }
 
@@ -77,7 +77,7 @@ async function navigate() {
 
     // Si on est authentifié mais qu'on essaie d'aller sur /login, rediriger vers /user
     if (route.public && isAuthenticated) {
-        history.replaceState(null, '', '/user'); // Redirige sans ajouter à l'historique
+        history.replaceState(null, '', '/camera'); // Redirige sans ajouter à l'historique
         navigate(); // Appel récursif pour charger la nouvelle vue
         return;
     }

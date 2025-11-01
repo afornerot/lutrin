@@ -32,7 +32,7 @@ class ReverseProxyHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_POST(self):
         if self.path.startswith('/api/'):
-            self.proxy_request()
+            return self.proxy_request()
         else:
             self.send_error(404, "File not found")
 

@@ -18,7 +18,7 @@ function handleLoginSubmit(event) {
         .then(isLoggedIn => {
             if (isLoggedIn) {
                 // On change le hash PUIS on recharge. Au rechargement, le routeur verra le nouveau hash et l'état connecté.
-                history.replaceState(null, '', '/user'); // Utilise history.replaceState
+                history.replaceState(null, '', '/camera'); // Utilise history.replaceState
                 location.reload();
             } else {
                 errorDiv.textContent = 'Identifiants incorrects ou une erreur est survenue.';
