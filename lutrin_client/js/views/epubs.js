@@ -72,6 +72,7 @@ async function loadAndDisplayEpubs() {
     const filters = {
         style: document.getElementById('style-filter'),
         series: document.getElementById('series-filter'),
+        author: document.getElementById('author-filter'),
         hideFinished: document.getElementById('hide-finished-toggle')
     };
     const grids = {
@@ -131,9 +132,11 @@ async function loadAndDisplayEpubs() {
         const populateFilters = () => {
             const styles = [...new Set(allEpubs.map(e => e.metadata.style).filter(Boolean))];
             const series = [...new Set(allEpubs.map(e => e.metadata.series).filter(Boolean))];
+            const authors = [...new Set(allEpubs.flatMap(e => e.metadata.authors).filter(Boolean))];
 
             filters.style.innerHTML = '<option value="">Tous les genres</option>' + styles.map(s => `<option value="${s}">${s}</option>`).join('');
             filters.series.innerHTML = '<option value="">Toutes les séries</option>' + series.map(s => `<option value="${s}">${s}</option>`).join('');
+            filters.author.innerHTML = '<option value="">Tous les auteurs</option>' + authors.map(a => `<option value="${a}">${a}</option>`).join('');
         };
 
         // --- Logique de rendu ---
@@ -144,6 +147,7 @@ async function loadAndDisplayEpubs() {
 
             const selectedStyle = filters.style.value;
             const selectedSeries = filters.series.value;
+            const selectedAuthor = filters.author.value;
             const hideFinished = filters.hideFinished.checked;
 
             // Sauvegarder l'état du toggle dans le localStorage
@@ -153,7 +157,8 @@ async function loadAndDisplayEpubs() {
             let filteredEpubs = allEpubs.filter(epub => {
                 const styleMatch = !selectedStyle || epub.metadata.style === selectedStyle;
                 const seriesMatch = !selectedSeries || epub.metadata.series === selectedSeries;
-                return styleMatch && seriesMatch;
+                const authorMatch = !selectedAuthor || epub.metadata.authors.includes(selectedAuthor);
+                return styleMatch && seriesMatch && authorMatch;
             });
 
             // Gérer la visibilité de la section "Lus"
@@ -230,6 +235,7 @@ async function loadAndDisplayEpubs() {
             // Ajouter les écouteurs d'événements pour les filtres
             filters.style.addEventListener('change', renderEpubs);
             filters.series.addEventListener('change', renderEpubs);
+            filters.author.addEventListener('change', renderEpubs);
             filters.hideFinished.addEventListener('change', renderEpubs);
         }
     } catch (error) {
