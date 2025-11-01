@@ -45,79 +45,176 @@ def _enhance_with_groq(metadata):
         Error(f"Erreur lors de l'appel à Groq pour l'enrichissement des métadonnées : {e}")
         return metadata # En cas d'erreur, on retourne les métadonnées originales
 
+
+def _pick_best_google_result(metadata, google_results):
+    """
+    Utilise Groq pour analyser les résultats Google Books et choisir celui
+    qui correspond le mieux aux métadonnées locales.
+    """
+
+    if not GROQ_TOKEN:
+        Warning("GROQ_TOKEN non configuré. Analyse Groq désactivée.")
+        return {"index": 0, "reason": "Token absent", "confidence": 0.0}
+
+    Title("Étape 2: Désambiguïsation avec Groq (Google Books)")
+
+    try:
+        client = Groq(api_key=GROQ_TOKEN)
+
+        # On simplifie les résultats Google Books pour éviter les JSON trop longs
+        simplified_results = []
+        for item in google_results[:10]:  # max 10 pour éviter d’exploser les tokens
+            info = item.get("volumeInfo", {})
+            simplified_results.append({
+                "title": info.get("title"),
+                "subtitle": info.get("subtitle"),
+                "authors": info.get("authors"),
+                "publishedDate": info.get("publishedDate"),
+                "language": info.get("language"),
+                "categories": info.get("categories"),
+                "seriesInfo": info.get("seriesInfo"),
+                "industryIdentifiers": info.get("industryIdentifiers"),
+                "description": info.get("description"),
+            })
+
+        # Formatage des données pour le prompt
+        metadata_str = json.dumps(metadata, indent=2, ensure_ascii=False)
+        results_str = json.dumps(simplified_results, indent=2, ensure_ascii=False)
+
+        prompt = f"""
+Tu es un expert bibliothécaire chargé de trouver la meilleure correspondance entre un livre et plusieurs résultats Google Books.
+
+Voici les métadonnées locales :
+{metadata_str}
+
+Voici les résultats Google Books (liste JSON) :
+{results_str}
+
+Analyse attentivement chaque résultat et choisis celui qui correspond le mieux
+selon les critères suivants :
+- Titre le plus proche (même ou traduction cohérente)
+- Auteur identique ou très proche
+- Langue cohérente (FR/EN)
+- Date de publication la plus proche
+- Série et numéro du tome si présents
+- Description disponible (et traduite en français si besoin)
+
+Réponds STRICTEMENT au format JSON :
+{{
+  "index": <numéro du meilleur résultat dans la liste>,
+  "reason": "<explication courte du choix>",
+  "confidence": <score entre 0 et 1>,
+  "description_fr": "<description finale en français, traduite si nécessaire>"
+}}
+
+⚠️ Si la description du résultat choisi est déjà en français, garde-la telle quelle.
+⚠️ Si elle est en anglais ou une autre langue, traduis-la intégralement en français.
+⚠️ Si aucune description n'est disponible, renvoie "description_fr": null.
+⚠️ Si aucun résultat n'est fiable, renvoie "index": -1 et "confidence": 0.
+"""
+
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": "Tu es un expert bibliothécaire et documentaliste spécialisé en métadonnées de livres."},
+                {"role": "user", "content": prompt}
+            ],
+            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            temperature=0.1,
+            response_format={"type": "json_object"},
+        )
+
+        choice = json.loads(chat_completion.choices[0].message.content)
+
+        if not isinstance(choice.get("index"), int):
+            choice = {"index": 0, "reason": "Réponse Groq invalide", "confidence": 0.0}
+
+        Success(f"Groq a choisi le résultat #{choice['index']} (confiance {choice.get('confidence', 0):.2f}) : {choice.get('reason', '')}")
+        return choice
+
+    except Exception as e:
+        Error(f"Erreur lors de l'appel à Groq pour la désambiguïsation : {e}")
+        return {"index": 0, "reason": f"Erreur: {e}", "confidence": 0.0}
+
 def _enhance_with_google_books(metadata):
     """
     Utilise l'API Google Books pour récupérer des données factuelles (description, etc.).
     """
+
     title = metadata.get('title')
     authors = metadata.get('authors', [])
     if not title or not authors:
         Warning("Titre ou auteur manquant, impossible d'enrichir via Google Books.")
-        return metadata
+        return metadata, None
 
     Title("Étape 2: Enrichissement avec Google Books API")
+
     try:
+        # Construction de la requête
         query = f"intitle:{title} inauthor:{authors[0]}"
-        url = f"https://www.googleapis.com/books/v1/volumes?q={query}&maxResults=1"
-        isbn = None
-        
+        url = f"https://www.googleapis.com/books/v1/volumes?q={query}&maxResults=10&langRestrict=fr&country=FR"
         Log(f"Interrogation de Google Books avec la requête : {query}")
+
+        # Requête API
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
 
-        if 'items' in data and len(data['items']) > 0:
-            book_info = data['items'][0]['volumeInfo']
-            Success(f"Livre trouvé sur Google Books : '{book_info}'")
-
-            # Extraire l'ISBN-13 si disponible, c'est la clé pour d'autres API
-            if 'industryIdentifiers' in book_info:
-                for identifier in book_info['industryIdentifiers']:
-                    if identifier['type'] == 'ISBN_13':
-                        isbn = identifier['identifier']
-
-            enhanced_data = {}
-            # On prend la description de Google Books en priorité
-            if 'description' in book_info:
-                enhanced_data['description'] = book_info['description']
-
-            # On prend l'auteur de Google pour uniformiser
-            if 'authors' in book_info and book_info['authors']:
-                enhanced_data['authors'] = book_info['authors']
-
-            # On prend la catégorie de Google en priorité
-            if 'categories' in book_info:
-                enhanced_data['style'] = book_info['categories'][0]
-            
-            # On essaie de récupérer les infos de série depuis Google Books en priorité
-            if 'seriesInfo' in book_info and 'volumeSeries' in book_info['seriesInfo']:
-                series_info = book_info['seriesInfo']
-                if 'volumeSeries' in series_info and len(series_info['volumeSeries']) > 0:
-                    # Le nom de la série est souvent dans le titre de la série, il faut le nettoyer
-                    series_name = series_info['volumeSeries'][0].get('seriesBookType') or series_info['volumeSeries'][0].get('seriesId')
-                    enhanced_data['series'] = series_name.replace('_', ' ').title()
-                    enhanced_data['series_number'] = series_info.get('bookDisplayNumber')
-            # SINON, on essaie d'extraire la série depuis le sous-titre (cas très fréquent)
-            elif 'subtitle' in book_info:
-                subtitle = book_info['subtitle']
-                # 1. Essayer de trouver la série ET le numéro
-                match = re.search(r'^(.*?)(?:,)?\s*(?:Tome|T|Vol\.?|#)\s*(\d+)', subtitle, re.IGNORECASE)
-                if match:
-                    enhanced_data['series'] = match.group(1).strip().title()
-                    enhanced_data['series_number'] = int(match.group(2))
-                # 2. SINON, si on n'a toujours pas de série, on prend le sous-titre entier comme nom de série
-                elif not metadata.get('series'):
-                    enhanced_data['series'] = subtitle.strip().title()
-
-
-            return {**metadata, **enhanced_data}, isbn
-        else:
+        google_results = data.get("items", [])
+        if not google_results:
             Warning("Aucun livre correspondant trouvé sur Google Books.")
             return metadata, None
+
+        # Étape Groq : désambiguïsation entre plusieurs résultats
+        choice = _pick_best_google_result(metadata, google_results)
+        best_index = choice.get("index", 0)
+        if best_index < 0 or best_index >= len(google_results):
+            Warning(f"Aucune correspondance fiable selon Groq ({choice.get('reason', '')}).")
+            return metadata, None
+
+        # Extraction des métadonnées
+        Log(choice)
+        book_info = google_results[best_index]["volumeInfo"]
+        book_info["description"] = choice["description_fr"]
+        Success(f"Résultat choisi par Groq : #{best_index} ({choice.get('reason', '')})")
+        Log(book_info)
+
+        # Extraction et enrichissement des métadonnées
+        isbn = None
+        if 'industryIdentifiers' in book_info:
+            for identifier in book_info['industryIdentifiers']:
+                if identifier['type'] == 'ISBN_13':
+                    isbn = identifier['identifier']
+
+        enhanced_data = {}
+        if 'description' in book_info:
+            enhanced_data['description'] = book_info['description']
+        if 'authors' in book_info and book_info['authors']:
+            enhanced_data['authors'] = book_info['authors']
+        if 'categories' in book_info:
+            enhanced_data['style'] = book_info['categories'][0]
+
+        # Gestion des infos de série
+        if 'seriesInfo' in book_info and 'volumeSeries' in book_info['seriesInfo']:
+            series_info = book_info['seriesInfo']
+            if 'volumeSeries' in series_info and len(series_info['volumeSeries']) > 0:
+                series_name = series_info['volumeSeries'][0].get('seriesBookType') or series_info['volumeSeries'][0].get('seriesId')
+                enhanced_data['series'] = series_name.replace('_', ' ').title()
+                enhanced_data['series_number'] = series_info.get('bookDisplayNumber')
+        elif 'subtitle' in book_info:
+            subtitle = book_info['subtitle']
+            match = re.search(r'^(.*?)(?:,)?\s*(?:Tome|T|Vol\.?|#)\s*(\d+)', subtitle, re.IGNORECASE)
+            if match:
+                enhanced_data['series'] = match.group(1).strip().title()
+                enhanced_data['series_number'] = int(match.group(2))
+            elif not metadata.get('series'):
+                enhanced_data['series'] = subtitle.strip().title()
+
+        return {**metadata, **enhanced_data}, isbn
 
     except Exception as e:
         Error(f"Erreur lors de l'appel à l'API Google Books : {e}")
         return metadata, None
+
 
 def _enhance_with_open_library(metadata, isbn=None):
     """
@@ -184,6 +281,7 @@ def _compact_html(html: bytes) -> bytes:
     txt = re.sub(r'\s*(<[^>]+>)\s*', r'\1', txt)
 
     return txt.encode('utf-8')
+
 def _clean_paragraph(text: str) -> str:
     """
     Nettoie le texte d'un paragraphe :
@@ -226,8 +324,8 @@ def add_epub(file_storage, user_id):
         # Chaînage des enrichissements
         metadata_pass1 = _enhance_with_groq(metadata)
         metadata_pass2, isbn = _enhance_with_google_books(metadata_pass1)
-        metadata_pass3 = _enhance_with_open_library(metadata_pass2, isbn)
-        metadata = metadata_pass3 # Résultat final
+        # metadata_pass3 = _enhance_with_open_library(metadata_pass2, isbn)
+        metadata = metadata_pass2 # Résultat final
 
         # --- Extraction de l'image de couverture ---
         cover_image_data = None
