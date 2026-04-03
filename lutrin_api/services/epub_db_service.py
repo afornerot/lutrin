@@ -1,20 +1,60 @@
 # lutrin_api/services/epub_db_service.py
 import sqlite3
 import json
+import base64
+import io
 from .db_service import get_db_connection
 from .logger_service import Error, Success, Warning
 
-def get_all_epubs():
+def _resize_cover_image(cover_b64, max_width=300, max_height=450):
+    """Redimensionne une image cover en base64 pour créer un thumbnail."""
+    if not cover_b64:
+        return None
+    try:
+        # Extraire le prefixe data:image/...;base64,
+        if ',' in cover_b64:
+            header, data = cover_b64.split(',', 1)
+        else:
+            header = 'data:image/jpeg;base64,'
+            data = cover_b64
+
+        image_bytes = base64.b64decode(data)
+        img = io.BytesIO(image_bytes)
+
+        try:
+            from PIL import Image
+            image = Image.open(img)
+            image.thumbnail((max_width, max_height), Image.LANCZOS)
+
+            output = io.BytesIO()
+            image.save(output, format='JPEG', quality=75)
+            resized_b64 = base64.b64encode(output.getvalue()).decode('utf-8')
+            return f"data:image/jpeg;base64,{resized_b64}"
+        except ImportError:
+            # PIL non disponible, retourner l'image originale
+            return cover_b64
+    except Exception:
+        return cover_b64
+
+def get_all_epubs(with_text=False):
     """Récupère tous les EPUBs de la base de données de la bibliothèque."""
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT id, metadata, cover_image, text FROM epubs")
+        if with_text:
+            cursor.execute("SELECT id, metadata, cover_image, text FROM epubs")
+        else:
+            cursor.execute("SELECT id, metadata, cover_image FROM epubs")
         rows = cursor.fetchall()
         conn.close()
         epubs = [dict(row) for row in rows]
         for epub in epubs:
             epub['metadata'] = json.loads(epub['metadata'])
+            # Générer un thumbnail de la couverture pour réduire la taille de la réponse
+            if epub.get('cover_image'):
+                epub['cover_image'] = _resize_cover_image(epub['cover_image'])
+            if not with_text:
+                epub['text'] = None
         return epubs
     except Exception as e:
         Error(f"Erreur lors de la récupération de la bibliothèque : {e}")
