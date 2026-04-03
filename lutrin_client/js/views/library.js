@@ -13,14 +13,18 @@ async function importEpub(epubData) {
         statusText.textContent = `Import de "${epubData.metadata.title}"...`;
         statusOverlay.classList.remove('hidden');
 
+        // Récupérer les données complètes du livre (texte + couverture HD)
+        const fullData = await get(`/library/get/${epubData.id}`);
+        const completeEpub = fullData.data;
+
         const currentUser = getAuthUser();
 
         // Vérifier si le livre existe déjà dans la DB locale pour cet utilisateur
         const localEpubs = await getEpubsForUser(currentUser);
         // On se base sur le titre et l'auteur pour la déduplication
         const alreadyExists = localEpubs.some(localEpub =>
-            localEpub.metadata.title === epubData.metadata.title &&
-            JSON.stringify(localEpub.metadata.authors) === JSON.stringify(epubData.metadata.authors)
+            localEpub.metadata.title === completeEpub.metadata.title &&
+            JSON.stringify(localEpub.metadata.authors) === JSON.stringify(completeEpub.metadata.authors)
         );
 
         if (alreadyExists) {
@@ -29,10 +33,10 @@ async function importEpub(epubData) {
             return;
         }
 
-        const totalChapters = epubData.text ? epubData.text.split('\n\n').filter(c => c.trim() !== '').length : 0;
+        const totalChapters = completeEpub.text ? completeEpub.text.split('\n\n').filter(c => c.trim() !== '').length : 0;
 
         // On retire l'ID du serveur pour laisser IndexedDB en générer un nouveau.
-        const { id, ...dataWithoutId } = epubData;
+        const { id, ...dataWithoutId } = completeEpub;
 
         const dataToStore = {
             ...dataWithoutId,

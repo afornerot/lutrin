@@ -288,11 +288,23 @@ def add_epub():
 @api_key_required
 def list_library():
     """
-    Retourne la liste de tous les livres de la bibliothèque centrale.
+    Retourne la liste de tous les livres de la bibliothèque centrale (sans le texte, avec thumbnails).
     """
     
-    epubs = epub_db_service.get_all_epubs()
+    epubs = epub_db_service.get_all_epubs(with_text=False)
     return jsonify({"status": "success", "data": epubs})
+
+@app.route('/library/get/<int:epub_id>', methods=['GET'])
+@api_key_required
+def get_library_epub(epub_id):
+    """
+    Retourne les données complètes d'un livre (texte + couverture HD) pour l'import.
+    """
+    epubs = epub_db_service.get_all_epubs(with_text=True)
+    epub = next((e for e in epubs if e['id'] == epub_id), None)
+    if not epub:
+        return jsonify({"error": "Livre non trouvé"}), 404
+    return jsonify({"status": "success", "data": epub})
 
 @app.route('/library/add-from-file', methods=['POST'])
 @admin_required
