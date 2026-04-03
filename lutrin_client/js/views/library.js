@@ -135,6 +135,32 @@ export async function initLibraryView() {
             return;
         }
 
+        // --- Logique de tri global ---
+        allEpubs.sort((a, b) => {
+            const seriesA = a.metadata.series;
+            const seriesB = b.metadata.series;
+            const titleA = a.metadata.title.toLowerCase();
+            const titleB = b.metadata.title.toLowerCase();
+
+            if (seriesA && seriesA === seriesB) {
+                const numA = a.metadata.series_number || 0;
+                const numB = b.metadata.series_number || 0;
+                if (numA === numB) {
+                    return titleA.localeCompare(titleB);
+                }
+                return numA - numB;
+            }
+
+            if (seriesA && !seriesB) return -1;
+            if (!seriesA && seriesB) return 1;
+
+            if (seriesA && seriesB) {
+                return seriesA.localeCompare(seriesB);
+            }
+
+            return titleA.localeCompare(titleB);
+        });
+
         // Récupérer les livres locaux pour savoir lesquels masquer
         const localEpubs = await getEpubsForUser(currentUser);
         const localBookIdentifiers = new Set(

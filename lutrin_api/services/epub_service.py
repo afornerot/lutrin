@@ -156,6 +156,9 @@ def _enhance_with_google_books(metadata):
 
         # Requête API
         response = requests.get(url)
+        if response.status_code == 429:
+            Warning("Google Books API : trop de requêtes (429). Enrichissement annulé.")
+            return metadata, None
         response.raise_for_status()
         data = response.json()
 
@@ -312,12 +315,19 @@ def add_epub(file_storage, user_id):
         book = epub.read_epub(file_storage)
         
         # --- Extraction des métadonnées ---
+        raw_description = book.get_metadata('DC', 'description')[0][0] if book.get_metadata('DC', 'description') else None
+        # Nettoyer les balises HTML de la description si présente
+        clean_description = None
+        if raw_description:
+            clean_description = BeautifulSoup(raw_description, 'html.parser').get_text().strip()
+
         metadata = {
             'title': book.get_metadata('DC', 'title')[0][0] if book.get_metadata('DC', 'title') else "Titre inconnu",
             'authors': [author[0] for author in book.get_metadata('DC', 'creator')] if book.get_metadata('DC', 'creator') else [],
             'language': book.get_metadata('DC', 'language')[0][0] if book.get_metadata('DC', 'language') else "Langue inconnue",
             'publisher': book.get_metadata('DC', 'publisher')[0][0] if book.get_metadata('DC', 'publisher') else None,
             'publication_date': book.get_metadata('DC', 'date')[0][0] if book.get_metadata('DC', 'date') else None,
+            'description': clean_description,
         }
         Log(f"Métadonnées brutes extraites : {metadata}")
 
