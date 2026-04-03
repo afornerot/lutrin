@@ -1188,6 +1188,12 @@ input[type="file"] {
     flex-direction: column;
 }
 
+@media (hover: none) and (pointer: coarse) {
+    .camera-controls {
+        padding-bottom: 3.5rem;
+    }
+}
+
 .camera-buttons {
     display: flex;
 }
@@ -1277,7 +1283,12 @@ input[type="file"] {
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
-    padding-bottom: env(safe-area-inset-bottom, 3rem);
+}
+
+@media (hover: none) and (pointer: coarse) {
+    #epub-audio-player-bar {
+        padding-bottom: 3.5rem;
+    }
 }
 
 .chapter-slider-area {
