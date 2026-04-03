@@ -81,12 +81,41 @@ Lors du premier `task build`, un administrateur est créé. Vous pouvez en ajout
 - **Ajouter un utilisateur** : `task add-user user=nom password=pass email=mail@mail.com role=USER`
 - **Changer un mot de passe** : `task change-password user=nom password=nouveau_pass`
 
-### Variables d'environnement (`lutrin_api/.env`)
-| Variable | Description |
-|----------|-------------|
-| `GROQ_TOKEN` | Clé API pour Groq OCR (optionnel, pour une vitesse accrue) |
-| `COQUI_MODEL` | Modèle de synthèse vocale utilisé |
-| `CLIENT_PORT` | Port d'écoute du frontend (8000 par défaut) |
+### 🌍 Variables d'environnement
+
+Toutes les variables sont définies dans le fichier `.env` à la racine du projet. Si vous souhaitez les modifier, **ne modifiez pas `.env`** : créez un fichier `.env.local` et surchargez-y uniquement les variables souhaitées.
+
+> ⚠️ **IMPORTANT** : Créez systématiquement un fichier `.env.local` et modifiez-y les secrets (`GROQ_TOKEN`, `MAILER_DSN`, etc.). Le fichier `.env` contient des valeurs par défaut publiques et ne doit **jamais** contenir de vrais secrets.
+
+**Exemple de `.env.local`** :
+```env
+GROQ_TOKEN=votre_cle_api
+COQUI_MODEL=tts_models/fr/mai/tacotron2-DDC
+CLIENT_PORT=9000
+```
+
+#### Liste complète des variables
+
+| Variable | Description | Valeur par défaut |
+|----------|-------------|-------------------|
+| `GROQ_TOKEN` | Clé API Groq pour l'OCR (optionnel, vitesse accrue) | `changeme` |
+| `MAILER_DSN` | Configuration d'envoi d'e-mails | `sendmail://default` |
+| `FRONT_URL` | URL du frontend (utilisée dans les e-mails) | `https://localhost:8000` |
+| `COQUI_TTS_URL` | URL du service Coqui TTS | `http://coqui:5002` |
+| `COQUI_MODEL` | Modèle de synthèse vocale Coqui | `tts_models/multilingual/multi-dataset/xtts_v2` |
+| `FLASK_PORT` | Port du serveur Flask | `5000` |
+| `UPLOAD_FOLDER` | Dossier de stockage des fichiers uploadés | `/data` |
+| `DATABASE_PATH` | Chemin vers la base de données SQLite | `/data/database.db` |
+| `CLIENT_PORT` | Port d'écoute du frontend | `8000` |
+| `API_PORT` | Port de l'API | `5000` |
+| `API_HOST` | Hôte de l'API | `api` |
+| `PIPER_MODEL` | Modèle TTS Piper (chemin relatif à `lutrin_api/`) | `models/fr_FR-siwis-medium.onnx` |
+
+#### Modèles Coqui disponibles
+
+- `tts_models/multilingual/multi-dataset/xtts_v2` (défaut)
+- `tts_models/fr/mai/tacotron2-DDC`
+- `tts_models/fr/css10/vits`
 
 ---
 
