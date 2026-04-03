@@ -77,10 +77,16 @@ async function loadUsers() {
         });
 
         document.querySelectorAll('.edit-user-button').forEach(button => {
-            button.addEventListener('click', (e) => openUserModal(e.target.dataset.id, e.target.dataset));
+            button.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                openUserModal(btn.dataset.id, btn.dataset);
+            });
         });
         document.querySelectorAll('.delete-user-button').forEach(button => {
-            button.addEventListener('click', (e) => openDeleteUserModal(e.target.dataset.id, e.target.dataset.username));
+            button.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                openDeleteUserModal(btn.dataset.id, btn.dataset.username);
+            });
         });
 
     } catch (error) {

@@ -41,13 +41,12 @@ function displayEpub(epub) {
 
     // Afficher la couverture
     coverContainer.innerHTML = `
-        <div id="epub-cover-wrapper" class="${!epub.cover_image ? 'cover-upload' : ''}">
+        <div id="epub-cover-wrapper" class="cover-upload">
             <img src="${epub.cover_image || 'assets/placeholder-cover.png'}" alt="Couverture de ${epub.metadata.title}">
-            ${!epub.cover_image ? `
-                <div class="cover-upload-overlay">
-                    <span>Cliquer pour ajouter une couverture</span>
-                </div>
-            ` : ''}
+            <div class="cover-upload-overlay">
+                <i class="fas ${epub.cover_image ? 'fa-camera' : 'fa-plus-circle'}"></i>
+                <span>${epub.cover_image ? 'Cliquer pour changer la couverture' : 'Cliquer pour ajouter une couverture'}</span>
+            </div>
         </div>
         <input type="file" id="cover-upload-input" class="hidden" accept="image/png, image/jpeg, image/webp">
     `;
@@ -102,10 +101,7 @@ function displayEpub(epub) {
 
     if (coverWrapper && coverUploadInput) {
         coverWrapper.addEventListener('click', () => {
-            // On ne déclenche l'upload que s'il n'y a pas déjà une couverture
-            if (!epub.cover_image) {
-                coverUploadInput.click();
-            }
+            coverUploadInput.click();
         });
 
         coverUploadInput.addEventListener('change', (event) => {

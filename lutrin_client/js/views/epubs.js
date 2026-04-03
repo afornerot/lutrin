@@ -143,7 +143,10 @@ async function loadAndDisplayEpubs() {
         const renderEpubs = () => {
             // Vider les grilles avant de les remplir
             Object.values(grids).forEach(grid => { if (grid) grid.innerHTML = ''; });
-            Object.values(placeholders).forEach(p => { if (p) p.classList.add('hidden'); });
+            // Cacher tous les placeholders sauf sectionFinished (géré séparément)
+            [placeholders.main, placeholders.inProgress, placeholders.notStarted, placeholders.finished].forEach(p => {
+                if (p) p.classList.add('hidden');
+            });
 
             const selectedStyle = filters.style.value;
             const selectedSeries = filters.series.value;
@@ -162,7 +165,11 @@ async function loadAndDisplayEpubs() {
             });
 
             // Gérer la visibilité de la section "Lus"
-            placeholders.sectionFinished.style.display = hideFinished ? 'none' : 'block';
+            if (hideFinished) {
+                placeholders.sectionFinished.classList.add('hidden');
+            } else {
+                placeholders.sectionFinished.classList.remove('hidden');
+            }
 
             if (filteredEpubs.length === 0) {
                 placeholders.main.classList.remove('hidden');
@@ -178,14 +185,22 @@ async function loadAndDisplayEpubs() {
                 const progress = epub.readingProgress?.lastChapterRead || 0;
                 const total = epub.totalChapters || 0;
 
-                if (progress === 0) {
+                if (total === 0) {
+                    // Pas d'info de chapitres : considéré comme non lu
                     categorizedEpubs.notStarted.push(epub);
-                } else if (progress >= total && total > 0) {
+                } else if (progress === 0) {
+                    categorizedEpubs.notStarted.push(epub);
+                } else if (progress >= total) {
                     categorizedEpubs.finished.push(epub);
                 } else {
                     categorizedEpubs.inProgress.push(epub);
                 }
             });
+
+            // Si "Masquer les lus" est coché, on retire les livres terminés de l'affichage
+            if (hideFinished) {
+                categorizedEpubs.finished = [];
+            }
 
             const createCard = (epub) => {
                 const progress = epub.readingProgress?.lastChapterRead || 0;
@@ -234,7 +249,7 @@ async function loadAndDisplayEpubs() {
             // Afficher les placeholders si les sections sont vides
             if (categorizedEpubs.inProgress.length === 0) placeholders.inProgress.classList.remove('hidden');
             if (categorizedEpubs.notStarted.length === 0) placeholders.notStarted.classList.remove('hidden');
-            if (categorizedEpubs.finished.length === 0) placeholders.finished.classList.remove('hidden');
+            if (!hideFinished && categorizedEpubs.finished.length === 0) placeholders.finished.classList.remove('hidden');
         };
 
         if (allEpubs.length === 0) {

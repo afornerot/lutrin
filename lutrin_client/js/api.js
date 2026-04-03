@@ -39,8 +39,8 @@ async function apiFetch(endpoint, options = {}) {
 
     if (!response.ok) {
         // Si le serveur renvoie une erreur (4xx, 5xx), on la propage
-        const errorData = await response.json().catch(() => ({ message: response.statusText }));
-        throw new Error(errorData.message || 'Une erreur API est survenue');
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
+        throw new Error(errorData.error || errorData.message || 'Une erreur API est survenue');
     }
 
     // Si la réponse n'a pas de contenu (ex: 204 No Content), on retourne null

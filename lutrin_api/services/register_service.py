@@ -35,18 +35,12 @@ def request_register(username,email):
     # Vérifier si l'e-mail est déjà enregistré
     if user_db_service.get_user_by_email(email):
         Warning(f"Tentative d'inscription avec un email déjà enregistré: {email}")
-        # Pour des raisons de sécurité, on ne doit pas révéler si l'email existe ou non.
-        # On simule l'envoi d'un email même si l'utilisateur existe, pour ne pas donner d'indices.
-        _send_magic_link_email(email, "dummy_token_for_existing_user") # Send a dummy link
-        return True, "Un lien magique a été envoyé à votre adresse e-mail (si elle est enregistrée)."
+        return False, "Ce compte existe déjà."
 
     # Vérifier si le username est déjà enregistré
     if user_db_service.get_user_by_username(username):
         Warning(f"Tentative d'inscription avec ce login déjà enregistré: {username}")
-        # Pour des raisons de sécurité, on ne doit pas révéler si l'email existe ou non.
-        # On simule l'envoi d'un email même si l'utilisateur existe, pour ne pas donner d'indices.
-        _send_magic_link_email(email, "dummy_token_for_existing_user") # Send a dummy link
-        return True, "Un lien magique a été envoyé à votre adresse e-mail (si elle est enregistrée)."
+        return False, "Ce compte existe déjà."
     
     # Générer un jeton unique et une date d'expiration
     token = secrets.token_urlsafe(32)

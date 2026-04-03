@@ -100,8 +100,7 @@ def register_request():
     if success:
         return jsonify({"status": "success", "message": message}), 200
     else:
-        # On retourne 200 même en cas d'échec pour ne pas donner d'indice sur l'existence de l'email
-        return jsonify({"status": "success", "message": message}), 200
+        return jsonify({"error": message}), 400
 
 @app.route('/register/validate', methods=['POST'])
 def register_validate():
