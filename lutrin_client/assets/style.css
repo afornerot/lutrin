@@ -481,7 +481,7 @@ tbody tr:hover {
 /* --- Book Grid --- */
 .book-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 1.5rem;
 }
 
@@ -496,11 +496,12 @@ tbody tr:hover {
 }
 
 .book-cover {
-    aspect-ratio: 2/3;
+    aspect-ratio: 6/8;
     background-color: rgba(0, 0, 0, 0.3);
-    border-radius: 0.5rem;
+    border-radius: 0.25rem 0.5rem 0.5rem 0.25rem;
     overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.4);
+    border-left: 3px solid rgba(255, 255, 255, 0.08);
 }
 
 .book-cover img {
@@ -560,13 +561,11 @@ tbody tr:hover {
 }
 
 .tag-style {
-    background-color: rgba(59, 130, 246, 0.2);
-    color: #93c5fd;
+    background-color: rgba(59, 130, 246);
 }
 
 .tag-series {
-    background-color: rgba(34, 197, 94, 0.2);
-    color: #86efac;
+    background-color: rgba(34, 197, 94);
 }
 
 /* --- Section Block (espacement entre sections) --- */
@@ -932,6 +931,7 @@ input[type="file"] {
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-bottom: 1rem;
+    justify-content: center;
 }
 
 .tag {
@@ -947,23 +947,19 @@ input[type="file"] {
 }
 
 .tag-author {
-    background-color: rgba(168, 85, 247, 0.2);
-    color: #d8b4fe;
+    background-color: rgba(168, 85, 247);
 }
 
 .tag-style {
     background-color: rgba(59, 130, 246, 0.2);
-    color: #93c5fd;
 }
 
 .tag-series {
     background-color: rgba(34, 197, 94, 0.2);
-    color: #86efac;
 }
 
 .tag-empty {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--text-muted);
+    background-color: rgba(255, 255, 255);
 }
 
 /* --- EPUB Description --- */
@@ -972,15 +968,15 @@ input[type="file"] {
     cursor: pointer;
     position: relative;
     margin-bottom: 1.5rem;
+    zoom: 80%;
 }
 
 /* --- EPUB Text Content --- */
 #epub-text-content {
     width: 100%;
-    height: 60vh;
+    height: 100%;
     background-color: rgba(0, 0, 0, 0.15);
-    border: 2px solid var(--border);
-    border-radius: 0.5rem;
+    border-left: 2px solid var(--border);
     padding: 1rem;
     color: var(--text);
     overflow-y: auto;
@@ -1229,7 +1225,6 @@ input[type="file"] {
 .epub-layout {
     display: grid;
     grid-template-columns: 1fr 2fr;
-    gap: 2rem;
     flex: 1;
     overflow: hidden;
     padding-top: 5rem;
@@ -1243,6 +1238,30 @@ input[type="file"] {
 
 #epub-left-panel {
     overflow-y: auto;
+    padding-top: 30px;
+    padding-left: 10px;
+}
+
+#epub-cover-wrapper {
+    text-align: center;
+}
+
+#epub-left-panel img {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+    #epub-left-panel {
+        display: none;
+    }
+
+    #epub-text-content {
+        border-left: none;
+    }
 }
 
 #epub-text-panel {
@@ -1253,10 +1272,6 @@ input[type="file"] {
 
 /* Audio player bar */
 #epub-audio-player-bar {
-    position: fixed;
-    bottom: 0;
-    left: 4rem;
-    right: 0;
     background-color: var(--bg-card);
     border-top: 2px solid var(--border);
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
@@ -1364,23 +1379,37 @@ input[type="file"] {
 
 #main-nav a,
 #main-nav button {
-    background: none;
-    border: none;
-    color: var(--text);
-    padding: 0.75rem;
-    border-radius: 0.5rem;
+    background: none !important;
+    border: none !important;
+    color: var(--text) !important;
+    padding: 0.75rem !important;
+    border-radius: 0.5rem !important;
     cursor: pointer;
-    min-height: auto;
-    font-size: inherit;
-    font-weight: normal;
+    min-height: auto !important;
+    min-width: auto !important;
+    font-size: inherit !important;
+    font-weight: normal !important;
     display: flex;
     align-items: center;
     justify-content: center;
+    text-decoration: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+    gap: 0 !important;
+    line-height: 1 !important;
 }
 
 #main-nav a:hover,
 #main-nav button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+#main-nav a:focus-visible,
+#main-nav button:focus-visible {
+    outline: 4px solid var(--focus);
+    outline-offset: 3px;
 }
 
 /* Main content offset when nav is visible */

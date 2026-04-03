@@ -58,12 +58,12 @@ function displayEpub(epub) {
             <h1 class="top-bar-title" title="${epub.metadata.title}">${epub.metadata.title}</h1>
             <p class="top-bar-author">par ${epub.metadata.authors.join(', ')}</p>
         </div>
-        ${getAuthUserRole() === 'ADMIN' ? `
-            <button id="add-to-library-button" title="Ajouter à la bibliothèque centrale" class="btn-icon">
-                <i class="fas fa-server"></i>
-            </button>
-        ` : ''}
         <div class="top-bar-actions">
+            ${getAuthUserRole() === 'ADMIN' ? `
+                <button id="add-to-library-button" title="Ajouter à la bibliothèque centrale" class="btn-icon">
+                    <i class="fas fa-server"></i>
+                </button>
+            ` : ''}
             <button id="mark-as-read-button" title="Marquer comme lu" class="btn-icon">
                 <i class="fas fa-check-double"></i>
             </button>
