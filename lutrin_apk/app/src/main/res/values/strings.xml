@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Lutrin</string>
+    <string name="permission_tip">Permissions not granted.</string>
+</resources>

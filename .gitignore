@@ -1,0 +1,17 @@
+venv/
+.venv/
+env/
+pycache/
+*.py[cod]
+*$py.class
+waitress.log
+.DS_Store
+.vscode/
+.idea/
+*.local
+
+# Ignore data directories
+lutrin_tools/certs
+lutrin_data/
+lutrin_api/models/*
+!lutrin_api/models/.gitkeep

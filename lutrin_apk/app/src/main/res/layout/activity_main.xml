@@ -1,0 +1,19 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- 1. Conteneur pour le CameraPreviewFragment (Couche du bas) -->
+    <!-- La taille match_parent garantit que la caméra UVC s'initialise correctement. -->
+    <!-- visibility="invisible" masque la vue tout en conservant son espace (et l'activité de la caméra). -->
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 2. Vue Web (Couche du haut, recouvre tout l'écran) -->
+    <WebView
+        android:id="@+id/webView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</FrameLayout>

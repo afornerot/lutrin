@@ -1,0 +1,13 @@
+Flask
+Pillow
+waitress
+flask-cors
+python-dotenv
+numpy
+paddleocr
+paddlepaddle
+piper-tts
+groq
+EbookLib
+beautifulsoup4
+gunicorn

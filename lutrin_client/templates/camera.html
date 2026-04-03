@@ -1,0 +1,61 @@
+<!-- templates/camera.html -->
+<div id="camera-mode-content" class="h-screen flex flex-col bg-gray-200">
+
+    <!-- Zone de Statut/Chargement pour le mode caméra -->
+    <div id="camera-status-overlay"
+        class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10 hidden">
+        <div id="camera-status-message"
+            class="p-6 bg-gray-800 bg-opacity-80 text-white rounded-xl shadow-lg font-medium flex flex-col items-center">
+            <div class="w-10 h-10 border-4 border-dashed rounded-full loader-white mb-4"></div>
+            <span id="camera-status-text">Opération en cours...</span>
+        </div>
+
+        <!-- Zone Erreur pour le mode caméra -->
+        <div id="camera-error-message"
+            class="p-6 bg-red-800 bg-opacity-80 text-white rounded-xl shadow-lg font-medium flex flex-col items-center hidden">
+            <span id="camera-error-text">Une erreur est survenue.</span>
+        </div>
+    </div>
+
+    <!-- La vidéo prendra l'espace disponible -->
+    <div class="relative flex-grow flex items-center justify-center bg-black overflow-hidden shadow-lg w-full">
+        <!-- Conteneur pour le flux vidéo ou l'image streamée -->
+        <div id="camera-stream-container" class="w-full h-full flex items-center justify-center">
+            <!-- La balise <video> ou <img> sera injectée ici par le JS -->
+        </div>
+
+
+        <!-- Conteneur pour le résultat OCR (initialement caché) -->
+        <div id="camera-ocr-result-container" class="hidden w-full h-full flex flex-col p-4 bg-gray-100">
+            <div class="flex-shrink-0 mb-2 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800">Texte reconnu</h3>
+            </div>
+            <div id="camera-ocr-text-result"
+                class="w-full flex-grow bg-white border border-gray-300 rounded-md p-2 text-gray-800 overflow-y-auto">
+            </div>
+        </div>
+
+        <!-- Bouton pour changer de caméra -->
+        <button id="switch-camera-button"
+            class="absolute bottom-4 right-4 text-white p-3 rounded-full bg-black bg-opacity-40 hover:bg-opacity-60 transition-colors z-20"
+            title="Changer de caméra">
+            <i class="fas fa-sync-alt fa-lg"></i>
+        </button>
+    </div>
+
+    <!-- Le bouton et le lecteur audio restent en bas -->
+    <div class="flex-shrink-0">
+        <div class="flex items-center">
+            <button id="camera-mode-action-button"
+                class="capture-button flex-grow bg-blue-600 hover:bg-blue-700 text-white font-bold text-2xl py-3 px-4 transition duration-150 ease-in-out shadow-lg hover:shadow-xl flex items-center justify-center disabled:opacity-50">
+                <i class="fas fa-book-open mr-4"></i>
+                Lire la page
+            </button>
+            <button id="camera-mode-stop-button"
+                class="hidden w-2/5 bg-red-600 hover:bg-red-700 text-white font-bold text-2xl py-3 px-6 transition duration-150 ease-in-out shadow-lg hover:shadow-xl">
+                <i class="fas fa-stop"></i>
+            </button>
+        </div>
+        <audio id="camera-audio-playback" controls class="w-full"></audio>
+    </div>
+</div>

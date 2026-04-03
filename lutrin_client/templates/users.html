@@ -1,0 +1,107 @@
+<!-- /templates/users.html -->
+<div class="container mx-auto p-4 h-full flex flex-col">
+    <div class="flex justify-between items-center flex-shrink-0 border-b-4 border-gray-700 mb-3">
+        <h1 class="text-4xl font-bold text-gray-800">Gestion des Utilisateurs</h1>
+    </div>
+
+    <div class="flex space-x-1 mb-3">
+        <button id="add-user-button"
+            class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center shadow-sm hover:shadow-md">
+            <i class="fas fa-user-plus fa-2x"></i>
+            <span class="hidden sm:inline ml-2">Ajouter un utilisateur</span>
+        </button>
+    </div>
+
+    <!-- Message de statut/erreur -->
+    <div id="user-management-message" class="hidden p-3 mb-4 rounded-lg text-sm font-medium"></div>
+
+    <div class="flex-grow overflow-y-auto bg-white p-3 rounded-xl shadow-lg">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col"
+                        class="px-1 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[100px]">
+                        Actions
+                    </th>
+                    <th scope="col"
+                        class="px-1 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ID
+                    </th>
+                    <th scope="col"
+                        class="px-1 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Nom d'utilisateur
+                    </th>
+                    <th scope="col"
+                        class="px-1 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                    </th>
+                    <th scope="col"
+                        class="px-1 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Rôle
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="users-table-body" class="bg-white divide-y divide-gray-200">
+                <!-- Les utilisateurs seront insérés ici par JavaScript -->
+            </tbody>
+        </table>
+        <p id="users-placeholder" class="text-gray-500 m-auto text-center p-4 hidden">Aucun utilisateur trouvé.</p>
+    </div>
+</div>
+
+<!-- Modale d'ajout/édition d'utilisateur -->
+<div id="user-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+        <h3 id="user-modal-title" class="text-lg font-medium leading-6 text-gray-900 mb-4">Ajouter un utilisateur</h3>
+        <form id="user-form">
+            <input type="hidden" id="user-id-field">
+            <div class="mb-4">
+                <label for="username-field" class="block text-sm font-medium text-gray-700">Nom d'utilisateur</label>
+                <input type="text" id="username-field" name="username" required
+                    class="mt-1 block w-full shadow-sm text-base border-gray-300 rounded-md py-2 px-3">
+            </div>
+            <div class="mb-4">
+                <label for="email-field" class="block text-sm font-medium text-gray-700">Email</label>
+                <input type="email" id="email-field" name="email" required
+                    class="mt-1 block w-full shadow-sm text-base border-gray-300 rounded-md py-2 px-3">
+            </div>
+            <div class="mb-4">
+                <label for="password-field" class="block text-sm font-medium text-gray-700">Mot de passe</label>
+                <input type="password" id="password-field" name="password"
+                    class="mt-1 block w-full shadow-sm text-base border-gray-300 rounded-md py-2 px-3"
+                    placeholder="Laisser vide pour ne pas changer">
+            </div>
+            <div class="mb-4">
+                <label for="role-field" class="block text-sm font-medium text-gray-700">Rôle</label>
+                <select id="role-field" name="role"
+                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 sm:text-sm rounded-md">
+                    <option value="USER">Utilisateur</option>
+                    <option value="ADMIN">Administrateur</option>
+                </select>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button type="button" id="cancel-user-modal"
+                    class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Annuler</button>
+                <button type="submit" id="save-user-button"
+                    class="bg-blue-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-700">Sauvegarder</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modale de confirmation de suppression -->
+<div id="delete-user-modal-overlay"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm">
+        <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Confirmer la suppression</h3>
+        <p class="text-sm text-gray-700 mb-6">Êtes-vous sûr de vouloir supprimer l'utilisateur <strong
+                id="delete-username-display"></strong> (ID: <strong id="delete-userid-display"></strong>) ? Cette action
+            est irréversible.</p>
+        <div class="mt-6 flex justify-end space-x-3">
+            <button type="button" id="cancel-delete-user"
+                class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Annuler</button>
+            <button type="button" id="confirm-delete-user"
+                class="bg-red-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-red-700">Supprimer</button>
+        </div>
+    </div>
+</div>

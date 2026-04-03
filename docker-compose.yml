@@ -1,0 +1,63 @@
+services:
+  # Backend API service
+  api:
+    build:
+      context: .
+      dockerfile: lutrin_api/Dockerfile
+    container_name: lutrin_api
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+      - .env.local
+    volumes:
+      - ./lutrin_api:/app
+      - ./lutrin_data/api:/data
+    depends_on:
+      - coqui
+    networks:
+      - lutrin-network
+
+  # Frontend client service (proxy + SPA)
+  client:
+    build:
+      context: .
+      dockerfile: lutrin_client/Dockerfile
+    container_name: lutrin_client
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+      - .env.local
+    volumes:
+      - ./lutrin_client:/app
+      - ./lutrin_tools/certs:/certs:ro
+    depends_on:
+      - api
+    networks:
+      - lutrin-network
+
+  # Coqui TTS service (using existing image)
+  coqui:
+    image: ghcr.io/coqui-ai/tts-cpu
+    container_name: lutrin_coqui
+    restart: unless-stopped
+    entrypoint: ["/bin/bash"]
+    command:
+      - /app/start.sh
+    env_file:
+      - .env
+      - .env.local
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./lutrin_data/coqui:/root/.local/share/tts/
+      - ./lutrin_coqui:/app:ro
+    networks:
+      - lutrin-network
+
+networks:
+  lutrin-network:
+    driver: bridge

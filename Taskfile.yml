@@ -1,0 +1,90 @@
+version: '3'
+
+tasks:
+  default:
+    cmds:
+      - task: --list
+
+  build:
+    desc: Build images, download models, initialize database
+    cmds:
+      - mkdir -p lutrin_data/api lutrin_data/coqui
+      - docker compose build
+      - ./lutrin_tools/task_scripts/download-coqui.sh
+      - ./lutrin_tools/task_scripts/init-db.sh
+      - ./lutrin_tools/task_scripts/check-users.sh
+
+  start:
+    desc: Start all services in background
+    cmds:
+      - docker compose up -d
+      - |
+        echo "Services started. Access:"
+        echo "  - Client: https://localhost:8000"
+        echo "  - API: http://localhost:5000"
+        echo "  - Coqui TTS: http://localhost:5002"
+
+  stop:
+    desc: Stop all services
+    cmds:
+      - docker compose down
+
+  restart:
+    desc: Restart all services
+    deps: [stop]
+    cmds:
+      - task: start
+
+  status:
+    desc: Show service status
+    cmds:
+      - docker compose ps
+
+  logs:
+    desc: "Follow logs (e.g. task logs, task logs service=api)"
+    cmds:
+      - |
+        if [ -n "{{.service}}" ]; then
+          docker compose logs -f --tail=50 {{.service}}
+        else
+          docker compose logs -f --tail=50
+        fi
+
+  clean:
+    desc: Remove containers, networks, built images (keeps data)
+    cmds:
+      - |
+        echo "This will stop and remove containers, networks, and built images."
+        echo "Data in ./lutrin_data/ will be kept."
+        read -p "Are you sure? (y/N) " confirm
+        if [[ "$confirm" =~ ^[yY]$ ]]; then
+          docker compose down
+          docker rmi lutrin_api lutrin_client 2>/dev/null || true
+          echo "Cleanup complete."
+        else
+          echo "Operation cancelled."
+        fi
+
+  pull:
+    desc: Pull latest changes, rebuild, restart
+    cmds:
+      - task: stop
+      - git pull
+      - docker compose build
+      - task: start
+
+  add-user:
+    desc: Add a new user
+    cmds:
+      - ./lutrin_tools/task_scripts/add-user.sh {{.user}} {{.password}} {{.email}} {{.role}}
+
+  change-password:
+    desc: Change a user's password
+    cmds:
+      - ./lutrin_tools/task_scripts/change-password.sh {{.user}} {{.password}}
+
+  watch:
+    desc: Watch for changes and rebuild (not implemented for Docker)
+    cmds:
+      - echo "Watch mode not implemented for Docker version."
+      - echo "Modify code and run 'task pull' to rebuild."
