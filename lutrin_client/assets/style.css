@@ -1317,6 +1317,7 @@ input[type="file"] {
     min-width: 4rem;
     border-radius: 0px;
     transform: none;
+    height: 55px;
 }
 
 .audio-controls button:nth-child(3) {
