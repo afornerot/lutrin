@@ -1,12 +1,14 @@
 <!-- templates/settings.html -->
-<div id="engine-settings-overlay" class="modal-overlay hidden">
-    <div class="modal-card">
-        <button id="close-engine-settings-button" class="close-btn">&times;</button>
-        <h2>
-            <i class="fas fa-cogs"></i>
-            Moteurs d'IA
-        </h2>
-        <div class="form-group">
+<div class="page-content">
+    <h1>Paramètres</h1>
+
+    <div class="grid grid-2col gap-4">
+        <div class="card settings-card">
+            <h2>
+                <i class="fas fa-cogs"></i>
+                Moteurs d'IA
+            </h2>
+
             <div class="form-group">
                 <label for="ocr-engine-select">Moteur OCR</label>
                 <select id="ocr-engine-select" name="ocr-engine">
@@ -14,6 +16,7 @@
                     <option value="groq" selected>Groq (Qualité)</option>
                 </select>
             </div>
+
             <div class="form-group">
                 <label for="tts-engine-select">Moteur TTS</label>
                 <select id="tts-engine-select" name="tts-engine">
@@ -21,11 +24,13 @@
                     <option value="coqui">Coqui (Qualité)</option>
                 </select>
             </div>
+
             <!-- Ce conteneur sera affiché/masqué par JS -->
             <div id="piper-model-selector-container" class="hidden">
-                <label for="piper-model-select">Modèle Piper</label>
-                <select id="piper-model-select" name="piper-model"></select>
-                <!-- Curseur pour la vitesse de la voix Piper -->
+                <div class="form-group">
+                    <label for="piper-model-select">Modèle Piper</label>
+                    <select id="piper-model-select" name="piper-model"></select>
+                </div>
                 <div class="form-group">
                     <label for="piper-speed-slider">Vitesse de la voix</label>
                     <div class="slider-group">
@@ -36,29 +41,30 @@
                     <p class="text-center">Actuellement : <span id="piper-speed-value">Normal</span></p>
                 </div>
             </div>
-            <!-- Bouton de test TTS -->
+
             <div class="form-group bordered">
                 <button id="test-tts-button" class="btn-secondary w-100">
                     <i class="fas fa-play"></i> Tester la voix
                 </button>
                 <audio id="test-tts-audio" class="hidden"></audio>
             </div>
+        </div>
 
-            <!-- Configuration de la webcam WiFi -->
-            <div class="form-group bordered">
-                <h3>
-                    <i class="fas fa-wifi"></i>
-                    Webcam WiFi
-                </h3>
-                <div class="form-group">
-                    <label for="wifi-webcam-url">URL du flux MJPEG</label>
-                    <input type="text" id="wifi-webcam-url" placeholder="http://192.168.1.100:8080/stream.mjpeg">
-                    <p class="help-text">Entrez l'URL complète du flux MJPEG de votre webcam WiFi</p>
-                </div>
-                <button id="test-wifi-webcam-button" class="btn-primary w-100">
-                    <i class="fas fa-check-circle"></i> Tester la connexion
-                </button>
+        <div class="card settings-card">
+            <h2>
+                <i class="fas fa-wifi"></i>
+                Webcam WiFi
+            </h2>
+
+            <div class="form-group">
+                <label for="wifi-webcam-url">URL du flux MJPEG</label>
+                <input type="text" id="wifi-webcam-url" placeholder="http://192.168.1.100:8080/stream.mjpeg">
+                <p class="help-text">Entrez l'URL complète du flux MJPEG de votre webcam WiFi</p>
             </div>
+
+            <button id="test-wifi-webcam-button" class="btn-primary w-100">
+                <i class="fas fa-check-circle"></i> Tester la connexion
+            </button>
         </div>
     </div>
 </div>

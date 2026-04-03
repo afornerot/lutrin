@@ -13,6 +13,7 @@ import { initEpubView } from './views/epub.js';
 import { initLibraryView } from './views/library.js';
 import { initConsoleView } from './views/console.js';
 import { initUsersView } from './views/users.js';
+import { initSettingsView } from './views/settings.js';
 
 import { checkAuth, getAuthUserRole } from './auth.js';
 
@@ -27,6 +28,7 @@ const routes = {
     '/epubs': { template: '/templates/epubs.html', init: initEpubsView },
     '/epub': { template: '/templates/epub.html', init: initEpubView },
     '/library': { template: '/templates/library.html', init: initLibraryView },
+    '/settings': { template: '/templates/settings.html', init: initSettingsView },
     '/console': { template: '/templates/console.html', init: initConsoleView, requiresAdmin: true },
     '/users': { template: '/templates/users.html', init: initUsersView, requiresAdmin: true }
 

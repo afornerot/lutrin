@@ -1,7 +1,6 @@
 // js/views/console.js
 import { post, postWithFile } from '../api.js';
 import { logout } from '../auth.js';
-import { initSharedUI } from '../services/ui.js';
 import { initStats, updateStats, clearStats } from '../services/stats.js';
 import { startCamera } from '../services/camera.js';
 import { startApiCheck, stopApiCheck } from '../services/apiStatus.js';
@@ -245,7 +244,6 @@ export function initConsoleView() {
     apiStatus = document.getElementById('api-status');
 
     // 2. Initialiser les modules de service
-    initSharedUI();
     initStats();
 
     // 3. Attacher les écouteurs d'événements

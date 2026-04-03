@@ -103,6 +103,8 @@ a:focus-visible {
     color: var(--text);
 }
 
+.card h2 i {margin-right: 20px;}
+
 .card h2,
 .card h3 {
     border-bottom-color: var(--text);
@@ -764,6 +766,8 @@ input[type="file"] {
     position: relative;
     max-width: 600px;
     width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .modal-card:has(h3) {
@@ -1365,12 +1369,16 @@ input[type="file"] {
     display: grid;
 }
 
+.grid-2col {
+    grid-template-columns: repeat(2, 1fr);
+}
+
 .grid-3col {
     grid-template-columns: repeat(3, 1fr);
 }
 
 @media (max-width: 1024px) {
-    .grid-3col {
+    .grid-2col, .grid-3col {
         grid-template-columns: 1fr;
     }
 }
