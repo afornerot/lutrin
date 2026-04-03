@@ -49,8 +49,8 @@ export function logout() {
     localStorage.removeItem(USER_ROLE_KEY);
     sessionStorage.removeItem(USER_KEY);
 
-    // Forcer le rechargement de la page vers la mire de connexion pour nettoyer tout l'état.
-    history.replaceState(null, '', '/login'); // Utilise history.replaceState
+    // Rediriger vers la page d'accueil
+    history.replaceState(null, '', '/');
     location.reload();
 }
 

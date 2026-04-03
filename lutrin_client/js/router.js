@@ -18,6 +18,7 @@ import { initSettingsView } from './views/settings.js';
 import { checkAuth, getAuthUserRole } from './auth.js';
 
 const routes = {
+    '/': { template: '/templates/home.html', init: null, public: true },
     '/login': { template: '/templates/login.html', init: initLoginView, public: true },
     '/registerrequest': { template: '/templates/registerrequest.html', init: initRegisterRequestView, public: true },
     '/registervalidate': { template: '/templates/registervalidate.html', init: initRegisterValidateView, public: true },

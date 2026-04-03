@@ -2062,3 +2062,108 @@ h3 i {
     border-radius: 50%;
     animation: spinner 1s linear infinite;
 }
+
+/* ============================================
+   HOME PAGE
+   ============================================ */
+
+.home-page {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.home-page::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('back.png') bottom / cover no-repeat;
+    opacity: 0.5;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 10px;
+    height: 275px;
+    top: 25px;
+}
+
+.home-hero {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.home-logo {
+    width: 8rem;
+    border-radius: 1rem;
+    margin:auto;
+    margin-bottom: 1.5rem;
+    display: block;
+}
+
+.home-tagline {
+    font-size: 1.3rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.home-description {
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    line-height: 1.8;
+    color: var(--text-muted);
+}
+
+.home-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.home-btn {
+    min-width: 12rem;
+    justify-content: center;
+}
+
+/* --- Features Grid --- */
+.home-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-top: 3rem;
+}
+
+.feature-card {
+    text-align: center;
+    padding: 2rem 1.5rem;
+}
+
+.feature-icon {
+    width: 4rem;
+    height: 4rem;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.feature-icon i {
+    font-size: 1.75rem;
+    color: var(--link);
+}
+
+.feature-card h3 {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+}
+
+.feature-card p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
