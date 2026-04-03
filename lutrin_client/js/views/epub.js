@@ -41,10 +41,10 @@ function displayEpub(epub) {
 
     // Afficher la couverture
     coverContainer.innerHTML = `
-        <div id="epub-cover-wrapper" class="relative group ${!epub.cover_image ? 'cursor-pointer' : ''}">
-            <img src="${epub.cover_image || 'assets/placeholder-cover.png'}" alt="Couverture de ${epub.metadata.title}" class="w-full h-auto object-cover rounded-lg shadow-lg">
+        <div id="epub-cover-wrapper" class="${!epub.cover_image ? 'cover-upload' : ''}">
+            <img src="${epub.cover_image || 'assets/placeholder-cover.png'}" alt="Couverture de ${epub.metadata.title}">
             ${!epub.cover_image ? `
-                <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white text-center p-4 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                <div class="cover-upload-overlay">
                     <span>Cliquer pour ajouter une couverture</span>
                 </div>
             ` : ''}
@@ -54,24 +54,24 @@ function displayEpub(epub) {
 
     // --- Barre supérieure avec les actions ---
     topBarContainer.innerHTML = `
-        <div id="top-bar-title-wrapper" class="flex-grow cursor-pointer">
-            <h1 class="text-xl font-bold text-gray-800 truncate" title="${epub.metadata.title}">${epub.metadata.title}</h1>
-            <p class="text-sm text-gray-600 truncate">par ${epub.metadata.authors.join(', ')}</p>
+        <div id="top-bar-title-wrapper">
+            <h1 class="top-bar-title" title="${epub.metadata.title}">${epub.metadata.title}</h1>
+            <p class="top-bar-author">par ${epub.metadata.authors.join(', ')}</p>
         </div>
         ${getAuthUserRole() === 'ADMIN' ? `
-            <button id="add-to-library-button" title="Ajouter à la bibliothèque centrale" class="text-gray-600 hover:text-blue-600 p-2 rounded-full transition-colors">
-                <i class="fas fa-server fa-lg"></i>
+            <button id="add-to-library-button" title="Ajouter à la bibliothèque centrale" class="btn-icon">
+                <i class="fas fa-server"></i>
             </button>
         ` : ''}
-        <div class="flex items-center space-x-2">
-            <button id="mark-as-read-button" title="Marquer comme lu" class="text-gray-600 hover:text-green-600 p-2 rounded-full transition-colors">
-                <i class="fas fa-check-double fa-lg"></i>
+        <div class="top-bar-actions">
+            <button id="mark-as-read-button" title="Marquer comme lu" class="btn-icon">
+                <i class="fas fa-check-double"></i>
             </button>
-            <button id="mark-as-unread-button" title="Marquer comme non lu" class="text-gray-600 hover:text-yellow-600 p-2 rounded-full transition-colors">
-                <i class="fas fa-book fa-lg"></i>
+            <button id="mark-as-unread-button" title="Marquer comme non lu" class="btn-icon">
+                <i class="fas fa-book"></i>
             </button>
-            <button id="delete-epub-button" title="Supprimer le livre" class="text-gray-600 hover:text-red-600 p-2 rounded-full transition-colors">
-                <i class="fas fa-trash-alt fa-lg"></i>
+            <button id="delete-epub-button" title="Supprimer le livre" class="btn-icon">
+                <i class="fas fa-trash-alt"></i>
             </button>
         </div>
     `;
@@ -86,25 +86,12 @@ function displayEpub(epub) {
 
     // Afficher les informations
     infoContainer.innerHTML = `
-        
-        <div class="flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-600 mb-4">
-            <span id="edit-authors-trigger" class="px-2 py-1 rounded-full cursor-pointer transition-colors ${epub.metadata.authors && epub.metadata.authors.length > 0
-            ? 'bg-purple-100 text-purple-800 hover:bg-purple-200'
-            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-        }">${epub.metadata.authors.join(', ') || 'Auteur indéterminé'}</span>
-
-            <span id="edit-style-trigger" class="px-2 py-1 rounded-full cursor-pointer transition-colors ${epub.metadata.style
-            ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
-            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-        }">${epub.metadata.style || 'Genre indéterminé'}</span>
-
-            <span id="edit-series-trigger" class="px-2 py-1 rounded-full cursor-pointer transition-colors ${epub.metadata.series
-            ? 'bg-green-100 text-green-800 hover:bg-green-200'
-            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-        }">${(epub.metadata.series ? `${epub.metadata.series}${epub.metadata.series_number ? ` - Vol. ${epub.metadata.series_number}` : ''}` : 'Série indéterminée')}</span>
+        <div class="epub-meta-tags">
+            <span id="edit-authors-trigger" class="tag tag-author ${epub.metadata.authors && epub.metadata.authors.length > 0 ? '' : 'tag-empty'}">${epub.metadata.authors.join(', ') || 'Auteur indéterminé'}</span>
+            <span id="edit-style-trigger" class="tag tag-style">${epub.metadata.style || 'Genre indéterminé'}</span>
+            <span id="edit-series-trigger" class="tag tag-series">${(epub.metadata.series ? `${epub.metadata.series}${epub.metadata.series_number ? ` - Vol. ${epub.metadata.series_number}` : ''}` : 'Série indéterminée')}</span>
         </div>
-
-        ${epub.metadata.description ? `<p id="epub-description" class="text-gray-700 mb-6 cursor-pointer relative">${epub.metadata.description}</p>` : ''}
+        ${epub.metadata.description ? `<p id="epub-description">${epub.metadata.description}</p>` : ''}
     `;
 
     infoContainer.insertAdjacentHTML('afterend', '<audio id="epub-description-audio-player" class="hidden"></audio>');
@@ -379,7 +366,7 @@ function displayEpub(epub) {
 
             // Afficher une icône de chargement
             const loadingIcon = document.createElement('i');
-            loadingIcon.className = 'fas fa-spinner fa-spin text-gray-500 absolute top-0 right-0 mt-1 mr-1';
+            loadingIcon.className = 'fas fa-spinner fa-spin loading-icon';
             descriptionElement.appendChild(loadingIcon);
 
             try {
@@ -389,7 +376,7 @@ function displayEpub(epub) {
 
 
                 // Remplacer l'icône de chargement par une icône de lecture
-                loadingIcon.className = 'fas fa-volume-up text-gray-500 absolute top-0 right-0 mt-1 mr-1';
+                loadingIcon.className = 'fas fa-volume-up loading-icon';
 
                 descriptionAudioPlayer.src = ttsResult.audio_url;
                 descriptionAudioPlayer.play();
@@ -423,10 +410,9 @@ function displayEpub(epub) {
 
     // --- Affichage du texte par chapitres ---
     textContainer.innerHTML = `
-        <h2 class="md:inline-block hidden text-2xl font-bold text-gray-800 mb-4">Texte du livre</h2>
-        <div id="epub-text-content" class="w-full h-[60vh] md:h-full bg-gray-50 border border-gray-300 rounded-lg p-4 text-gray-800 overflow-y-auto">
+        <div id="epub-text-content">
             ${chapters.map((chapter, index) => `
-                <p id="chapter-${index}" class="mb-4 p-2 rounded-md">
+                <p id="chapter-${index}" class="chapter-text">
                     ${chapter.replace(/\n/g, '<br>')}
                 </p>
             `).join('') || '<p>Aucun texte disponible.</p>'}
@@ -438,7 +424,7 @@ function displayEpub(epub) {
         playButton.disabled = state === 'loading';
         const icon = playButton.querySelector('i');
         const span = playButton.querySelector('span');
-        playButton.classList.toggle('animate-pulse', state === 'loading');
+        playButton.classList.toggle('btn-loading', state === 'loading');
 
         if (state === 'loading') {
             icon.className = 'fas fa-spinner fa-spin';
@@ -515,16 +501,15 @@ function displayEpub(epub) {
         if (!textContentDiv) return;
 
         // Supprimer le surlignage et la transition de l'élément précédent
-        const previousHighlight = textContentDiv.querySelector('.bg-yellow-200');
+        const previousHighlight = textContentDiv.querySelector('.chapter-highlight');
         if (previousHighlight) {
-            previousHighlight.classList.remove('bg-yellow-200');
-            previousHighlight.classList.remove('transition-colors', 'duration-300');
+            previousHighlight.classList.remove('chapter-highlight');
         }
 
-        // Ajouter la transition et le nouveau surlignage, puis faire défiler
+        // Ajouter le surlignage, puis faire défiler
         const chapterElement = document.getElementById(`chapter-${chapterIndex}`);
         if (chapterElement) {
-            chapterElement.classList.add('bg-yellow-200');
+            chapterElement.classList.add('chapter-highlight');
             chapterElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     };
@@ -766,7 +751,7 @@ export async function initEpubView(urlParams) {
     const errorContainer = document.getElementById('epub-error-container');
 
     if (!epubId) {
-        if (errorContainer) errorContainer.innerHTML = '<p class="text-red-500">Erreur : ID du livre non spécifié.</p>';
+        if (errorContainer) errorContainer.innerHTML = '<p class="error">Erreur : ID du livre non spécifié.</p>';
         return;
     }
 
@@ -787,7 +772,7 @@ export async function initEpubView(urlParams) {
         }
     } catch (error) {
         console.error("Erreur lors de la récupération de l'EPUB:", error);
-        if (errorContainer) errorContainer.innerHTML = '<p class="text-red-500">Impossible de charger les détails de ce livre.</p>';
+        if (errorContainer) errorContainer.innerHTML = '<p class="error">Impossible de charger les détails de ce livre.</p>';
     }
     return null; // Pas de fonction de nettoyage si la vue n'a pas pu être initialisée
 }

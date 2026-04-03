@@ -197,26 +197,26 @@ async function loadAndDisplayEpubs() {
 
                 // On affiche la barre de progression uniquement si la lecture a commencé
                 const progressBarHTML = progress > 0 && progress < total ? `
-                    <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                        <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${progressPercentage}%"></div>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" style="width: ${progressPercentage}%"></div>
                     </div>
                 ` : '';
 
                 const card = document.createElement('div');
-                card.className = 'cursor-pointer group';
+                card.className = 'book-card';
                 card.innerHTML = `
-                     <div class="aspect-[2/3] bg-gray-200 rounded-lg overflow-hidden shadow-lg transform group-hover:scale-105 transition-transform duration-200">
-                         <img src="${epub.cover_image || 'assets/placeholder-cover.png'}" alt="Couverture de ${epub.metadata.title}" class="w-full h-full object-cover">
+                     <div class="book-cover">
+                         <img src="${epub.cover_image || 'assets/placeholder-cover.png'}" alt="Couverture de ${epub.metadata.title}">
                      </div>
-                     <h3 class="mt-2 text-sm font-bold text-gray-800 truncate">${epub.metadata.title}</h3>
+                     <h3 class="book-title">${epub.metadata.title}</h3>
                     ${progressBarHTML}
-                     <p class="text-xs text-gray-500 truncate">${epub.metadata.authors.join(', ')}</p>
-                     <div class="mt-1 flex flex-wrap gap-1 text-[10px]">
+                     <p class="book-author">${epub.metadata.authors.join(', ')}</p>
+                     <div class="book-tags">
                         ${epub.metadata.style ? `
-                            <span class="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full truncate">${epub.metadata.style}</span>
+                            <span class="tag tag-style">${epub.metadata.style}</span>
                         ` : ''}
                         ${epub.metadata.series ? `
-                            <span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full truncate">
+                            <span class="tag tag-series">
                                 ${epub.metadata.series}
                                 ${epub.metadata.series_number ? ` #${epub.metadata.series_number}` : ''}
                             </span>

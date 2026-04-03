@@ -75,14 +75,14 @@ async function navigate() {
             navElement?.classList.remove('h-screen');
             navElement?.classList.add('opacity-50');
         } else {*/
-        appContainer.classList.add('ml-16');
+        appContainer.classList.add('with-nav');
         navElement?.classList.add('h-screen');
         navElement?.classList.remove('opacity-50');
         /*}*/
 
     } else if (!isAuthenticated) {
         headerContainer.innerHTML = ''; // Vider le header si non authentifié
-        appContainer.classList.remove('mr-16'); // Retirer la marge
+        appContainer.classList.remove('with-nav'); // Retirer la marge
     }
 
 

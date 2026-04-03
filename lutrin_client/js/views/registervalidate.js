@@ -29,7 +29,7 @@ export function initRegisterValidateView(urlParams) {
         // 1. Validation de la confirmation du mot de passe
         if (password !== passwordConfirmation) {
             validateMessage.textContent = "Les mots de passe ne correspondent pas.";
-            validateMessage.className = 'mt-4 text-center text-sm text-red-600';
+            validateMessage.className = 'form-status error';
             return;
         }
 
@@ -37,13 +37,13 @@ export function initRegisterValidateView(urlParams) {
         const passwordRegex = /^(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
         if (!passwordRegex.test(password)) {
             validateMessage.textContent = "Le mot de passe doit contenir au moins 8 caractères, dont un chiffre et un caractère spécial.";
-            validateMessage.className = 'mt-4 text-center text-sm text-red-600';
+            validateMessage.className = 'form-status error';
             return;
         }
 
         // Désactiver le bouton et afficher un indicateur de chargement
         validateButton.disabled = true;
-        validateIcon.className = 'fas fa-spinner fa-spin mr-2';
+        validateIcon.className = 'fas fa-spinner fa-spin';
         validateText.textContent = 'Validation en cours...';
         validateMessage.textContent = '';
 
@@ -52,18 +52,18 @@ export function initRegisterValidateView(urlParams) {
             const response = await post('/register/validate', { token: tokenFromForm, password: password });
 
             validateMessage.textContent = response.message || 'Mot de passe défini avec succès !';
-            validateMessage.className = 'mt-4 text-center text-sm text-green-600';
+            validateMessage.className = 'form-status success';
             validateForm.reset();
             setTimeout(() => navigateTo('/login'), 2000);
 
         } catch (error) {
             console.error("Erreur lors de la validation de l'inscription:", error);
             validateMessage.textContent = error.message || 'Une erreur inattendue est survenue.';
-            validateMessage.className = 'mt-4 text-center text-sm text-red-600';
+            validateMessage.className = 'form-status error';
         } finally {
             setTimeout(() => {
                 validateButton.disabled = false;
-                validateIcon.className = 'fas fa-key mr-2';
+                validateIcon.className = 'fas fa-key';
                 validateText.textContent = "Valider et créer mon compte";
             }, 2000);
         }

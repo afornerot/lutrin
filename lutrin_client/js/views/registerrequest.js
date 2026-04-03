@@ -19,10 +19,10 @@ export function initRegisterRequestView() {
 
         // Désactiver le bouton et afficher un indicateur de chargement
         registerButton.disabled = true;
-        registerIcon.className = 'fas fa-spinner fa-spin mr-2';
+        registerIcon.className = 'fas fa-spinner fa-spin';
         registerText.textContent = 'Envoi en cours...';
         registerMessage.textContent = '';
-        registerMessage.className = 'mt-4 text-center text-sm';
+        registerMessage.className = 'form-status';
 
         try {
             const response = await post('/register/request', { username, email });
@@ -30,18 +30,18 @@ export function initRegisterRequestView() {
             // Le backend retourne toujours un succès pour ne pas révéler si un email existe.
             // On affiche donc toujours le message de succès.
             registerMessage.textContent = response.message;
-            registerMessage.classList.add('text-green-600');
+            registerMessage.classList.add('success');
             registerForm.reset();
 
         } catch (error) {
             console.error("Erreur lors de la demande d'inscription:", error);
             registerMessage.textContent = error.message || 'Une erreur inattendue est survenue.';
-            registerMessage.classList.add('text-red-600');
+            registerMessage.classList.add('error');
         } finally {
             // Réactiver le bouton après un court délai pour éviter le spam
             setTimeout(() => {
                 registerButton.disabled = false;
-                registerIcon.className = 'fas fa-user-plus mr-2';
+                registerIcon.className = 'fas fa-user-plus';
                 registerText.textContent = "Recevoir le lien d'inscription";
             }, 2000);
         }

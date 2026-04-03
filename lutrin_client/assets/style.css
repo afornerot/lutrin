@@ -1,34 +1,1424 @@
-/* Surcharge pour l'affichage de la vidéo */
+/* ============================================
+   LUTRIN - Thème Accessibilité
+   Fond: #73655c | Cards: #3e3e3e | Texte: #ffffff
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+
+/* --- Variables --- */
+:root {
+    --bg-main: #73655c;
+    --bg-card: #3e3e3e;
+    --bg-modal: #4a4038;
+    --bg-input: rgba(0, 0, 0, 0.35);
+    --text: #ffffff;
+    --text-muted: #d4d4d4;
+    --link: #7ec8e3;
+    --link-hover: #a8dff0;
+    --focus: #fbbf24;
+    --border: rgba(255, 255, 255, 0.25);
+    --radius: 0.75rem;
+    --spacing: 1.5rem;
+    --font-base: 20px;
+}
+
+/* --- Reset & Base --- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-main);
+    color: var(--text);
+    font-size: var(--font-base);
+    line-height: 1.7;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* --- Typographie --- */
+h1,
+h2 {
+    font-family: 'Anton', sans-serif;
+    text-transform: uppercase;
+    color: var(--text);
+    letter-spacing: 0.05em;
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 3px solid var(--text);
+}
+
+h3 {
+    font-family: inherit;
+    color: var(--text);
+    margin: 0 0 1rem 0;
+}
+
+h1 {
+    font-size: 2.5rem;
+    line-height: 1.2;
+}
+
+h2 {
+    font-size: 2rem;
+    line-height: 1.3;
+}
+
+h3 {
+    font-size: 1.5rem;
+    line-height: 1.4;
+}
+
+p {
+    margin: 0 0 1rem 0;
+}
+
+/* --- Liens --- */
+a {
+    color: var(--link);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    font-weight: 600;
+}
+
+a:hover {
+    color: var(--link-hover);
+}
+
+a:focus-visible {
+    outline: 4px solid var(--focus);
+    outline-offset: 3px;
+}
+
+/* --- Cards --- */
+.card {
+    background-color: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    padding: var(--spacing);
+    color: var(--text);
+}
+
+.card h2,
+.card h3 {
+    border-bottom-color: var(--text);
+    margin-top: 0;
+}
+
+.card label {
+    display: block;
+    color: var(--text);
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+/* --- Modals --- */
+.modal-card {
+    background-color: var(--bg-modal);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+    padding: 2rem;
+    color: var(--text);
+}
+
+.modal-card h2,
+.modal-card h3 {
+    border-bottom-color: var(--text);
+    margin-top: 0;
+    font-size: 1.75rem;
+}
+
+/* --- Formulaires --- */
+input,
+select,
+textarea {
+    background-color: var(--bg-input);
+    border: 3px solid var(--border);
+    border-radius: 0.5rem;
+    color: var(--text);
+    font-size: 1.15rem;
+    padding: 0.75rem 1rem;
+    min-height: 3rem;
+    width: 100%;
+    font-family: inherit;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--focus);
+    outline: 4px solid rgba(251, 191, 36, 0.5);
+    box-shadow: 0 0 0 6px rgba(251, 191, 36, 0.25);
+}
+
+/* ============================================
+   BOUTONS
+   ============================================ */
+
+/* --- Base button style --- */
+.btn,
+button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 2px solid transparent;
+    border-radius: 0.5rem;
+    padding: 0.85rem 1.75rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    min-height: 3.25rem;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+    line-height: 1.2;
+    transition: background-color 0.15s, transform 0.1s, box-shadow 0.15s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn:hover,
+button:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transform: translateY(-1px);
+}
+
+.btn:active,
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.btn:focus-visible,
+button:focus-visible {
+    outline: 4px solid var(--focus);
+    outline-offset: 3px;
+}
+
+.btn:disabled,
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* --- Primary (bleu) --- */
+.btn-primary,
+button.btn-primary {
+    background-color: #3b82f6;
+    color: var(--text);
+}
+
+.btn-primary:hover,
+button.btn-primary:hover {
+    background-color: #2563eb;
+}
+
+/* --- Secondary (gris) --- */
+.btn-secondary,
+button.btn-secondary {
+    background-color: #555;
+    color: var(--text);
+}
+
+.btn-secondary:hover,
+button.btn-secondary:hover {
+    background-color: #666;
+}
+
+/* --- Danger (rouge) --- */
+.btn-danger,
+button.btn-danger {
+    background-color: #dc2626;
+    color: var(--text);
+}
+
+.btn-danger:hover,
+button.btn-danger:hover {
+    background-color: #b91c1c;
+}
+
+/* --- Default button (fallback si pas de classe) --- */
+button:not([class*="btn-"]):not(#switch-camera-button):not(.close-btn) {
+    background-color: #3b82f6;
+    color: var(--text);
+}
+
+button:not([class*="btn-"]):not(#switch-camera-button):not(.close-btn):hover {
+    background-color: #2563eb;
+}
+
+/* --- Action bar buttons --- */
+.action-bar .btn,
+.action-bar button,
+.action-bar a.btn {
+    min-height: 3.25rem;
+}
+
+/* ============================================
+   LAYOUT & PAGES
+   ============================================ */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text);
+}
+
+thead {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+th {
+    color: var(--text);
+    font-weight: 700;
+    text-align: left;
+    padding: 0.75rem 1rem;
+}
+
+td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* --- Utilitaires --- */
+.hidden {
+    display: none !important;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/* --- Form Status Messages --- */
+.form-status {
+    text-align: center;
+    font-size: 0.95rem;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+}
+
+.form-status.success {
+    color: #86efac;
+    background-color: rgba(34, 197, 94, 0.15);
+    border: 2px solid rgba(34, 197, 94, 0.3);
+}
+
+.form-status.error {
+    color: #fca5a5;
+    background-color: rgba(239, 68, 68, 0.15);
+    border: 2px solid rgba(239, 68, 68, 0.3);
+}
+
+/* --- Loading Icon --- */
+.loading-icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin-top: 0.25rem;
+    margin-right: 0.25rem;
+    color: var(--text-muted);
+}
+
+/* --- Loader --- */
+.loader {
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spinner 1.5s linear infinite;
+}
+
+@keyframes spinner {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* --- Vidéo --- */
 #video-stream {
     width: 100%;
     height: auto;
     border-radius: 0.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
 }
 
-/* Style pour les messages de chargement */
-.loader {
-    border-top-color: #3b82f6;
-    -webkit-animation: spinner 1.5s linear infinite;
-    animation: spinner 1.5s linear infinite;
+/* ============================================
+   LAYOUT & PAGES
+   ============================================ */
+
+/* --- Page Content --- */
+.page-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--spacing);
 }
 
-@-webkit-keyframes spinner {
-    0% {
-        -webkit-transform: rotate(0deg);
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.page-header h1 {
+    margin-bottom: 0;
+}
+
+/* --- Login Page --- */
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing);
+}
+
+.login-card {
+    max-width: 500px;
+    width: 100%;
+}
+
+.login-logo {
+    display: block;
+    margin: 0 auto 1.5rem;
+    width: 8rem;
+}
+
+/* --- Action Bar --- */
+.action-bar {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.action-bar a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #555;
+    color: var(--text);
+    padding: 0.85rem 1.75rem;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    font-size: 1.15rem;
+    text-decoration: none;
+    min-height: 3.25rem;
+    border: 2px solid transparent;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.15s, transform 0.1s, box-shadow 0.15s;
+}
+
+.action-bar a:hover {
+    background-color: #666;
+    color: var(--text);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transform: translateY(-1px);
+}
+
+.action-bar a:focus-visible {
+    outline: 4px solid var(--focus);
+    outline-offset: 3px;
+}
+
+/* --- Filters Bar --- */
+.filters-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    align-items: flex-end;
+}
+
+.filters-bar .form-group {
+    flex: 1;
+    min-width: 180px;
+    margin-bottom: 0;
+}
+
+/* --- Toggle Group --- */
+.toggle-group {
+    display: flex;
+    align-items: center;
+    padding-top: 1.5rem;
+}
+
+.checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 1.5rem;
+    height: 1.5rem;
+    min-height: auto;
+}
+
+/* --- Book Grid --- */
+.book-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1.5rem;
+}
+
+/* --- Book Card --- */
+.book-card {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.book-card:hover {
+    transform: scale(1.05);
+}
+
+.book-cover {
+    aspect-ratio: 2/3;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.book-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.book-title {
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.book-author {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- Progress Bar --- */
+.progress-bar {
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 999px;
+    height: 0.375rem;
+    margin-top: 0.5rem;
+}
+
+.progress-bar-fill {
+    background-color: #3b82f6;
+    height: 0.375rem;
+    border-radius: 999px;
+}
+
+/* --- Book Tags --- */
+.book-tags {
+    margin-top: 0.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.tag {
+    font-size: 0.7rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: 999px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tag-style {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+}
+
+.tag-series {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+}
+
+/* --- Section Block (espacement entre sections) --- */
+.section-block {
+    margin-bottom: 2rem;
+}
+
+/* --- Library Item --- */
+.library-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    background-color: var(--bg-card);
+    border-radius: var(--radius);
+    border: 2px solid var(--border);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin-bottom: 1rem;
+}
+
+.library-item-cover {
+    flex-shrink: 0;
+    width: 6rem;
+    cursor: pointer;
+    border-radius: 0.375rem;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.library-item-cover img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+}
+
+.library-item-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.library-item-info h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.25rem;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.library-item-author {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.library-item-description {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-top: 0.75rem;
+    cursor: pointer;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.library-item-actions {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* --- Icon Button --- */
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    min-height: auto;
+    min-width: auto;
+    font-size: 1.25rem;
+    box-shadow: none;
+    transform: none;
+    gap: 0;
+    transition: color 0.15s;
+}
+
+.btn-icon:hover {
+    box-shadow: none;
+    transform: none;
+}
+
+.import-button:hover {
+    color: #3b82f6;
+}
+
+.edit-button:hover {
+    color: #fbbf24;
+}
+
+.delete-button:hover {
+    color: #ef4444;
+}
+
+/* --- Placeholder --- */
+.placeholder {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+}
+
+.placeholder i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+/* ============================================
+   FORMS
+   ============================================ */
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-group.bordered {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.help-text {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+}
+
+/* --- Slider --- */
+.slider-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.slider-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+input[type="range"] {
+    flex: 1;
+    min-height: auto;
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+
+input[type="range"]:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    background: var(--focus);
+}
+
+input[type="file"] {
+    padding: 0.5rem;
+    min-height: auto;
+}
+
+/* ============================================
+   MODALS
+   ============================================ */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal-card {
+    position: relative;
+    max-width: 600px;
+    width: 90%;
+}
+
+.modal-card:has(h3) {
+    max-width: 500px;
+}
+
+.close-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 2rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    min-height: auto;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    color: var(--text);
+    background: none;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.modal-actions button:first-child {
+    background-color: #555;
+}
+
+.modal-actions button:first-child:hover {
+    background-color: #666;
+}
+
+.modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .modal-grid {
+        grid-template-columns: 1fr;
     }
+}
 
+/* --- Cover Preview --- */
+.cover-preview {
+    position: relative;
+    cursor: pointer;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.cover-preview img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.cover-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    text-align: center;
+    padding: 1rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.cover-preview:hover .cover-overlay {
+    opacity: 1;
+}
+
+/* --- Cover Upload --- */
+.cover-upload {
+    position: relative;
+    cursor: pointer;
+}
+
+.cover-upload img {
+    width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.cover-upload-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    text-align: center;
+    padding: 1rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+    border-radius: 0.5rem;
+}
+
+.cover-upload:hover .cover-upload-overlay {
+    opacity: 1;
+}
+
+/* --- Top Bar --- */
+#epub-top-bar {
+    position: fixed;
+    top: 0;
+    left: 4rem;
+    right: 0;
+    background-color: rgba(115, 101, 92, 0.95);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    padding: 0.75rem 1.5rem;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.top-bar-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+.top-bar-author {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.top-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* --- EPUB Meta Tags --- */
+.epub-meta-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.tag {
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.tag:hover {
+    filter: brightness(1.2);
+}
+
+.tag-author {
+    background-color: rgba(168, 85, 247, 0.2);
+    color: #d8b4fe;
+}
+
+.tag-style {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+}
+
+.tag-series {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+}
+
+.tag-empty {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+}
+
+/* --- EPUB Description --- */
+#epub-description {
+    color: var(--text-muted);
+    cursor: pointer;
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+/* --- EPUB Text Content --- */
+#epub-text-content {
+    width: 100%;
+    height: 60vh;
+    background-color: rgba(0, 0, 0, 0.15);
+    border: 2px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    color: var(--text);
+    overflow-y: auto;
+}
+
+@media (min-width: 768px) {
+    #epub-text-content {
+        height: 100%;
+    }
+}
+
+.chapter-text {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+}
+
+.chapter-highlight {
+    background-color: rgba(251, 191, 36, 0.2);
+    transition: background-color 0.3s;
+}
+
+/* --- Loading State --- */
+.btn-loading {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
     100% {
-        -webkit-transform: rotate(360deg);
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
     }
 }
 
-@keyframes spinner {
-    0% {
-        transform: rotate(0deg);
-    }
+/* --- Loading State --- */
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60vh;
+    gap: 1rem;
+    color: var(--text-muted);
+}
 
-    100% {
-        transform: rotate(360deg);
+.modal-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 2rem;
+}
+
+/* --- Status Messages --- */
+.status-message {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+
+.status-loading {
+    background-color: rgba(251, 191, 36, 0.15);
+    border: 2px solid rgba(251, 191, 36, 0.4);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.status-loading .loader {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-width: 3px;
+}
+
+.error {
+    color: #fca5a5;
+    background-color: rgba(239, 68, 68, 0.15);
+    border: 2px solid rgba(239, 68, 68, 0.3);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* ============================================
+   CAMERA VIEW
+   ============================================ */
+
+.camera-view {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.camera-stream-area {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    overflow: hidden;
+}
+
+#camera-stream-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#camera-stream-container video,
+#camera-stream-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Camera status/error overlays */
+.camera-status,
+.camera-error {
+    padding: 2rem;
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    font-weight: 600;
+}
+
+.camera-status {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+.camera-error {
+    background-color: rgba(153, 27, 27, 0.85);
+}
+
+.camera-status .loader {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-width: 4px;
+}
+
+/* OCR result in camera */
+#camera-ocr-result-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    background-color: var(--bg-card);
+}
+
+.ocr-header {
+    margin-bottom: 0.75rem;
+}
+
+.ocr-header h3 {
+    margin-bottom: 0;
+}
+
+#camera-ocr-text-result {
+    flex: 1;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 2px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+/* Switch camera button */
+#switch-camera-button {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: var(--text);
+    border: none;
+    border-radius: 50%;
+    width: 3.5rem;
+    height: 3.5rem;
+    min-height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    z-index: 10;
+}
+
+#switch-camera-button:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Camera controls */
+.camera-controls {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.camera-buttons {
+    display: flex;
+}
+
+.camera-buttons button {
+    flex: 1;
+    font-size: 1.25rem;
+    border-radius: 0px;
+}
+
+#camera-mode-stop-button {
+    background-color: #dc2626;
+    flex: 0 0 40%;
+}
+
+#camera-mode-stop-button:hover {
+    background-color: #b91c1c;
+}
+
+.camera-controls audio {
+    width: 100%;
+    display: none;
+}
+
+/* ============================================
+   EPUB VIEW
+   ============================================ */
+
+#epub-detail-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.epub-layout {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 2rem;
+    flex: 1;
+    overflow: hidden;
+    padding-top: 5rem;
+}
+
+@media (max-width: 768px) {
+    .epub-layout {
+        grid-template-columns: 1fr;
     }
+}
+
+#epub-left-panel {
+    overflow-y: auto;
+}
+
+#epub-text-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Audio player bar */
+#epub-audio-player-bar {
+    position: fixed;
+    bottom: 0;
+    left: 4rem;
+    right: 0;
+    background-color: var(--bg-card);
+    border-top: 2px solid var(--border);
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+}
+
+.chapter-slider-area {
+    padding: 0.5rem 1rem;
+}
+
+.chapter-slider-area input[type="range"] {
+    width: 100%;
+}
+
+#epub-chapter-display {
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.audio-controls {
+    display: flex;
+    align-items: center;
+}
+
+.audio-controls button {
+    min-width: 4rem;
+    border-radius: 0px;
+}
+
+.audio-controls button:nth-child(3) {
+    flex: 1;
+}
+
+#epub-audio-player {
+    width: 100%;
+    display: none;
+}
+
+/* ============================================
+   GRID & LAYOUT UTILITIES
+   ============================================ */
+
+.grid {
+    display: grid;
+}
+
+.grid-3col {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 1024px) {
+    .grid-3col {
+        grid-template-columns: 1fr;
+    }
+}
+
+.gap-4 {
+    gap: 1rem;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
+}
+
+.mb-8 {
+    margin-bottom: 2rem;
+}
+
+.mt-4 {
+    margin-top: 1rem;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* Stats */
+.stats p {
+    margin-bottom: 0.5rem;
+}
+
+/* ============================================
+   HEADER / NAV
+   ============================================ */
+
+#main-nav {
+    background-color: #4a4038;
+    color: var(--text);
+    box-shadow: 4px 0 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 0;
+    gap: 1.5rem;
+    z-index: 40;
+    width: 4rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+}
+
+#main-nav a,
+#main-nav button {
+    background: none;
+    border: none;
+    color: var(--text);
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    min-height: auto;
+    font-size: inherit;
+    font-weight: normal;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#main-nav a:hover,
+#main-nav button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Main content offset when nav is visible */
+.with-nav {
+    margin-left: 4rem;
+}
+
+/* ============================================
+   ICONS IN HEADINGS
+   ============================================ */
+
+h2 i,
+h3 i {
+    margin-right: 0.5rem;
+    width: 1.5rem;
+    text-align: center;
+}
+
+/* ============================================
+   WIDTH UTILITIES
+   ============================================ */
+
+.w-100 {
+    width: 100%;
+}
+
+.w-75 {
+    width: 75%;
+}
+
+.w-50 {
+    width: 50%;
+}
+
+.w-33 {
+    width: 33.333%;
+}
+
+.w-25 {
+    width: 25%;
 }

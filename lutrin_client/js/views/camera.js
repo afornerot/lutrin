@@ -58,10 +58,10 @@ function showOcrResultView(text) {
     // Diviser le texte en chapitres (paragraphes) et les afficher dans le div
     chapters = text.split('\n\n').filter(c => c.trim() !== '');
     cameraOcrTextResult.innerHTML = chapters.map((chapter, index) => `
-        <p id="cam-chapter-${index}" class="mb-4 p-2 rounded-md transition-colors duration-300">
+        <p id="cam-chapter-${index}" class="chapter-text">
             ${chapter.replace(/\n/g, '<br>')}
         </p>
-    `).join('') || '<p class="text-gray-500">Aucun texte n\'a été détecté.</p>';
+    `).join('') || '<p class="placeholder">Aucun texte n\'a été détecté.</p>';
 }
 
 function showCameraStreamView() {
@@ -74,15 +74,14 @@ function highlightAndScrollToChapter(chapterIndex) {
     if (!cameraOcrTextResult) return;
 
     // Supprimer le surlignage de l'élément précédent
-    const previousHighlight = cameraOcrTextResult.querySelector('.bg-yellow-200');
+    const previousHighlight = cameraOcrTextResult.querySelector('.chapter-highlight');
     if (previousHighlight) {
-        previousHighlight.classList.remove('bg-yellow-200');
+        previousHighlight.classList.remove('chapter-highlight');
     }
 
-    // Ajouter le surlignage au nouvel élément et faire défiler
     const chapterElement = document.getElementById(`cam-chapter-${chapterIndex}`);
     if (chapterElement) {
-        chapterElement.classList.add('bg-yellow-200');
+        chapterElement.classList.add('chapter-highlight');
         chapterElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 }
@@ -241,7 +240,7 @@ export function initCameraView() {
     };
 
     const resetButtonToAction = () => {
-        if (cameraModeActionButton) cameraModeActionButton.innerHTML = '<i class="fas fa-book-open mr-4"></i> Lire la page';
+        if (cameraModeActionButton) cameraModeActionButton.innerHTML = '<i class="fas fa-book-open"></i> Lire la page';
         if (cameraModeActionButton) cameraModeActionButton.classList.remove('flex-grow');
         if (cameraModeActionButton) cameraModeActionButton.classList.add('w-full');
         if (cameraModeStopButton) cameraModeStopButton.classList.add('hidden');
@@ -278,13 +277,13 @@ export function initCameraView() {
         if (cameraModeActionButton) cameraModeActionButton.classList.add('flex-grow');
         if (cameraModeActionButton) cameraModeActionButton.classList.remove('w-full');
         if (cameraModeStopButton) cameraModeStopButton.classList.remove('hidden');
-        if (cameraModeActionButton) cameraModeActionButton.innerHTML = '<i class="fas fa-pause mr-4"></i> Pause';
+        if (cameraModeActionButton) cameraModeActionButton.innerHTML = '<i class="fas fa-pause"></i> Pause';
     });
 
     cameraAudioPlayback?.addEventListener('pause', () => {
         isPlaying = false;
         if (cameraAudioPlayback.currentTime > 0 && !cameraAudioPlayback.ended) {
-            if (cameraModeActionButton) cameraModeActionButton.innerHTML = '<i class="fas fa-play mr-4"></i> Lecture';
+            if (cameraModeActionButton) cameraModeActionButton.innerHTML = '<i class="fas fa-play"></i> Lecture';
         }
     });
 

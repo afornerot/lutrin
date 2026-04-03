@@ -1,24 +1,20 @@
 <!-- /templates/epub.html -->
-<div id="epub-detail-container" class="container mx-auto p-4 h-full">
+<div id="epub-detail-container">
 
     <!-- Barre supérieure fixe -->
-    <div id="epub-top-bar"
-        class="hidden fixed top-0 left-16 right-0 bg-white bg-opacity-90 backdrop-blur-sm shadow-md p-3 flex items-center justify-between z-20">
-    </div>
+    <div id="epub-top-bar" class="hidden"></div>
 
     <!-- Indicateur de chargement -->
-    <div id="epub-loading" class="flex items-center justify-center h-full">
-        <div class="text-center">
-            <div class="w-12 h-12 border-4 border-dashed rounded-full loader mb-4 mx-auto"></div>
-            <p class="text-gray-500">Chargement du livre...</p>
-        </div>
+    <div id="epub-loading" class="loading-state">
+        <div class="loader"></div>
+        <p>Chargement du livre...</p>
     </div>
 
     <!-- Contenu du livre (initialement caché) -->
-    <div id="epub-content" class="hidden grid grid-cols-1 md:grid-cols-3 gap-8 flex-grow overflow-hidden pt-20">
+    <div id="epub-content" class="hidden epub-layout">
         <!-- Colonne de gauche : Couverture et informations -->
-        <div id="epub-left-panel" class="overflow-y-auto md:col-span-1">
-            <div id="epub-cover" class="mb-8">
+        <div id="epub-left-panel">
+            <div id="epub-cover">
                 <!-- La couverture sera injectée ici -->
             </div>
             <div id="epub-info">
@@ -27,129 +23,89 @@
         </div>
 
         <!-- Colonne de droite : Texte du livre -->
-        <div id="epub-text-panel" class="flex flex-col overflow-hidden md:col-span-2 mb-40"></div>
+        <div id="epub-text-panel"></div>
     </div>
 
     <!-- Conteneur pour les erreurs -->
     <div id="epub-error-container"></div>
 
     <!-- Overlay pour modifier le style -->
-    <div id="edit-style-overlay"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
-            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Modifier le genre</h3>
-            <div>
-                <label for="edit-style-input" class="sr-only">Genre</label>
-                <input type="text" id="edit-style-input"
-                    class="block w-full shadow-sm text-base border-gray-300 rounded-md py-2 px-3">
+    <div id="edit-style-overlay" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3>Modifier le genre</h3>
+            <div class="form-group">
+                <label for="edit-style-input">Genre</label>
+                <input type="text" id="edit-style-input">
             </div>
-            <div class="mt-5 sm:mt-6 flex justify-end space-x-3">
-                <button type="button" id="cancel-edit-style"
-                    class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50">
-                    Annuler
-                </button>
-                <button type="button" id="save-edit-style"
-                    class="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700">
-                    Sauvegarder
-                </button>
+            <div class="modal-actions">
+                <button type="button" id="cancel-edit-style" class="btn-secondary">Annuler</button>
+                <button type="button" id="save-edit-style" class="btn-primary">Sauvegarder</button>
             </div>
         </div>
     </div>
 
     <!-- Overlay pour modifier la série -->
-    <div id="edit-series-overlay"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
-            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Modifier la série</h3>
-            <div class="space-y-4">
-                <div>
-                    <label for="edit-series-name-input" class="block text-sm font-medium text-gray-700">Nom de la
-                        série</label>
-                    <input type="text" id="edit-series-name-input"
-                        class="mt-1 block w-full shadow-sm text-base border-gray-300 rounded-md py-2 px-3">
-                </div>
-                <div>
-                    <label for="edit-series-number-input" class="block text-sm font-medium text-gray-700">Numéro dans la
-                        série</label>
-                    <input type="number" id="edit-series-number-input"
-                        class="mt-1 block w-full shadow-sm text-base border-gray-300 rounded-md py-2 px-3">
-                </div>
+    <div id="edit-series-overlay" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3>Modifier la série</h3>
+            <div class="form-group">
+                <label for="edit-series-name-input">Nom de la série</label>
+                <input type="text" id="edit-series-name-input">
             </div>
-            <div class="mt-5 sm:mt-6 flex justify-end space-x-3">
-                <button type="button" id="cancel-edit-series"
-                    class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50">
-                    Annuler
-                </button>
-                <button type="button" id="save-edit-series"
-                    class="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700">
-                    Sauvegarder
-                </button>
+            <div class="form-group">
+                <label for="edit-series-number-input">Numéro dans la série</label>
+                <input type="number" id="edit-series-number-input">
+            </div>
+            <div class="modal-actions">
+                <button type="button" id="cancel-edit-series" class="btn-secondary">Annuler</button>
+                <button type="button" id="save-edit-series" class="btn-primary">Sauvegarder</button>
             </div>
         </div>
     </div>
 
     <!-- Overlay pour modifier l'auteur -->
-    <div id="edit-authors-overlay"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
-            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Modifier le ou les auteurs</h3>
-            <div>
-                <label for="edit-authors-input" class="sr-only">Auteurs (séparés par une virgule)</label>
-                <input type="text" id="edit-authors-input"
-                    class="block w-full shadow-sm text-base border-gray-300 rounded-md py-2 px-3"
-                    placeholder="Auteur 1, Auteur 2, ...">
+    <div id="edit-authors-overlay" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3>Modifier le ou les auteurs</h3>
+            <div class="form-group">
+                <label for="edit-authors-input">Auteurs (séparés par une virgule)</label>
+                <input type="text" id="edit-authors-input" placeholder="Auteur 1, Auteur 2, ...">
             </div>
-            <div class="mt-5 sm:mt-6 flex justify-end space-x-3">
-                <button type="button" id="cancel-edit-authors"
-                    class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50">
-                    Annuler
-                </button>
-                <button type="button" id="save-edit-authors"
-                    class="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700">
-                    Sauvegarder
-                </button>
+            <div class="modal-actions">
+                <button type="button" id="cancel-edit-authors" class="btn-secondary">Annuler</button>
+                <button type="button" id="save-edit-authors" class="btn-primary">Sauvegarder</button>
             </div>
         </div>
     </div>
 
     <!-- Barre de lecture audio fixe en bas -->
-    <div id="epub-audio-player-bar"
-        class="hidden fixed bottom-0 left-16 right-0 bg-white border-t border-gray-200 shadow-lg">
-        <div class="flex-shrink-0">
-            <div class="px-4 pt-2 pb-1 bg-gray-50">
-                <input type="range" id="epub-chapter-slider"
-                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
-                <div id="epub-chapter-display" class="text-center text-sm text-gray-600 mt-1">Chapitre 1 / 1</div>
-            </div>
-
-            <div class="flex items-center">
-                <button id="epub-prev-10-chapter-button"
-                    class="w-24 bg-gray-600 hover:bg-gray-700 text-white font-bold text-2xl py-3 px-1 transition duration-150 ease-in-out shadow-lg hover:shadow-xl disabled:opacity-50">
-                    <i class="fas fa-fast-backward"></i>
-                </button>
-                <button id="epub-prev-chapter-button"
-                    class="w-24 bg-gray-600 hover:bg-gray-700 text-white font-bold text-2xl py-3 px-1 transition duration-150 ease-in-out shadow-lg hover:shadow-xl disabled:opacity-50">
-                    <i class="fas fa-step-backward"></i>
-                </button>
-
-                <button id="epub-play-audio-button"
-                    class="flex-grow bg-blue-600 hover:bg-blue-700 text-white font-bold text-2xl py-3 px-6 transition duration-150 ease-in-out shadow-lg hover:shadow-xl disabled:opacity-50">
-                    <i class="fas fa-play"></i>
-                    <span class="truncate hidden sm:inline ml-3">Écouter</span>
-                </button>
-
-                <button id="epub-next-chapter-button"
-                    class="w-24 bg-gray-600 hover:bg-gray-700 text-white font-bold text-2xl py-3 px-1 transition duration-150 ease-in-out shadow-lg hover:shadow-xl disabled:opacity-50">
-                    <i class="fas fa-step-forward"></i>
-                </button>
-                <button id="epub-next-10-chapter-button"
-                    class="w-24 bg-gray-600 hover:bg-gray-700 text-white font-bold text-2xl py-3 px-1 transition duration-150 ease-in-out shadow-lg hover:shadow-xl disabled:opacity-50">
-                    <i class="fas fa-fast-forward"></i>
-                </button>
-            </div>
-            <!-- Le lecteur audio est maintenant visible -->
-            <audio id="epub-audio-player" controls class="w-full"></audio>
+    <div id="epub-audio-player-bar" class="hidden">
+        <div class="chapter-slider-area">
+            <input type="range" id="epub-chapter-slider">
+            <div id="epub-chapter-display">Chapitre 1 / 1</div>
         </div>
-    </div>
 
+        <div class="audio-controls">
+            <button id="epub-prev-10-chapter-button">
+                <i class="fas fa-fast-backward"></i>
+            </button>
+            <button id="epub-prev-chapter-button">
+                <i class="fas fa-step-backward"></i>
+            </button>
+
+            <button id="epub-play-audio-button">
+                <i class="fas fa-play"></i>
+                <span>Écouter</span>
+            </button>
+
+            <button id="epub-next-chapter-button">
+                <i class="fas fa-step-forward"></i>
+            </button>
+            <button id="epub-next-10-chapter-button">
+                <i class="fas fa-fast-forward"></i>
+            </button>
+        </div>
+        <!-- Le lecteur audio est maintenant visible -->
+        <audio id="epub-audio-player" controls></audio>
+    </div>
 </div>

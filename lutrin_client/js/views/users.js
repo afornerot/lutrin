@@ -59,16 +59,20 @@ async function loadUsers() {
         users.forEach(user => {
             const row = usersTableBody.insertRow();
             row.innerHTML = `
-                <td class="px-1 py-4 text-left text-sm font-medium">
+                <td>
                     <button data-id="${user.id}" data-username="${user.username}" data-email="${user.email}" data-role="${user.role}" data-is_active="${user.is_active}"
-                            class="edit-user-button fas fa-edit fa-2x text-blue-600 hover:text-blue-900 mr-1"></button>
+                            class="edit-user-button btn-icon">
+                        <i class="fas fa-edit"></i>
+                    </button>
                     <button data-id="${user.id}" data-username="${user.username}"
-                            class="delete-user-button fas fa-trash-alt fa-2x text-red-600 hover:text-red-900"></button>
+                            class="delete-user-button btn-icon">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
                 </td>
-                <td class="px-1 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${user.id}</td>
-                <td class="px-1 py-4 whitespace-nowrap text-sm text-gray-500">${user.username}</td>
-                <td class="px-1 py-4 whitespace-nowrap text-sm text-gray-500">${user.email}</td>
-                <td class="px-1 py-4 whitespace-nowrap text-sm text-gray-500">${user.role}</td>
+                <td>${user.id}</td>
+                <td>${user.username}</td>
+                <td>${user.email}</td>
+                <td>${user.role}</td>
             `;
         });
 

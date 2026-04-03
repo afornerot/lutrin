@@ -14,17 +14,17 @@ export function initPasswordRequestView() {
         button.disabled = true;
         button.textContent = 'Envoi en cours...';
         messageDiv.textContent = '';
-        messageDiv.className = 'mt-4 text-center text-sm';
+        messageDiv.className = 'form-status';
 
         try {
             const response = await post('/password/request', { email });
             messageDiv.textContent = response.message;
-            messageDiv.classList.add('text-green-600');
+            messageDiv.classList.add('success');
             form.reset();
         } catch (error) {
             // Même en cas d'erreur, on affiche un message générique pour la sécurité
             messageDiv.textContent = "Si un compte est associé à cette adresse, un e-mail de réinitialisation a été envoyé.";
-            messageDiv.classList.add('text-green-600');
+            messageDiv.classList.add('success');
         } finally {
             setTimeout(() => {
                 button.disabled = false;

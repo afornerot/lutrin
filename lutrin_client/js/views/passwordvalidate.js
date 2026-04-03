@@ -20,14 +20,14 @@ export function initPasswordValidateView(urlParams) {
 
         if (password !== passwordConfirmation) {
             messageDiv.textContent = "Les mots de passe ne correspondent pas.";
-            messageDiv.className = 'mt-4 text-center text-sm text-red-600';
+            messageDiv.className = 'form-status error';
             return;
         }
 
         const passwordRegex = /^(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
         if (!passwordRegex.test(password)) {
             messageDiv.textContent = "Le mot de passe doit contenir au moins 8 caractères, dont un chiffre et un caractère spécial.";
-            messageDiv.className = 'mt-4 text-center text-sm text-red-600';
+            messageDiv.className = 'form-status error';
             return;
         }
 
@@ -37,12 +37,12 @@ export function initPasswordValidateView(urlParams) {
         try {
             const response = await post('/password/validate', { token: tokenFromForm, password });
             messageDiv.textContent = response.message;
-            messageDiv.className = 'mt-4 text-center text-sm text-green-600';
+            messageDiv.className = 'form-status success';
             form.reset();
             setTimeout(() => navigateTo('/login'), 2000);
         } catch (error) {
             messageDiv.textContent = error.message || 'Une erreur est survenue.';
-            messageDiv.className = 'mt-4 text-center text-sm text-red-600';
+            messageDiv.className = 'form-status error';
             button.disabled = false;
             button.textContent = 'Réinitialiser le mot de passe';
         }

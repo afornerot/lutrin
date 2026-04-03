@@ -175,55 +175,55 @@ export async function initLibraryView() {
                 : filteredEpubs;
 
             if (displayEpubs.length === 0) {
-                listContainer.innerHTML = '<p class="text-center text-gray-500">Aucun livre ne correspond à vos filtres.</p>';
+                listContainer.innerHTML = '<p class="placeholder">Aucun livre ne correspond à vos filtres.</p>';
                 return;
             }
 
             displayEpubs.forEach(epub => {
                 const listItem = document.createElement('div');
-                listItem.className = 'flex items-start space-x-4 p-3 bg-white rounded-xl shadow-lg';
+                listItem.className = 'library-item';
                 listItem.innerHTML = `
                     <!-- Colonne de gauche : Couverture -->
-                    <div class="cover-container flex-shrink-0 w-24 cursor-pointer group">
-                        <img src="${epub.cover_image || 'assets/placeholder-cover.png'}" alt="Couverture de ${epub.metadata.title}" class="w-full h-auto object-cover rounded-md shadow-md">
+                    <div class="library-item-cover">
+                        <img src="${epub.cover_image || 'assets/placeholder-cover.png'}" alt="Couverture de ${epub.metadata.title}">
                     </div>
 
                     <!-- Colonne de droite : Métadonnées -->
-                    <div class="flex-grow">
-                        <h3 class="text-lg font-bold text-gray-900">${epub.metadata.title}</h3>
-                        <p class="text-sm text-gray-600">par ${epub.metadata.authors.join(', ')}</p>
+                    <div class="library-item-info">
+                        <h3>${epub.metadata.title}</h3>
+                        <p class="library-item-author">par ${epub.metadata.authors.join(', ')}</p>
                         
-                        <div class="mt-2 flex flex-wrap gap-2 text-xs">
-                            ${epub.metadata.style ? `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">${epub.metadata.style}</span>` : ''}
-                            ${epub.metadata.series ? `<span class="bg-green-100 text-green-800 px-2 py-1 rounded-full">${epub.metadata.series}${epub.metadata.series_number ? ` - Vol. ${epub.metadata.series_number}` : ''}</span>` : ''}
+                        <div class="book-tags">
+                            ${epub.metadata.style ? `<span class="tag tag-style">${epub.metadata.style}</span>` : ''}
+                            ${epub.metadata.series ? `<span class="tag tag-series">${epub.metadata.series}${epub.metadata.series_number ? ` - Vol. ${epub.metadata.series_number}` : ''}</span>` : ''}
                         </div>
 
-                        <p class="description-text mt-3 text-sm text-gray-500 line-clamp-3 relative cursor-pointer">
+                        <p class="library-item-description">
                             ${epub.metadata.description || 'Aucune description disponible.'}
                         </p>
                     </div>
 
-                    <!-- Colonne d'action : Bouton d'import -->
-                    <div class="flex-shrink-0 flex flex-col items-center justify-center space-y-4 h-full">
-                        <button title="Importer dans ma bibliothèque" class="import-button text-gray-400 hover:text-blue-600 transition-colors p-3">
-                            <i class="fas fa-download fa-2x"></i>
+                    <!-- Colonne d'action : Boutons -->
+                    <div class="library-item-actions">
+                        <button title="Importer dans ma bibliothèque" class="import-button btn-icon">
+                            <i class="fas fa-download"></i>
                         </button>
                         ${getAuthUserRole() === 'ADMIN' ? `
-                            <button title="Modifier le livre" class="edit-button text-gray-400 hover:text-yellow-600 transition-colors p-3">
-                                <i class="fas fa-pencil-alt fa-lg"></i>
+                            <button title="Modifier le livre" class="edit-button btn-icon">
+                                <i class="fas fa-pencil-alt"></i>
                             </button>
                         ` : ''}
                         ${getAuthUserRole() === 'ADMIN' ? `
-                            <button title="Supprimer de la bibliothèque centrale" class="delete-button text-gray-400 hover:text-red-600 transition-colors p-3">
-                                <i class="fas fa-trash-alt fa-lg"></i>
+                            <button title="Supprimer de la bibliothèque centrale" class="delete-button btn-icon">
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         ` : ''}
                         </div>
                 `;
 
                 // Sélection des éléments cliquables
-                const descriptionText = listItem.querySelector('.description-text');
-                const coverContainer = listItem.querySelector('.cover-container');
+                const descriptionText = listItem.querySelector('.library-item-description');
+                const coverContainer = listItem.querySelector('.library-item-cover');
                 const importButton = listItem.querySelector('.import-button');
                 const editButton = listItem.querySelector('.edit-button');
                 const deleteButton = listItem.querySelector('.delete-button');
@@ -279,14 +279,14 @@ export async function initLibraryView() {
 
                     // Créer et afficher l'icône de chargement
                     const loadingIcon = document.createElement('i');
-                    loadingIcon.className = 'fas fa-spinner fa-spin text-gray-400 absolute top-0 right-0';
+                    loadingIcon.className = 'fas fa-spinner fa-spin loading-icon';
                     descriptionText.appendChild(loadingIcon);
                     currentDescriptionIcon = loadingIcon;
                     isDescriptionLoading = true;
 
                     try {
                         const ttsResult = await runTTS(text);
-                        loadingIcon.className = 'fas fa-volume-up text-gray-400 absolute top-0 right-0';
+                        loadingIcon.className = 'fas fa-volume-up loading-icon';
 
                         const audioPlayer = new Audio(ttsResult.audio_url);
                         currentDescriptionPlayer = audioPlayer;

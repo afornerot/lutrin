@@ -131,7 +131,7 @@ export function initSharedUI() {
 
         const originalButtonContent = testTtsButton.innerHTML;
         testTtsButton.disabled = true;
-        testTtsButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Génération...';
+        testTtsButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération...';
 
         try {
             const ttsResult = await runTTS(testText);
@@ -198,7 +198,7 @@ export function initSharedUI() {
 
         const originalButtonContent = testWifiWebcamButton.innerHTML;
         testWifiWebcamButton.disabled = true;
-        testWifiWebcamButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Test en cours...';
+        testWifiWebcamButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Test en cours...';
 
         try {
             const controller = new AbortController();

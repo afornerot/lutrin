@@ -1,74 +1,62 @@
 <!-- templates/settings.html -->
-<div id="engine-settings-overlay"
-    class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden">
-    <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md relative">
-        <button id="close-engine-settings-button"
-            class="absolute top-2 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
-        <h2 class="text-2xl font-semibold text-gray-700 flex items-center mb-4">
-            <i class="fas fa-cogs w-6 text-center mr-2 text-gray-500"></i>
+<div id="engine-settings-overlay" class="modal-overlay hidden">
+    <div class="modal-card">
+        <button id="close-engine-settings-button" class="close-btn">&times;</button>
+        <h2>
+            <i class="fas fa-cogs"></i>
             Moteurs d'IA
         </h2>
-        <div class="grid grid-cols-1 gap-4 mt-2">
-            <div>
-                <label for="ocr-engine-select" class="block text-sm font-medium text-gray-700">Moteur OCR</label>
-                <select id="ocr-engine-select" name="ocr-engine"
-                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 sm:text-sm rounded-md">
+        <div class="form-group">
+            <div class="form-group">
+                <label for="ocr-engine-select">Moteur OCR</label>
+                <select id="ocr-engine-select" name="ocr-engine">
                     <option value="paddle">Paddle (Local)</option>
                     <option value="groq" selected>Groq (Qualité)</option>
                 </select>
             </div>
-            <div>
-                <label for="tts-engine-select" class="block text-sm font-medium text-gray-700">Moteur TTS</label>
-                <select id="tts-engine-select" name="tts-engine"
-                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 sm:text-sm rounded-md">
+            <div class="form-group">
+                <label for="tts-engine-select">Moteur TTS</label>
+                <select id="tts-engine-select" name="tts-engine">
                     <option value="piper" selected>Piper (Rapide)</option>
                     <option value="coqui">Coqui (Qualité)</option>
                 </select>
             </div>
             <!-- Ce conteneur sera affiché/masqué par JS -->
             <div id="piper-model-selector-container" class="hidden">
-                <label for="piper-model-select" class="block text-sm font-medium text-gray-700">Modèle Piper</label>
-                <select id="piper-model-select" name="piper-model"
-                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 sm:text-sm rounded-md">
-                </select>
+                <label for="piper-model-select">Modèle Piper</label>
+                <select id="piper-model-select" name="piper-model"></select>
                 <!-- Curseur pour la vitesse de la voix Piper -->
-                <div class="mt-4">
-                    <label for="piper-speed-slider" class="block text-sm font-medium text-gray-700">Vitesse de la
-                        voix</label>
-                    <div class="flex items-center space-x-3 mt-1">
-                        <span class="text-xs text-gray-500">Lente</span>
-                        <input id="piper-speed-slider" type="range" min="0.75" max="1.5" value="1.15" step="0.05"
-                            class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-                        <span class="text-xs text-gray-500">Rapide</span>
+                <div class="form-group">
+                    <label for="piper-speed-slider">Vitesse de la voix</label>
+                    <div class="slider-group">
+                        <span class="slider-label">Lente</span>
+                        <input id="piper-speed-slider" type="range" min="0.75" max="1.5" value="1.15" step="0.05">
+                        <span class="slider-label">Rapide</span>
                     </div>
-                    <p class="text-center text-xs text-gray-500 mt-1">Actuellement : <span
-                            id="piper-speed-value">Normal</span></p>
+                    <p class="text-center">Actuellement : <span id="piper-speed-value">Normal</span></p>
                 </div>
             </div>
             <!-- Bouton de test TTS -->
-            <div class="mt-6 border-t pt-4">
-                <button id="test-tts-button"
-                    class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out disabled:opacity-50 flex items-center justify-center">
-                    <i class="fas fa-play mr-2"></i> Tester la voix
+            <div class="form-group bordered">
+                <button id="test-tts-button" class="btn-secondary">
+                    <i class="fas fa-play"></i> Tester la voix
                 </button>
                 <audio id="test-tts-audio" class="hidden"></audio>
             </div>
 
             <!-- Configuration de la webcam WiFi -->
-            <div class="mt-6 border-t pt-4">
-                <h3 class="text-lg font-semibold text-gray-700 flex items-center mb-4">
-                    <i class="fas fa-wifi w-6 text-center mr-2 text-gray-500"></i>
+            <div class="form-group bordered">
+                <h3>
+                    <i class="fas fa-wifi"></i>
                     Webcam WiFi
                 </h3>
-                <div>
-                    <label for="wifi-webcam-url" class="block text-sm font-medium text-gray-700">URL du flux MJPEG</label>
-                    <input type="text" id="wifi-webcam-url" placeholder="http://192.168.1.100:8080/stream.mjpeg"
-                        class="mt-1 block w-full pl-3 pr-3 py-2 text-base border-gray-300 sm:text-sm rounded-md border">
-                    <p class="mt-1 text-xs text-gray-500">Entrez l'URL complète du flux MJPEG de votre webcam WiFi</p>
+                <div class="form-group">
+                    <label for="wifi-webcam-url">URL du flux MJPEG</label>
+                    <input type="text" id="wifi-webcam-url" placeholder="http://192.168.1.100:8080/stream.mjpeg">
+                    <p class="help-text">Entrez l'URL complète du flux MJPEG de votre webcam WiFi</p>
                 </div>
-                <button id="test-wifi-webcam-button"
-                    class="mt-3 w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out disabled:opacity-50 flex items-center justify-center">
-                    <i class="fas fa-check-circle mr-2"></i> Tester la connexion
+                <button id="test-wifi-webcam-button" class="btn-primary">
+                    <i class="fas fa-check-circle"></i> Tester la connexion
                 </button>
             </div>
         </div>
