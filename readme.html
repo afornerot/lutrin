@@ -13,190 +13,109 @@
   	</head>
   	
 	<body>
-    	<h1 id="lutrin">Lutrin</h1>
-<p>Projet d'interface web pour contrôler une caméra sur un Raspberry Pi, effectuer une reconnaissance optique de caractères (OCR) sur les images capturées et générer une synthèse vocale (TTS) du texte reconnu.</p>
-<h2 id="prrequis">Prérequis</h2>
+    	<h1 id="-lutrin">📖 Lutrin</h1>
+<p>📖 <strong>Lutrin</strong> est un projet solidaire né lors du marathon d'innovation <strong><a href="https://hacking-health.org/fr/besancon-fr/">Hacking Health Besançon 2025</a></strong>.</p>
+<p>🏆 <strong>Lauréat du Hacking Health</strong>, le projet est désormais accompagné et suivi par <strong><a href="https://letubeaessais.fr/">Le Tube à Essais</a></strong>, une SCIC dédiée à l'incubation de projets innovants et solidaires.</p>
+<h3 id="le-concept">Le concept</h3>
+<p>L'objectif est simple : <strong>rendre la lecture accessible à tous</strong>, en particulier aux personnes souffrant de handicaps moteurs ou visuels qui ne peuvent pas manipuler de livres papier.</p>
+<h3 id="ce-que-fait-lutrin">Ce que fait Lutrin</h3>
+<p>Lutrin est une plateforme universelle qui transforme le texte en <strong>livre audio personnalisé</strong> en temps réel :</p>
 <ul>
-<li><strong>Docker</strong> et <strong>Docker Compose</strong> (installés via <code>make install</code>)</li>
+<li><strong>Capture de livres physiques</strong> : Une simple webcam filme les pages d'un livre papier. L'IA reconnaît le texte et le lit instantanément avec une voix naturelle.</li>
+<li><strong>Bibliothèque Numérique (ePub)</strong> : L'utilisateur peut importer ses propres fichiers ePub ou piocher dans une bibliothèque proposée par le serveur.</li>
+<li><strong>Gestion Personnalisée</strong> : Chaque utilisateur dispose de son propre espace pour gérer sa collection de livres numériques et reprendre sa lecture audio là où il s'est arrêté.</li>
+<li><strong>Interface Inclusive</strong> : Un contrôle ultra-épuré (gros boutons, navigation simplifiée) conçu pour pallier les déficiences visuelles ou le manque de précision motrice.</li>
+</ul>
+<h2 id="-liens-utiles">📄 Liens utiles</h2>
+<ul>
+<li><strong>Présentation du projet</strong> : <a href="https://canva.link/q5t74ovnzwt6t10">Lien Canva</a></li>
+<li><strong>Support technique</strong> : Utilisez les <code>issues</code> du dépôt GitHub.</li>
+</ul>
+<h2 id="-utilisation-mode-utilisateur">🚀 Utilisation (Mode Utilisateur)</h2>
+<p>Si vous souhaitez utiliser le service sans installer de serveur, voici les accès directs :</p>
+<h3 id="-interface-web">🌐 Interface Web</h3>
+<p>Accédez à l'application de lecture directement via votre navigateur : 👉 <strong><a href="https://lutrin.terium.org">https://lutrin.terium.org</a></strong></p>
+<h3 id="-application-android">📱 Application Android</h3>
+<p>Une application est disponible pour utiliser la caméra de votre téléphone comme scanner et l'envoyer au serveur.</p>
+<ul>
+<li><strong>Télécharger l'APK</strong> : <a href="https://github.com/afornerot/lutrin/raw/main/lutrin_apk/dist/lutrin.apk"><code>lutrin_apk/dist/lutrin.apk</code></a></li>
+<li><strong>Fonctionnalités</strong> : Capture vidéo, streaming vers le serveur et interface de connexion simplifiée.</li>
+</ul>
+<h2 id="-installation-du-serveur-mode-administrateur">🛠️ Installation du Serveur (Mode Administrateur)</h2>
+<p>Cette section est destinée à l'hébergement de votre propre instance Lutrin.</p>
+<h3 id="-prrequis">📋 Prérequis</h3>
+<ul>
+<li><strong>Docker</strong> et <strong>Docker Compose</strong></li>
 <li><strong>Task</strong> (installé via <code>make install</code>)</li>
 <li><strong>Git</strong></li>
-<li><strong>Certificats SSL</strong> (auto-signés) pour le client HTTPS</li>
-<li><strong>Clé API Groq</strong> (optionnelle, pour l'OCR par IA)</li>
-<li><strong>Application Android</strong> (optionnelle, pour le streaming depuis un téléphone)</li>
+<li><strong>Certificats SSL</strong> (auto-signés ou officiels)</li>
 </ul>
-<h2 id="installation">Installation</h2>
+<h3 id="-installation">⚙️ Installation</h3>
 <ol>
 <li>
-<p>Clonez le dépôt et entrez dans le répertoire :</p>
-<pre style="color:#d8dee9;background-color:#2e3440;"><code><span style="display:flex;"><span>git clone https://github.com/afornerot/lutrin.git
+<p><strong>Cloner le dépôt</strong> :</p>
+<pre style="color:#d8dee9;background-color:#2e3440;"><code><span style="display:flex;"><span>git clone <span style="color:#81a1c1">[</span>https://github.com/afornerot/lutrin.git<span style="color:#81a1c1">](</span>https://github.com/afornerot/lutrin.git<span style="color:#81a1c1">)</span>
 </span></span><span style="display:flex;"><span><span style="color:#81a1c1">cd</span> lutrin
 </span></span></code></pre></li>
 <li>
-<p>Installez les prérequis (Docker, Docker Compose, Task) :</p>
+<p><strong>Installer les outils (Docker, Task)</strong> :</p>
 <pre style="color:#d8dee9;background-color:#2e3440;"><code><span style="display:flex;"><span>make install
-</span></span></code></pre><p><strong>Note :</strong> Après l'installation de Docker, déconnectez-vous et reconnectez-vous pour que les changements de groupe prennent effet. Assurez-vous que <code>~/.local/bin</code> est dans votre <code>PATH</code>.</p>
+</span></span></code></pre><p><em>Note : Après l'installation, déconnectez-vous et reconnectez-vous pour que les changements de groupe Docker prennent effet.</em></p>
 </li>
 <li>
-<p>Générez les certificats SSL (si ce n'est pas déjà fait) et placez-les dans <code>lutrin_tools/certs/</code> :</p>
-<pre style="color:#d8dee9;background-color:#2e3440;"><code><span style="display:flex;"><span><span style="color:#616e87;font-style:italic"># Exemple de génération de certificat auto-signé</span>
-</span></span><span style="display:flex;"><span>openssl req -x509 -newkey rsa:4096 -keyout lutrin_tools/certs/key.pem -out lutrin_tools/certs/cert.pem -days <span style="color:#b48ead">365</span> -nodes -subj <span style="color:#a3be8c">&#34;/C=FR/ST=France/L=Paris/O=Lutrin/OU=Dev/CN=localhost&#34;</span>
+<p><strong>Générer les certificats SSL</strong> (requis pour le client HTTPS) : Placez-les dans <code>lutrin_tools/certs/</code> :</p>
+<pre style="color:#d8dee9;background-color:#2e3440;"><code><span style="display:flex;"><span>openssl req -x509 -newkey rsa:4096 -keyout lutrin_tools/certs/key.pem -out lutrin_tools/certs/cert.pem -days <span style="color:#b48ead">365</span> -nodes -subj <span style="color:#a3be8c">&#34;/C=FR/ST=France/L=Paris/O=Lutrin/CN=localhost&#34;</span>
+</span></span></code></pre></li>
+<li>
+<p><strong>Démarrage</strong> :</p>
+<pre style="color:#d8dee9;background-color:#2e3440;"><code><span style="display:flex;"><span>task build   <span style="color:#616e87;font-style:italic"># Construit les images et initialise la base de données</span>
+</span></span><span style="display:flex;"><span>task start   <span style="color:#616e87;font-style:italic"># Démarre tous les services en arrière-plan</span>
 </span></span></code></pre></li>
 </ol>
-<h2 id="dmarrage-rapide">Démarrage rapide</h2>
-<p>Après l'installation, suivez ces étapes :</p>
-<ol>
-<li>
-<p><strong>Construisez les images et initialisez la base de données</strong> (cela créera un utilisateur admin si aucun n'existe) :</p>
-<pre style="color:#d8dee9;background-color:#2e3440;"><code><span style="display:flex;"><span>task build
-</span></span></code></pre></li>
-<li>
-<p><strong>Démarrez tous les services</strong> :</p>
-<pre style="color:#d8dee9;background-color:#2e3440;"><code><span style="display:flex;"><span>task start
-</span></span></code></pre></li>
-<li>
-<p><strong>Accédez à l'interface web</strong> :</p>
+<h3 id="-accs-aux-services-locaux">🌍 Accès aux services locaux</h3>
 <ul>
-<li>Client (HTTPS) : <strong>https://localhost:8000</strong></li>
-<li>API (HTTP) : <strong>http://localhost:5000</strong></li>
+<li><strong>Client (HTTPS)</strong> : <code>https://localhost:8000</code></li>
+<li><strong>API (HTTP)</strong> : <code>http://localhost:5000</code></li>
 </ul>
-</li>
-<li>
-<p><strong>Configurez l'utilisateur</strong> :</p>
+<hr>
+<h2 id="-configuration-et-administration">🔧 Configuration et Administration</h2>
+<h3 id="gestion-des-utilisateurs">Gestion des utilisateurs</h3>
+<p>Lors du premier <code>task build</code>, un administrateur est créé. Vous pouvez en ajouter d'autres via le terminal :</p>
 <ul>
-<li>Lors du premier <code>task build</code>, un utilisateur admin est créé interactivement.</li>
-<li>Une clé d'API est générée. Copiez-la et collez-la dans le champ &quot;Clé d'API&quot; de l'interface web.</li>
+<li><strong>Ajouter un utilisateur</strong> : <code>task add-user user=nom password=pass email=mail@mail.com role=USER</code></li>
+<li><strong>Changer un mot de passe</strong> : <code>task change-password user=nom password=nouveau_pass</code></li>
 </ul>
-</li>
-</ol>
-<h2 id="gestion-des-utilisateurs">Gestion des utilisateurs</h2>
-<ul>
-<li>
-<p><strong>Ajouter un utilisateur</strong> :</p>
-<pre style="color:#d8dee9;background-color:#2e3440;"><code><span style="display:flex;"><span>task add-user user<span style="color:#81a1c1">=</span>mon_user password<span style="color:#81a1c1">=</span>mon_mot_de_passe email<span style="color:#81a1c1">=</span>mon_email role<span style="color:#81a1c1">=</span>USER
-</span></span></code></pre><p>Rôles disponibles : <code>USER</code>, <code>ADMIN</code>.</p>
-</li>
-<li>
-<p><strong>Changer un mot de passe</strong> :</p>
-<pre style="color:#d8dee9;background-color:#2e3440;"><code><span style="display:flex;"><span>task change-password user<span style="color:#81a1c1">=</span>mon_user password<span style="color:#81a1c1">=</span>nouveau_mot_de_passe
-</span></span></code></pre></li>
-</ul>
-<h2 id="configuration-lutrin-apienv">Configuration (<code>lutrin_api/.env</code>)</h2>
-<p>Le projet utilise deux fichiers d'environnement :</p>
-<ul>
-<li><strong><code>.env</code></strong> : Configuration par défaut (inclus dans Git).</li>
-<li><strong><code>.env.local</code></strong> : Surcharge locale (non versionnée). Créez-le si besoin.</li>
-</ul>
-<h3 id="paramtres-principaux">Paramètres principaux</h3>
+<h3 id="variables-denvironnement-lutrin-apienv">Variables d'environnement (<code>lutrin_api/.env</code>)</h3>
 <table>
 <thead>
 <tr>
 <th>Variable</th>
 <th>Description</th>
-<th>Valeur par défaut</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>GROQ_TOKEN</code></td>
-<td>Clé API pour Groq OCR (optionnel)</td>
-<td><code>changeme</code></td>
-</tr>
-<tr>
-<td><code>FRONT_URL</code></td>
-<td>URL du frontend pour les liens</td>
-<td><code>https://localhost:8000</code></td>
+<td>Clé API pour Groq OCR (optionnel, pour une vitesse accrue)</td>
 </tr>
 <tr>
 <td><code>COQUI_MODEL</code></td>
-<td>Modèle Coqui TTS</td>
-<td><code>tts_models/multilingual/multi-dataset/xtts_v2</code></td>
-</tr>
-<tr>
-<td><code>FLASK_PORT</code></td>
-<td>Port de l'API Flask</td>
-<td><code>5000</code></td>
+<td>Modèle de synthèse vocale utilisé</td>
 </tr>
 <tr>
 <td><code>CLIENT_PORT</code></td>
-<td>Port du client</td>
-<td><code>8000</code></td>
+<td>Port d'écoute du frontend (8000 par défaut)</td>
 </tr>
 </tbody>
 </table>
-<h3 id="obtenir-une-cl-api-groq-optionnel">Obtenir une clé API Groq (optionnel)</h3>
-<p>Pour utiliser l'OCR par IA :</p>
-<ol>
-<li>Créez un compte sur <a href="https://console.groq.com/">Groq</a>.</li>
-<li>Accédez à la section des clés API.</li>
-<li>Créez une clé et ajoutez-la à <code>GROQ_TOKEN</code> dans votre <code>.env.local</code>.</li>
-</ol>
-<h2 id="commandes-task-disponibles">Commandes Task disponibles</h2>
-<table>
-<thead>
-<tr>
-<th>Commande</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>task</code></td>
-<td>Liste toutes les tâches disponibles</td>
-</tr>
-<tr>
-<td><code>task build</code></td>
-<td>Construit les images, télécharge les modèles, initialise la base de données</td>
-</tr>
-<tr>
-<td><code>task start</code></td>
-<td>Démarre tous les services en arrière-plan</td>
-</tr>
-<tr>
-<td><code>task stop</code></td>
-<td>Arrête tous les services</td>
-</tr>
-<tr>
-<td><code>task restart</code></td>
-<td>Redémarre les services</td>
-</tr>
-<tr>
-<td><code>task status</code></td>
-<td>Affiche le statut des services</td>
-</tr>
-<tr>
-<td><code>task logs [service=api]</code></td>
-<td>Affiche les logs (spécifique à un service si <code>service=nom</code>)</td>
-</tr>
-<tr>
-<td><code>task clean</code></td>
-<td>Supprime conteneurs et images construites (conserve les données)</td>
-</tr>
-<tr>
-<td><code>task pull</code></td>
-<td>Met à jour depuis Git, reconstruit et redémarre</td>
-</tr>
-<tr>
-<td><code>task add-user</code></td>
-<td>Ajoute un utilisateur</td>
-</tr>
-<tr>
-<td><code>task change-password</code></td>
-<td>Change un mot de passe</td>
-</tr>
-<tr>
-<td><code>task watch</code></td>
-<td>Non implémenté (version Docker)</td>
-</tr>
-</tbody>
-</table>
-<h2 id="architecture-du-projet">Architecture du projet</h2>
+<hr>
+<h2 id="-architecture-technique">🏗️ Architecture Technique</h2>
 <p>Le projet est composé de trois services Docker :</p>
 <ol>
-<li><strong><code>api</code></strong> (port 5000) : Backend Flask (OCR, TTS, gestion des utilisateurs).</li>
-<li><strong><code>client</code></strong> (port 8000) : Frontend (SPA + proxy HTTPS vers l'API).</li>
-<li><strong><code>coqui</code></strong> (port 5002) : Service de synthèse vocale Coqui.</li>
+<li><strong><code>api</code></strong> : Backend Flask (OCR, gestion utilisateur, logique).</li>
+<li><strong><code>client</code></strong> : Frontend web et proxy HTTPS.</li>
+<li><strong><code>coqui</code></strong> : Moteur de synthèse vocale (TTS).</li>
 </ol>
-<h3 id="structure-des-rpertoires">Structure des répertoires</h3>
 <pre><code>lutrin/
 ├── lutrin_api/          # Backend API Flask
 ├── lutrin_client/       # Frontend (HTML/CSS/JS)
@@ -212,32 +131,6 @@
 ├── Taskfile.yml         # Définition des commandes task
 └── Makefile             # Installation des prérequis
 </code></pre>
-<h2 id="application-android">Application Android</h2>
-<p>Une application Android est disponible pour télécharger le flux vidéo de la caméra du téléphone et l'envoyer au serveur.</p>
-<ul>
-<li><strong>Chemin</strong> : <code>lutrin_apk/dist/lutrin.apk</code></li>
-<li><strong>Fonctionnalités</strong> :
-<ul>
-<li>Capture vidéo depuis la caméra du téléphone</li>
-<li>Streaming vers le serveur Lutrin</li>
-<li>Interface simplifiée pour la gestion de la connexion</li>
-</ul>
-</li>
-</ul>
-<p>L'application est disponible dans le dépôt GitHub et peut être téléchargée directement depuis ce chemin.</p>
-<h2 id="problmes-courants">Problèmes courants</h2>
-<ul>
-<li><strong>Permissions Docker</strong> : Après <code>make install</code>, déconnectez-vous/reconnectez-vous pour que les changements de groupe prennent effet.</li>
-<li><strong>Certificats SSL</strong> : Assurez-vous que <code>lutrin_tools/certs/cert.pem</code> et <code>key.pem</code> existent.</li>
-<li><strong>PATH</strong> : Vérifiez que <code>~/.local/bin</code> est dans votre <code>PATH</code> (utilisez <code>make check-path</code>).</li>
-<li><strong>Mise à jour</strong> : Utilisez <code>task pull</code> pour mettre à jour le projet.</li>
-</ul>
-<h2 id="dveloppement">Développement</h2>
-<ul>
-<li>Le code est monté dans les conteneurs pour le développement.</li>
-<li>Modifiez le code dans <code>lutrin_api/</code> ou <code>lutrin_client/</code>, puis utilisez <code>task pull</code> pour reconstruire.</li>
-<li>Le mode &quot;watch&quot; n'est pas implémenté pour la version Docker.</li>
-</ul>
 
   </body>
 </html>

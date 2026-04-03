@@ -1,124 +1,101 @@
-# Lutrin
+# 📖 Lutrin
 
-Projet d'interface web pour contrôler une caméra sur un Raspberry Pi, effectuer une reconnaissance optique de caractères (OCR) sur les images capturées et générer une synthèse vocale (TTS) du texte reconnu.
+📖 **Lutrin** est un projet solidaire né lors du marathon d'innovation **[Hacking Health Besançon 2025](https://hacking-health.org/fr/besancon-fr/)**. 
 
-## Prérequis
+🏆 **Lauréat du Hacking Health**, le projet est désormais accompagné et suivi par **[Le Tube à Essais](https://letubeaessais.fr/)**, une SCIC dédiée à l'incubation de projets innovants et solidaires.
 
-- **Docker** et **Docker Compose** (installés via `make install`)
+### Le concept
+L'objectif est simple : **rendre la lecture accessible à tous**, en particulier aux personnes souffrant de handicaps moteurs ou visuels qui ne peuvent pas manipuler de livres papier.
+
+### Ce que fait Lutrin
+Lutrin est une plateforme universelle qui transforme le texte en **livre audio personnalisé** en temps réel :
+- **Capture de livres physiques** : Une simple webcam filme les pages d'un livre papier. L'IA reconnaît le texte et le lit instantanément avec une voix naturelle.
+- **Bibliothèque Numérique (ePub)** : L'utilisateur peut importer ses propres fichiers ePub ou piocher dans une bibliothèque proposée par le serveur. 
+- **Gestion Personnalisée** : Chaque utilisateur dispose de son propre espace pour gérer sa collection de livres numériques et reprendre sa lecture audio là où il s'est arrêté.
+- **Interface Inclusive** : Un contrôle ultra-épuré (gros boutons, navigation simplifiée) conçu pour pallier les déficiences visuelles ou le manque de précision motrice.
+
+## 📄 Liens utiles
+- **Présentation du projet** : [Lien Canva](https://canva.link/q5t74ovnzwt6t10)
+- **Support technique** : Utilisez les `issues` du dépôt GitHub.
+
+## 🚀 Utilisation (Mode Utilisateur)
+
+Si vous souhaitez utiliser le service sans installer de serveur, voici les accès directs :
+
+### 🌐 Interface Web
+Accédez à l'application de lecture directement via votre navigateur :
+👉 **[https://lutrin.terium.org](https://lutrin.terium.org)**
+
+### 📱 Application Android
+Une application est disponible pour utiliser la caméra de votre téléphone comme scanner et l'envoyer au serveur.
+- **Télécharger l'APK** : [`lutrin_apk/dist/lutrin.apk`](https://github.com/afornerot/lutrin/raw/main/lutrin_apk/dist/lutrin.apk)
+- **Fonctionnalités** : Capture vidéo, streaming vers le serveur et interface de connexion simplifiée.
+
+
+## 🛠️ Installation du Serveur (Mode Administrateur)
+
+Cette section est destinée à l'hébergement de votre propre instance Lutrin.
+
+### 📋 Prérequis
+- **Docker** et **Docker Compose**
 - **Task** (installé via `make install`)
 - **Git**
-- **Certificats SSL** (auto-signés) pour le client HTTPS
-- **Clé API Groq** (optionnelle, pour l'OCR par IA)
-- **Application Android** (optionnelle, pour le streaming depuis un téléphone)
+- **Certificats SSL** (auto-signés ou officiels)
 
-## Installation
+### ⚙️ Installation
 
-1.  Clonez le dépôt et entrez dans le répertoire :
+1.  **Cloner le dépôt** :
     ```bash
-    git clone https://github.com/afornerot/lutrin.git
+    git clone [https://github.com/afornerot/lutrin.git](https://github.com/afornerot/lutrin.git)
     cd lutrin
     ```
 
-2.  Installez les prérequis (Docker, Docker Compose, Task) :
+2.  **Installer les outils (Docker, Task)** :
     ```bash
     make install
     ```
-    **Notes :**
-    -   Après l'installation de Docker, déconnectez-vous et reconnectez-vous pour que les changements de groupe prennent effet.
-    -   Vérifiez que `~/.local/bin` est dans votre `PATH` avec `make check-path`.
-    -   Si ce n'est pas le cas, ajoutez-le : `echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc && source ~/.bashrc`.
+    *Note : Après l'installation, déconnectez-vous et reconnectez-vous pour que les changements de groupe Docker prennent effet.*
 
-3.  Générez les certificats SSL (si ce n'est pas déjà fait) et placez-les dans `lutrin_tools/certs/` :
+3.  **Générer les certificats SSL** (requis pour le client HTTPS) :
+    Placez-les dans `lutrin_tools/certs/` :
     ```bash
-    # Exemple de génération de certificat auto-signé
-    openssl req -x509 -newkey rsa:4096 -keyout lutrin_tools/certs/key.pem -out lutrin_tools/certs/cert.pem -days 365 -nodes -subj "/C=FR/ST=France/L=Paris/O=Lutrin/OU=Dev/CN=localhost"
+    openssl req -x509 -newkey rsa:4096 -keyout lutrin_tools/certs/key.pem -out lutrin_tools/certs/cert.pem -days 365 -nodes -subj "/C=FR/ST=France/L=Paris/O=Lutrin/CN=localhost"
     ```
 
-## Démarrage rapide
-
-Après l'installation, suivez ces étapes :
-
-1.  **Construisez les images et initialisez la base de données** (cela créera un utilisateur admin si aucun n'existe) :
+4.  **Démarrage** :
     ```bash
-    task build
+    task build   # Construit les images et initialise la base de données
+    task start   # Démarre tous les services en arrière-plan
     ```
 
-2.  **Démarrez tous les services** :
-    ```bash
-    task start
-    ```
+### 🌍 Accès aux services locaux
+- **Client (HTTPS)** : `https://localhost:8000`
+- **API (HTTP)** : `http://localhost:5000`
 
-3.  **Accédez à l'interface web** :
-    -   Client (HTTPS) : **https://localhost:8000**
-    -   API (HTTP) : **http://localhost:5000**
+---
 
-4.  **Configurez l'utilisateur** :
-    -   Lors du premier `task build`, un utilisateur admin est créé interactivement.
-    -   Une clé d'API est générée. Copiez-la et collez-la dans le champ "Clé d'API" de l'interface web.
+## 🔧 Configuration et Administration
 
-## Gestion des utilisateurs
+### Gestion des utilisateurs
+Lors du premier `task build`, un administrateur est créé. Vous pouvez en ajouter d'autres via le terminal :
+- **Ajouter un utilisateur** : `task add-user user=nom password=pass email=mail@mail.com role=USER`
+- **Changer un mot de passe** : `task change-password user=nom password=nouveau_pass`
 
--   **Ajouter un utilisateur** :
-    ```bash
-    task add-user user=mon_user password=mon_mot_de_passe email=mon_email role=USER
-    ```
-    Rôles disponibles : `USER`, `ADMIN`.
-
--   **Changer un mot de passe** :
-    ```bash
-    task change-password user=mon_user password=nouveau_mot_de_passe
-    ```
-
-## Configuration (`lutrin_api/.env`)
-
-Le projet utilise deux fichiers d'environnement :
-
--   **`.env`** : Configuration par défaut (inclus dans Git).
--   **`.env.local`** : Surcharge locale (non versionnée). Créez-le si besoin.
-
-### Paramètres principaux
-
-| Variable | Description | Valeur par défaut |
-|----------|-------------|-------------------|
-| `GROQ_TOKEN` | Clé API pour Groq OCR (optionnel) | `changeme` |
-| `FRONT_URL` | URL du frontend pour les liens | `https://localhost:8000` |
-| `COQUI_MODEL` | Modèle Coqui TTS | `tts_models/multilingual/multi-dataset/xtts_v2` |
-| `FLASK_PORT` | Port de l'API Flask | `5000` |
-| `CLIENT_PORT` | Port du client | `8000` |
-
-### Obtenir une clé API Groq (optionnel)
-
-Pour utiliser l'OCR par IA :
-1.  Créez un compte sur [Groq](https://console.groq.com/).
-2.  Accédez à la section des clés API.
-3.  Créez une clé et ajoutez-la à `GROQ_TOKEN` dans votre `.env.local`.
-
-## Commandes Task disponibles
-
-| Commande | Description |
+### Variables d'environnement (`lutrin_api/.env`)
+| Variable | Description |
 |----------|-------------|
-| `task` | Liste toutes les tâches disponibles |
-| `task build` | Construit les images, télécharge les modèles, initialise la base de données |
-| `task start` | Démarre tous les services en arrière-plan |
-| `task stop` | Arrête tous les services |
-| `task restart` | Redémarre les services |
-| `task status` | Affiche le statut des services |
-| `task logs [service=api]` | Affiche les logs (spécifique à un service si `service=nom`) |
-| `task clean` | Supprime conteneurs et images construites (conserve les données) |
-| `task pull` | Met à jour depuis Git, reconstruit et redémarre |
-| `task add-user` | Ajoute un utilisateur |
-| `task change-password` | Change un mot de passe |
-| `task watch` | Non implémenté (version Docker) |
+| `GROQ_TOKEN` | Clé API pour Groq OCR (optionnel, pour une vitesse accrue) |
+| `COQUI_MODEL` | Modèle de synthèse vocale utilisé |
+| `CLIENT_PORT` | Port d'écoute du frontend (8000 par défaut) |
 
-## Architecture du projet
+---
+
+## 🏗️ Architecture Technique
 
 Le projet est composé de trois services Docker :
-
-1.  **`api`** (port 5000) : Backend Flask (OCR, TTS, gestion des utilisateurs).
-2.  **`client`** (port 8000) : Frontend (SPA + proxy HTTPS vers l'API).
-3.  **`coqui`** (port 5002) : Service de synthèse vocale Coqui.
-
-### Structure des répertoires
+1.  **`api`** : Backend Flask (OCR, gestion utilisateur, logique).
+2.  **`client`** : Frontend web et proxy HTTPS.
+3.  **`coqui`** : Moteur de synthèse vocale (TTS).
 
 ```
 lutrin/
@@ -137,28 +114,3 @@ lutrin/
 └── Makefile             # Installation des prérequis
 ```
 
-## Application Android
-
-Une application Android est disponible pour télécharger le flux vidéo de la caméra du téléphone et l'envoyer au serveur.
-
-- **Chemin** : `lutrin_apk/dist/lutrin.apk`
-- **Fonctionnalités** :
-    - Capture vidéo depuis la caméra du téléphone
-    - Streaming vers le serveur Lutrin
-    - Interface simplifiée pour la gestion de la connexion
-
-L'application est disponible dans le dépôt GitHub et peut être téléchargée directement depuis ce chemin.
-
-## Problèmes courants
-
--   **Permissions Docker** : Après `make install`, déconnectez-vous/reconnectez-vous pour que les changements de groupe prennent effet.
--   **Certificats SSL** : Assurez-vous que `lutrin_tools/certs/cert.pem` et `key.pem` existent.
--   **PATH** : Vérifiez que `~/.local/bin` est dans votre `PATH` (utilisez `make check-path`).
--   **Installation Task** : Si l'installation de Task échoue, vérifiez votre connexion Internet et réessayez. Le script peut nécessiter `curl` ou `wget`.
--   **Mise à jour** : Utilisez `task pull` pour mettre à jour le projet.
-
-## Développement
-
--   Le code est monté dans les conteneurs pour le développement.
--   Modifiez le code dans `lutrin_api/` ou `lutrin_client/`, puis utilisez `task pull` pour reconstruire.
--   Le mode "watch" n'est pas implémenté pour la version Docker.
