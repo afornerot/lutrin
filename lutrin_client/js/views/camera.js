@@ -12,6 +12,7 @@ import {
 let cameraStreamContainer, cameraVideoStream, cameraAudioPlayback, cameraOcrResultContainer, cameraOcrTextResult;
 let cameraModeActionButton, cameraModeStopButton;
 let cameraStatusOverlay, cameraStatusMessage, cameraStatusText, cameraErrorMessage, cameraErrorText;
+let cameraInitLoader;
 let videoDevices;
 let currentDevice;
 
@@ -224,6 +225,7 @@ export function initCameraView() {
     cameraStatusText = document.getElementById('camera-status-text');
     cameraErrorMessage = document.getElementById('camera-error-message');
     cameraErrorText = document.getElementById('camera-error-text');
+    cameraInitLoader = document.getElementById('camera-init-loader');
 
     const switchCameraButton = document.getElementById('switch-camera-button'); // Bouton de changement de caméra
 
@@ -325,7 +327,7 @@ export function initCameraView() {
     });
 
     // Logique pour le bouton de bascule qui parcourt toutes les caméras en boucle.
-    switchCameraButton?.addEventListener('click', async () => {
+    const switchCamera = async () => {
         console.log("==SWITCH CAMERAS=========================================");
         try {
             if (!videoDevices || videoDevices.length === 0) {
@@ -344,12 +346,12 @@ export function initCameraView() {
             if (videoDevices[currentDevice].deviceId === "mjpeg-stream") {
                 // Créer et configurer l'élément <img> pour le flux MJPEG
                 const img = document.createElement('img');
-                img.id = 'camera-video-stream'; // Garder l'ID pour la compatibilité si besoin
+                img.id = 'camera-video-stream';
                 img.src = MJPEG_STREAM_URL;
-                img.crossOrigin = "anonymous"; // Indispensable pour que le navigateur demande les permissions CORS
+                img.crossOrigin = "anonymous";
                 img.className = 'w-full h-full object-contain';
                 cameraStreamContainer.appendChild(img);
-                cameraVideoStream = img; // Mettre à jour la référence
+                cameraVideoStream = img;
                 console.log("Affichage du flux MJPEG Android.");
             } else if (videoDevices[currentDevice].deviceId === "wifi-webcam-stream") {
                 // Créer et configurer l'élément <img> pour le flux MJPEG de la webcam WiFi
@@ -374,16 +376,19 @@ export function initCameraView() {
                 video.playsInline = true;
                 video.className = 'w-full h-full object-contain';
                 cameraStreamContainer.appendChild(video);
-                cameraVideoStream = video; // Mettre à jour la référence
+                cameraVideoStream = video;
                 stream = await startCamera(cameraVideoStream, { deviceId: videoDevices[currentDevice].deviceId });
             }
         } catch (error) {
             showCameraStatus(`Erreur lors du changement de caméra: ${error.message}`, true);
         }
-    });
+    };
+
+    switchCameraButton?.addEventListener('click', switchCamera);
 
     // Démarrer la caméra
     const startAndPopulate = async () => {
+        if (cameraInitLoader) cameraInitLoader.classList.remove('hidden');
         try {
             console.log("==INIT CAMERAS=========================================");
             videoDevices = await getVideoDevices();
@@ -424,14 +429,17 @@ export function initCameraView() {
 
             if (videoDevices.length === 0) {
                 showCameraStatus("Aucune caméra détectée.", true);
+                if (cameraInitLoader) cameraInitLoader.classList.add('hidden');
                 return;
             }
 
             console.log("==START FIRST CAMERAS=========================================");
             currentDevice = 1;
-            switchCameraButton.click();
+            await switchCamera();
         } catch (error) {
             showCameraStatus(`Erreur caméra: ${error.message}`, true);
+        } finally {
+            if (cameraInitLoader) cameraInitLoader.classList.add('hidden');
         }
     };
 
