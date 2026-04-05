@@ -103,7 +103,9 @@ a:focus-visible {
     color: var(--text);
 }
 
-.card h2 i {margin-right: 20px;}
+.card h2 i {
+    margin-right: 20px;
+}
 
 .card h2,
 .card h3 {
@@ -1378,7 +1380,9 @@ input[type="file"] {
 }
 
 @media (max-width: 1024px) {
-    .grid-2col, .grid-3col {
+
+    .grid-2col,
+    .grid-3col {
         grid-template-columns: 1fr;
     }
 }
@@ -2086,6 +2090,7 @@ h3 i {
     border-radius: 10px;
     height: 275px;
     top: 25px;
+    margin: 0px 10px;
 }
 
 .home-hero {
@@ -2096,7 +2101,7 @@ h3 i {
 .home-logo {
     width: 8rem;
     border-radius: 1rem;
-    margin:auto;
+    margin: auto;
     margin-bottom: 1.5rem;
     display: block;
 }
