@@ -2,50 +2,33 @@
 <div class="page-content">
     <h1>Paramètres</h1>
 
-    <div class="grid grid-3col gap-4">
-        <div class="card settings-card">
-            <h2>
-                <i class="fas fa-universal-access"></i>
-                Accessibilité
-            </h2>
-
-            <div class="form-group">
-                <label for="ui-scale-slider">Taille de l'interface</label>
-                <div class="slider-group">
-                    <span class="slider-label">Petite</span>
-                    <input id="ui-scale-slider" type="range" min="0.75" max="2" value="1" step="0.05">
-                    <span class="slider-label">Grande</span>
-                </div>
-                <p class="text-center">Actuellement : <span id="ui-scale-value">100%</span></p>
-            </div>
-        </div>
-
+    <div class="grid grid-2col gap-4">
         <div class="card settings-card">
             <h2>
                 <i class="fas fa-cogs"></i>
-                Moteurs d'IA
+                Moteurs
             </h2>
 
             <div class="form-group">
-                <label for="ocr-engine-select">Moteur OCR</label>
+                <label for="ocr-engine-select">Moteur OCR = Image vers Texte</label>
                 <select id="ocr-engine-select" name="ocr-engine">
-                    <option value="paddle">Paddle (Local)</option>
+                    <!-- <option value="paddle">Paddle (Local)</option> -->
                     <option value="groq" selected>Groq (Qualité)</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label for="tts-engine-select">Moteur TTS</label>
+                <label for="tts-engine-select">Moteur TTS = Texte vers Voix</label>
                 <select id="tts-engine-select" name="tts-engine">
                     <option value="piper" selected>Piper (Rapide)</option>
-                    <option value="coqui">Coqui (Qualité)</option>
+                    <!-- <option value="coqui">Coqui (Qualité)</option> -->
                 </select>
             </div>
 
             <!-- Ce conteneur sera affiché/masqué par JS -->
             <div id="piper-model-selector-container" class="hidden">
                 <div class="form-group">
-                    <label for="piper-model-select">Modèle Piper</label>
+                    <label for="piper-model-select">Modèle de Voix</label>
                     <select id="piper-model-select" name="piper-model"></select>
                 </div>
                 <div class="form-group">
@@ -67,21 +50,42 @@
             </div>
         </div>
 
-        <div class="card settings-card">
-            <h2>
-                <i class="fas fa-wifi"></i>
-                Webcam WiFi
-            </h2>
+        <div>
+            <div class="card settings-card">
+                <h2>
+                    <i class="fas fa-universal-access"></i>
+                    Accessibilité
+                </h2>
 
-            <div class="form-group">
-                <label for="wifi-webcam-url">URL du flux MJPEG</label>
-                <input type="text" id="wifi-webcam-url" placeholder="http://192.168.1.100:8080/stream.mjpeg">
-                <p class="help-text">Entrez l'URL complète du flux MJPEG de votre webcam WiFi</p>
+                <div class="form-group">
+                    <label for="ui-scale-slider">Taille de l'interface</label>
+                    <div class="slider-group">
+                        <span class="slider-label">Petite</span>
+                        <input id="ui-scale-slider" type="range" min="0.75" max="2" value="1" step="0.05">
+                        <span class="slider-label">Grande</span>
+                    </div>
+                    <p class="text-center">Actuellement : <span id="ui-scale-value">100%</span></p>
+                </div>
             </div>
 
-            <button id="test-wifi-webcam-button" class="btn-primary w-100">
-                <i class="fas fa-check-circle"></i> Tester la connexion
-            </button>
+            <div class="card settings-card mt-4">
+                <h2>
+                    <i class="fas fa-wifi"></i>
+                    Webcam WiFi
+                </h2>
+
+                <div class="form-group">
+                    <label for="wifi-webcam-url">URL du flux MJPEG</label>
+                    <input type="text" id="wifi-webcam-url" placeholder="http://192.168.1.100:8080/stream.mjpeg">
+                    <p class="help-text">Entrez l'URL complète du flux MJPEG de votre webcam WiFi</p>
+                </div>
+
+                <button id="test-wifi-webcam-button" class="btn-primary w-100">
+                    <i class="fas fa-check-circle"></i> Tester la connexion
+                </button>
+
+            </div>
+
         </div>
     </div>
 </div>

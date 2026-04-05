@@ -145,6 +145,8 @@ export function initSettingsView() {
         const url = e.target.value.trim();
         if (url) {
             localStorage.setItem(WIFI_WEBCAM_URL_KEY, url);
+        } else {
+            localStorage.removeItem(WIFI_WEBCAM_URL_KEY);
         }
     });
 

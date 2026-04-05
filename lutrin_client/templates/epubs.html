@@ -51,18 +51,21 @@
     </div>
 
     <div id="epub-list-container">
-        <!-- Section En cours -->
-        <div id="in-progress-section" class="card section-block">
-            <h2>En Cours</h2>
-            <div id="in-progress-grid" class="book-grid"></div>
-            <p id="in-progress-placeholder" class="hidden">Aucun livre en cours de lecture.</p>
-        </div>
+        <!-- Sections En cours + Non lus (côte à côte si les deux présents) -->
+        <div id="active-sections-wrapper">
+            <!-- Section En cours -->
+            <div id="in-progress-section" class="card section-block">
+                <h2>En Cours</h2>
+                <div id="in-progress-grid" class="book-grid"></div>
+                <p id="in-progress-placeholder" class="hidden">Aucun livre en cours de lecture.</p>
+            </div>
 
-        <!-- Section Non lus -->
-        <div id="not-started-section" class="card section-block">
-            <h2>Non lus</h2>
-            <div id="not-started-grid" class="book-grid"></div>
-            <p id="not-started-placeholder" class="hidden">Aucun livre non lu.</p>
+            <!-- Section Non lus -->
+            <div id="not-started-section" class="card section-block">
+                <h2>Non lus</h2>
+                <div id="not-started-grid" class="book-grid"></div>
+                <p id="not-started-placeholder" class="hidden">Aucun livre non lu.</p>
+            </div>
         </div>
 
         <!-- Section Lus -->

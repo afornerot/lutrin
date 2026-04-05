@@ -83,6 +83,9 @@ async function loadAndDisplayEpubs() {
 
     const placeholders = {
         sectionFinished: document.getElementById('finished-section'),
+        sectionInProgress: document.getElementById('in-progress-section'),
+        sectionNotStarted: document.getElementById('not-started-section'),
+        activeSectionsWrapper: document.getElementById('active-sections-wrapper'),
         main: document.getElementById('epub-placeholder'),
         inProgress: document.getElementById('in-progress-placeholder'),
         notStarted: document.getElementById('not-started-placeholder'),
@@ -91,8 +94,10 @@ async function loadAndDisplayEpubs() {
 
     // Vider les grilles
     Object.values(grids).forEach(grid => { if (grid) grid.innerHTML = ''; });
-    // Cacher tous les placeholders
-    Object.values(placeholders).forEach(p => { if (p) p.classList.add('hidden'); });
+    // Cacher les placeholders de texte uniquement
+    [placeholders.main, placeholders.inProgress, placeholders.notStarted, placeholders.finished].forEach(p => {
+        if (p) p.classList.add('hidden');
+    });
 
     try {
         let allEpubs = await getEpubsForUser(currentUser);
@@ -143,7 +148,7 @@ async function loadAndDisplayEpubs() {
         const renderEpubs = () => {
             // Vider les grilles avant de les remplir
             Object.values(grids).forEach(grid => { if (grid) grid.innerHTML = ''; });
-            // Cacher tous les placeholders sauf sectionFinished (géré séparément)
+            // Cacher les placeholders de texte uniquement
             [placeholders.main, placeholders.inProgress, placeholders.notStarted, placeholders.finished].forEach(p => {
                 if (p) p.classList.add('hidden');
             });
@@ -246,10 +251,41 @@ async function loadAndDisplayEpubs() {
             categorizedEpubs.notStarted.forEach(epub => grids.notStarted.appendChild(createCard(epub)));
             categorizedEpubs.finished.forEach(epub => grids.finished.appendChild(createCard(epub)));
 
-            // Afficher les placeholders si les sections sont vides
-            if (categorizedEpubs.inProgress.length === 0) placeholders.inProgress.classList.remove('hidden');
-            if (categorizedEpubs.notStarted.length === 0) placeholders.notStarted.classList.remove('hidden');
-            if (!hideFinished && categorizedEpubs.finished.length === 0) placeholders.finished.classList.remove('hidden');
+            // Afficher/masquer les sections actives et ajuster le layout
+            const hasInProgress = categorizedEpubs.inProgress.length > 0;
+            const hasNotStarted = categorizedEpubs.notStarted.length > 0;
+
+            if (hasInProgress) {
+                placeholders.inProgress.classList.add('hidden');
+                placeholders.sectionInProgress.classList.remove('hidden');
+            } else {
+                placeholders.inProgress.classList.remove('hidden');
+                placeholders.sectionInProgress.classList.add('hidden');
+            }
+
+            if (hasNotStarted) {
+                placeholders.notStarted.classList.add('hidden');
+                placeholders.sectionNotStarted.classList.remove('hidden');
+            } else {
+                placeholders.notStarted.classList.remove('hidden');
+                placeholders.sectionNotStarted.classList.add('hidden');
+            }
+
+            // Afficher le wrapper et ajuster les colonnes
+            if (placeholders.activeSectionsWrapper) {
+                placeholders.activeSectionsWrapper.classList.remove('hidden');
+                placeholders.activeSectionsWrapper.style.display = 'grid';
+                placeholders.activeSectionsWrapper.style.gap = '1.5rem';
+                placeholders.activeSectionsWrapper.style.gridTemplateColumns = (hasInProgress && hasNotStarted) ? 'repeat(2, 1fr)' : '1fr';
+            }
+
+            if (!hideFinished && categorizedEpubs.finished.length === 0) {
+                placeholders.finished.classList.remove('hidden');
+                placeholders.sectionFinished.classList.add('hidden');
+            } else if (!hideFinished) {
+                placeholders.finished.classList.add('hidden');
+                placeholders.sectionFinished.classList.remove('hidden');
+            }
         };
 
         if (allEpubs.length === 0) {
