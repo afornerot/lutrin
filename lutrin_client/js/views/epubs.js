@@ -9,8 +9,8 @@ function handleAddEpubClick(fileInput) {
 }
 
 async function handleFileSelected(event) {
-    const file = event.target.files[0];
-    if (!file) {
+    const files = event.target.files;
+    if (!files || files.length === 0) {
         return;
     }
 
@@ -18,35 +18,50 @@ async function handleFileSelected(event) {
     const statusText = document.getElementById('epub-upload-status-text');
 
     try {
-        statusText.textContent = `Envoi de "${file.name}"...`;
         statusOverlay.classList.remove('hidden');
 
-        const formData = new FormData();
-        formData.append('epub_file', file);
+        let successCount = 0;
+        let errorCount = 0;
+        const totalFiles = files.length;
 
-        const result = await postWithFile('/epub/add', formData);
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            statusText.textContent = `Envoi ${i + 1}/${totalFiles}: "${file.name}"...`;
 
-        const epubData = result.data;
-        const currentUser = getAuthUser();
+            try {
+                const formData = new FormData();
+                formData.append('epub_file', file);
 
-        // Calculer le nombre total de chapitres à partir du texte reçu
-        const totalChapters = epubData.text ? epubData.text.split('\n\n').filter(c => c.trim() !== '').length : 0;
+                const result = await postWithFile('/epub/add', formData);
 
-        // Enrichir l'objet avec l'ID de l'utilisateur avant de le sauvegarder
-        const dataToStore = {
-            ...epubData,
-            userId: currentUser,
-            readingProgress: { lastChapterRead: 0 }, // Initialiser la progression
-            totalChapters: totalChapters // Sauvegarder le nombre total de chapitres
-        };
+                const epubData = result.data;
+                const currentUser = getAuthUser();
 
-        const newId = await addEpubToDB(dataToStore);
-        console.log(`EPUB sauvegardé dans la base de données locale avec l'ID: ${newId}`);
+                const totalChapters = epubData.text ? epubData.text.split('\n\n').filter(c => c.trim() !== '').length : 0;
 
-        // Rafraîchir l'affichage de la bibliothèque
+                const dataToStore = {
+                    ...epubData,
+                    userId: currentUser,
+                    readingProgress: { lastChapterRead: 0 },
+                    totalChapters: totalChapters
+                };
+
+                const newId = await addEpubToDB(dataToStore);
+                console.log(`EPUB sauvegardé dans la base de données locale avec l'ID: ${newId}`);
+                successCount++;
+            } catch (error) {
+                console.error(`Erreur lors de l'upload de "${file.name}":`, error);
+                errorCount++;
+            }
+        }
+
         await loadAndDisplayEpubs();
 
-        statusText.textContent = "Fichier traité avec succès !";
+        if (errorCount === 0) {
+            statusText.textContent = `${successCount} livre(s) ajouté(s) avec succès !`;
+        } else {
+            statusText.textContent = `${successCount} ajouté(s), ${errorCount} erreur(s).`;
+        }
 
         setTimeout(() => {
             statusOverlay.classList.add('hidden');
@@ -55,9 +70,7 @@ async function handleFileSelected(event) {
     } catch (error) {
         console.error("Erreur lors de l'upload de l'EPUB:", error);
         statusText.textContent = `Erreur: ${error.message}`;
-        // Laisser la modale ouverte en cas d'erreur pour que l'utilisateur voie le message
     } finally {
-        // Réinitialiser l'input pour permettre de re-sélectionner le même fichier
         event.target.value = '';
     }
 }

@@ -15,9 +15,13 @@
             <i class="fas fa-upload"></i>
             <span>Ajouter un livre</span>
         </button>
+        <button id="import-selected-button" class="btn-primary hidden">
+            <i class="fas fa-download"></i>
+            <span>Importer la sélection (<span id="selected-count">0</span>)</span>
+        </button>
     </div>
 
-    <input type="file" id="admin-epub-file-input" class="hidden" accept=".epub">
+    <input type="file" id="admin-epub-file-input" class="hidden" accept=".epub" multiple>
 
     <!-- Barre de filtres -->
     <div id="filters-bar" class="card filters-bar">

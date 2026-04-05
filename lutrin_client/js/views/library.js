@@ -69,26 +69,45 @@ let currentDescriptionIcon = null;
 let isDescriptionLoading = false;
 
 async function handleAdminFileSelected(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
     const statusOverlay = document.getElementById('library-status-overlay');
     const statusText = document.getElementById('library-status-text');
 
     try {
-        statusText.textContent = `Envoi de "${file.name}" vers la bibliothèque centrale...`;
         statusOverlay.classList.remove('hidden');
 
-        const formData = new FormData();
-        formData.append('epub_file', file);
+        let successCount = 0;
+        let errorCount = 0;
+        const totalFiles = files.length;
 
-        const result = await postWithFile('/library/add-from-file', formData);
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            statusText.textContent = `Envoi ${i + 1}/${totalFiles}: "${file.name}" vers la bibliothèque centrale...`;
 
-        statusText.textContent = `Livre ajouté avec succès (ID: ${result.id})! Rafraîchissement...`;
+            try {
+                const formData = new FormData();
+                formData.append('epub_file', file);
+
+                const result = await postWithFile('/library/add-from-file', formData);
+                console.log(`Livre ajouté avec succès (ID: ${result.id}): ${file.name}`);
+                successCount++;
+            } catch (error) {
+                console.error(`Erreur lors de l'upload de "${file.name}":`, error);
+                errorCount++;
+            }
+        }
+
+        if (errorCount === 0) {
+            statusText.textContent = `${successCount} livre(s) ajouté(s) avec succès! Rafraîchissement...`;
+        } else {
+            statusText.textContent = `${successCount} ajouté(s), ${errorCount} erreur(s). Rafraîchissement...`;
+        }
 
         setTimeout(() => {
             statusOverlay.classList.add('hidden');
-            initLibraryView(); // On rafraîchit la vue pour afficher le nouveau livre
+            initLibraryView();
         }, 2000);
 
     } catch (error) {
