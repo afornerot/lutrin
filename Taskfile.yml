@@ -9,10 +9,23 @@ tasks:
     desc: Build images, download models, initialize database
     cmds:
       - mkdir -p lutrin_data/api lutrin_data/coqui
+      - task: download-models
       - docker compose build
-      - ./lutrin_tools/task_scripts/download-coqui.sh
       - ./lutrin_tools/task_scripts/init-db.sh
       - ./lutrin_tools/task_scripts/check-users.sh
+
+  download-models:
+    desc: Download Piper & Coqui TTS models
+    cmds:
+      - ./lutrin_tools/task_scripts/download-piper.sh
+      - ./lutrin_tools/task_scripts/download-coqui.sh
+
+  pull:
+    desc: Stop, pull latest changes, start
+    cmds:
+      - task: stop
+      - git pull
+      - task: start
 
   start:
     desc: Start all services in background
@@ -65,14 +78,6 @@ tasks:
           echo "Operation cancelled."
         fi
 
-  pull:
-    desc: Pull latest changes, rebuild, restart
-    cmds:
-      - task: stop
-      - git pull
-      - docker compose build
-      - task: start
-
   add-user:
     desc: Add a new user
     cmds:
@@ -82,9 +87,3 @@ tasks:
     desc: Change a user's password
     cmds:
       - ./lutrin_tools/task_scripts/change-password.sh {{.user}} {{.password}}
-
-  watch:
-    desc: Watch for changes and rebuild (not implemented for Docker)
-    cmds:
-      - echo "Watch mode not implemented for Docker version."
-      - echo "Modify code and run 'task pull' to rebuild."
