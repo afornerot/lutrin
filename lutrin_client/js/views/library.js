@@ -139,8 +139,12 @@ export async function initLibraryView() {
     // Logique du bouton d'ajout admin
     if (getAuthUserRole() === 'ADMIN') {
         adminAddButton.classList.remove('hidden');
-        adminAddButton.addEventListener('click', () => adminFileInput.click());
-        adminFileInput.addEventListener('change', handleAdminFileSelected);
+        adminAddButton.replaceWith(adminAddButton.cloneNode(true));
+        adminFileInput.replaceWith(adminFileInput.cloneNode(true));
+        const newAdminAddButton = document.getElementById('admin-add-epub-button');
+        const newAdminFileInput = document.getElementById('admin-epub-file-input');
+        newAdminAddButton.addEventListener('click', () => newAdminFileInput.click());
+        newAdminFileInput.addEventListener('change', handleAdminFileSelected);
     }
 
 
@@ -392,9 +396,18 @@ function openEditModal(epub, onSaveCallback) {
     const cancelButton = document.getElementById('cancel-library-edit');
     const coverWrapper = document.getElementById('edit-cover-preview-wrapper');
 
+    saveButton.replaceWith(saveButton.cloneNode(true));
+    cancelButton.replaceWith(cancelButton.cloneNode(true));
+    coverInput.replaceWith(coverInput.cloneNode(true));
+    coverWrapper.replaceWith(coverWrapper.cloneNode(true));
+
+    const newSaveButton = document.getElementById('save-library-edit');
+    const newCancelButton = document.getElementById('cancel-library-edit');
+    const newCoverInput = document.getElementById('edit-cover-input');
+    const newCoverWrapper = document.getElementById('edit-cover-preview-wrapper');
+
     let newCoverBase64 = null;
 
-    // Populate fields
     coverPreview.src = epub.cover_image || 'assets/placeholder-cover.png';
     authorsInput.value = epub.metadata.authors.join(', ');
     styleInput.value = epub.metadata.style || '';
@@ -402,7 +415,6 @@ function openEditModal(epub, onSaveCallback) {
     seriesNumberInput.value = epub.metadata.series_number || '';
     descriptionInput.value = epub.metadata.description || '';
 
-    // Handlers
     const close = () => overlay.classList.add('hidden');
 
     const handleCoverChange = (event) => {
@@ -434,23 +446,21 @@ function openEditModal(epub, onSaveCallback) {
         try {
             await post(`/library/update/${epub.id}`, updatedData);
             close();
-            initLibraryView(); // On ré-initialise la vue pour recharger les données depuis le serveur
+            initLibraryView();
         } catch (error) {
             console.error("Erreur lors de la mise à jour du livre:", error);
             alert(`Erreur: ${error.message}`);
         }
     };
 
-    // Attach listeners
-    coverWrapper.onclick = () => coverInput.click();
-    coverInput.onchange = handleCoverChange;
-    saveButton.onclick = saveChanges;
-    cancelButton.onclick = close;
+    newCoverWrapper.onclick = () => newCoverInput.click();
+    newCoverInput.onchange = handleCoverChange;
+    newSaveButton.onclick = saveChanges;
+    newCancelButton.onclick = close;
     overlay.onclick = (e) => {
         if (e.target === overlay) close();
     };
 
-    // Ajouter la sauvegarde avec la touche "Entrée"
     const inputs = [authorsInput, styleInput, seriesNameInput, seriesNumberInput, descriptionInput];
     inputs.forEach(input => {
         input.addEventListener('keydown', (e) => {
@@ -461,7 +471,6 @@ function openEditModal(epub, onSaveCallback) {
         });
     });
 
-    // Show modal
     overlay.classList.remove('hidden');
-    setTimeout(() => authorsInput.focus(), 50); // Met le focus sur le premier champ
+    setTimeout(() => authorsInput.focus(), 50);
 }
