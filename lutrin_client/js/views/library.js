@@ -396,24 +396,14 @@ function openEditModal(epub, onSaveCallback) {
     const cancelButton = document.getElementById('cancel-library-edit');
     const coverWrapper = document.getElementById('edit-cover-preview-wrapper');
 
-    saveButton.replaceWith(saveButton.cloneNode(true));
-    cancelButton.replaceWith(cancelButton.cloneNode(true));
-    coverInput.replaceWith(coverInput.cloneNode(true));
-    coverWrapper.replaceWith(coverWrapper.cloneNode(true));
-
-    const newSaveButton = document.getElementById('save-library-edit');
-    const newCancelButton = document.getElementById('cancel-library-edit');
-    const newCoverInput = document.getElementById('edit-cover-input');
-    const newCoverWrapper = document.getElementById('edit-cover-preview-wrapper');
-
-    let newCoverBase64 = null;
-
     coverPreview.src = epub.cover_image || 'assets/placeholder-cover.png';
     authorsInput.value = epub.metadata.authors.join(', ');
     styleInput.value = epub.metadata.style || '';
     seriesNameInput.value = epub.metadata.series || '';
     seriesNumberInput.value = epub.metadata.series_number || '';
     descriptionInput.value = epub.metadata.description || '';
+
+    let newCoverBase64 = null;
 
     const close = () => overlay.classList.add('hidden');
 
@@ -429,6 +419,8 @@ function openEditModal(epub, onSaveCallback) {
     };
 
     const saveChanges = async () => {
+        const epubId = overlay.getAttribute('data-edit-epub-id');
+
         const updatedData = {
             metadata: {
                 authors: authorsInput.value.split(',').map(a => a.trim()).filter(Boolean),
@@ -444,7 +436,7 @@ function openEditModal(epub, onSaveCallback) {
         }
 
         try {
-            await post(`/library/update/${epub.id}`, updatedData);
+            await post(`/library/update/${epubId}`, updatedData);
             close();
             initLibraryView();
         } catch (error) {
@@ -453,22 +445,24 @@ function openEditModal(epub, onSaveCallback) {
         }
     };
 
-    newCoverWrapper.onclick = () => newCoverInput.click();
-    newCoverInput.onchange = handleCoverChange;
-    newSaveButton.onclick = saveChanges;
-    newCancelButton.onclick = close;
+    overlay.setAttribute('data-edit-epub-id', epub.id);
+
+    coverWrapper.onclick = () => coverInput.click();
+    coverInput.onchange = handleCoverChange;
+    saveButton.onclick = saveChanges;
+    cancelButton.onclick = close;
     overlay.onclick = (e) => {
         if (e.target === overlay) close();
     };
 
     const inputs = [authorsInput, styleInput, seriesNameInput, seriesNumberInput, descriptionInput];
     inputs.forEach(input => {
-        input.addEventListener('keydown', (e) => {
+        input.onkeydown = (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 saveChanges();
             }
-        });
+        };
     });
 
     overlay.classList.remove('hidden');
