@@ -767,13 +767,13 @@ input[type="file"] {
 
 .modal-card {
     position: relative;
-    max-width: 600px;
+    max-width: 800px;
     width: 90%;
     max-height: 90vh;
     overflow-y: auto;
 }
 
-.modal-card:has(h3) {
+.modal-card:has(h3):not(:has(.modal-grid)) {
     max-width: 500px;
 }
 
