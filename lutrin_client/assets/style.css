@@ -2080,8 +2080,8 @@ h3 i {
             #73655c 100%
             /* Couleur pleine en bas */
         ), url('back.png');
-    background-position: top center;
     background-position-y: top;
+    background-position-x: center;
     background-repeat: no-repeat;
     background-size: cover;
     border-radius: var(--radius);
