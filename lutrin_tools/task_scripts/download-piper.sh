@@ -26,7 +26,7 @@ for entry in "${MODELS[@]}"; do
         echo "  Model already present: $filename"
     else
         echo "  Downloading $filename ..."
-        curl -sL -o "$filepath" "$url"
+        curl -#L -o "$filepath" "$url"
         if [ $? -eq 0 ]; then
             echo "  Downloaded successfully."
         else
