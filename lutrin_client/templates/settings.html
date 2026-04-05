@@ -2,7 +2,24 @@
 <div class="page-content">
     <h1>Paramètres</h1>
 
-    <div class="grid grid-2col gap-4">
+    <div class="grid grid-3col gap-4">
+        <div class="card settings-card">
+            <h2>
+                <i class="fas fa-universal-access"></i>
+                Accessibilité
+            </h2>
+
+            <div class="form-group">
+                <label for="ui-scale-slider">Taille de l'interface</label>
+                <div class="slider-group">
+                    <span class="slider-label">Petite</span>
+                    <input id="ui-scale-slider" type="range" min="0.75" max="2" value="1" step="0.05">
+                    <span class="slider-label">Grande</span>
+                </div>
+                <p class="text-center">Actuellement : <span id="ui-scale-value">100%</span></p>
+            </div>
+        </div>
+
         <div class="card settings-card">
             <h2>
                 <i class="fas fa-cogs"></i>

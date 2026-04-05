@@ -13,12 +13,36 @@ export function initSettingsView() {
     const testTtsAudio = document.getElementById('test-tts-audio');
     const wifiWebcamUrlInput = document.getElementById('wifi-webcam-url');
     const testWifiWebcamButton = document.getElementById('test-wifi-webcam-button');
+    const uiScaleSlider = document.getElementById('ui-scale-slider');
+    const uiScaleValue = document.getElementById('ui-scale-value');
 
     const OCR_ENGINE_KEY = 'lutrin_ocr_engine';
     const TTS_ENGINE_KEY = 'lutrin_tts_engine';
     const PIPER_MODEL_KEY = 'lutrin_piper_model';
     const PIPER_SPEED_KEY = 'lutrin_piper_speed';
     const WIFI_WEBCAM_URL_KEY = 'lutrin_wifi_webcam_url';
+    const UI_SCALE_KEY = 'lutrin_ui_scale';
+
+    // --- Échelle de l'interface ---
+    const applyUiScale = (value) => {
+        document.body.style.setProperty('--ui-scale', value);
+        const pct = Math.round(parseFloat(value) * 100);
+        if (uiScaleValue) uiScaleValue.textContent = `${pct}%`;
+    };
+
+    const savedUiScale = localStorage.getItem(UI_SCALE_KEY);
+    if (savedUiScale && uiScaleSlider) {
+        uiScaleSlider.value = savedUiScale;
+        applyUiScale(savedUiScale);
+    }
+
+    uiScaleSlider?.addEventListener('input', () => {
+        applyUiScale(uiScaleSlider.value);
+    });
+
+    uiScaleSlider?.addEventListener('change', () => {
+        localStorage.setItem(UI_SCALE_KEY, uiScaleSlider.value);
+    });
 
     // --- Sauvegarde des préférences ---
     ocrEngineSelect?.addEventListener('change', (e) => {
