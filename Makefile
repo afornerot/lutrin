@@ -14,6 +14,16 @@ check:
 	@command -v task >/dev/null 2>&1 && echo "Task: installed" || echo "Task: not installed"
 
 install: install-docker install-compose install-task
+	@echo ""
+	@echo "============================================"
+	@echo "  IMPORTANT: Activate Docker group now!"
+	@echo ""
+	@echo "  Run this command in your terminal:"
+	@echo "    newgrp docker"
+	@echo ""
+	@echo "  Then you can run 'task build' immediately."
+	@echo "============================================"
+	@echo ""
 	@echo "All prerequisites installed."
 
 install-docker:
@@ -22,7 +32,7 @@ install-docker:
 	@sudo sh get-docker.sh
 	@sudo usermod -aG docker $$USER
 	@rm get-docker.sh
-	@echo "Docker installed. Please log out and log back in for group changes to take effect."
+	@echo "Docker installed."
 
 install-compose:
 	@echo "Installing Docker Compose plugin..."
