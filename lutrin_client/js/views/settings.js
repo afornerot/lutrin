@@ -71,8 +71,14 @@ export function initSettingsView() {
             const savedPiperModel = localStorage.getItem(PIPER_MODEL_KEY);
             if (savedPiperModel && models.includes(savedPiperModel)) {
                 piperModelSelect.value = savedPiperModel;
-            } else if (models.length > 0) {
-                localStorage.setItem(PIPER_MODEL_KEY, models[0]);
+            } else {
+                const defaultModel = 'fr_FR-siwis-medium.onnx';
+                if (models.includes(defaultModel)) {
+                    piperModelSelect.value = defaultModel;
+                } else if (models.length > 0) {
+                    piperModelSelect.value = models[0];
+                }
+                localStorage.setItem(PIPER_MODEL_KEY, piperModelSelect.value);
             }
         } catch (error) {
             console.error("Impossible de charger les modèles Piper:", error);

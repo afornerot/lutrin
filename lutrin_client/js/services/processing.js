@@ -71,7 +71,7 @@ export async function runTTS(text) {
     const piperLengthScale = 1.0 / (userSpeed / 1.15); // Inverser et normaliser
 
     const ttsEngine = localStorage.getItem('lutrin_tts_engine') || 'piper';
-    const piperModel = localStorage.getItem('lutrin_piper_model');
+    const piperModel = localStorage.getItem('lutrin_piper_model') || 'fr_FR-siwis-medium.onnx';
     return post('/tts', {
         text: text,
         tts_engine: ttsEngine,
