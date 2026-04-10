@@ -419,7 +419,6 @@ function displayEpub(epub) {
         if (!playButton) return;
         playButton.disabled = state === 'loading';
         const icon = playButton.querySelector('i');
-        const span = playButton.querySelector('span');
         playButton.classList.toggle('btn-loading', state === 'loading');
 
         if (state === 'loading') {
@@ -429,7 +428,6 @@ function displayEpub(epub) {
         } else { // 'paused', 'stopped', 'continue'
             icon.className = 'fas fa-play';
         }
-        span.textContent = text;
     };
 
     const generateAudioForChapter = async (chapterIndex) => {
