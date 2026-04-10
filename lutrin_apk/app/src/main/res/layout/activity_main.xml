@@ -1,6 +1,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
 
     <!-- 1. Conteneur pour le CameraPreviewFragment (Couche du bas) -->
     <!-- La taille match_parent garantit que la caméra UVC s'initialise correctement. -->
@@ -14,6 +15,7 @@
     <WebView
         android:id="@+id/webView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="true" />
 
 </FrameLayout>

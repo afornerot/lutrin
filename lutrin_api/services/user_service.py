@@ -29,12 +29,13 @@ def add_user(username, password, email, role):
     if user_db_service.get_user_by_email(email):
         return False, f"L'email '{email}' est déjà utilisé."
 
-    if user_db_service.add_user(username, password, email, role):
+    success, msg = user_db_service.add_user(username, password, email, role)
+    if success:
         Success(f"Utilisateur '{username}' créé avec succès.")
         return True, f"Utilisateur '{username}' créé avec succès."
     else:
         Error(f"Échec de la création de l'utilisateur '{username}'.")
-        return False, "Erreur interne lors de la création de l'utilisateur."
+        return False, msg
 
 def update_user(user_id, data):
     """

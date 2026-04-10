@@ -115,6 +115,28 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupWebView() {
         webView = findViewById(R.id.webView)
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            webView.setOnApplyWindowInsetsListener { view, insets ->
+                val systemBars = insets.getInsets(android.view.WindowInsets.Type.systemBars())
+                val navigationBars = insets.getInsets(android.view.WindowInsets.Type.navigationBars())
+                view.setPadding(0, systemBars.top, 0, navigationBars.bottom)
+                insets.consumeSystemWindowInsets()
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            window.decorView.setOnApplyWindowInsetsListener { view, insets ->
+                @Suppress("DEPRECATION")
+                val bottomPadding = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                    insets.getInsets(android.view.WindowInsets.Type.navigationBars()).bottom
+                } else {
+                    0
+                }
+                webView.setPadding(0, 0, 0, bottomPadding)
+                insets
+            }
+        }
+
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
         webView.settings.mediaPlaybackRequiresUserGesture = false

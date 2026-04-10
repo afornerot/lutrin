@@ -8,6 +8,7 @@ waitress.log
 .DS_Store
 .vscode/
 .idea/
+lutrin_apk/.idea/
 *.local
 
 # Ignore data directories

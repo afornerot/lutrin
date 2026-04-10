@@ -1253,14 +1253,8 @@ input[type="file"] {
     z-index: 50;
     display: flex;
     flex-direction: column;
-    padding-bottom: 2.5rem;
+    padding-bottom: 0;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
-}
-
-@media (hover: hover) and (pointer: fine) {
-    .camera-controls {
-        padding-bottom: 0;
-    }
 }
 
 .camera-buttons {
@@ -1359,13 +1353,7 @@ input[type="file"] {
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
-    padding-bottom: 2.5rem;
-}
-
-@media (hover: hover) and (pointer: fine) {
-    #epub-audio-player-bar {
-        padding-bottom: 0;
-    }
+    padding-bottom: 0;
 }
 
 .chapter-slider-area {

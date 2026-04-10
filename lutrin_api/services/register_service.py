@@ -76,7 +76,8 @@ def validate_register(token,password):
         register_db_service.delete_register(token)
         return False, "Le lien de validation a expiré. Veuillez demander un nouveau lien."
 
-    if not user_db_service.add_user(register['username'], password, register['email']):
+    success, msg = user_db_service.add_user(register['username'], password, register['email'])
+    if not success:
         Error(f"Échec de la création de l'utilisateur pour {register['email']} après validation du lien.")
         return False, "Une erreur est survenue lors de la création de votre compte utilisateur."
 

@@ -28,7 +28,7 @@ def add_user(username, password, email, role='USER'):
     """Ajoute un nouvel utilisateur à la base de données."""
     if not all([username, password, email]):
         Error("Le nom d'utilisateur, le mot de passe et l'email sont obligatoires.")
-        return False
+        return False, "Le nom d'utilisateur, le mot de passe et l'email sont obligatoires."
 
     try:
         conn = get_db_connection()
@@ -39,12 +39,12 @@ def add_user(username, password, email, role='USER'):
         if cursor.fetchone():
             Error(f"L'utilisateur '{username}' existe déjà.")
             conn.close()
-            return False
+            return False, f"L'utilisateur '{username}' existe déjà."
         cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
         if cursor.fetchone():
             Error(f"L'email '{email}' est déjà utilisé.")
             conn.close()
-            return False
+            return False, f"L'email '{email}' est déjà utilisé."
 
         password_hash = generate_password_hash(password)
         api_key = secrets.token_hex(16)
@@ -57,10 +57,10 @@ def add_user(username, password, email, role='USER'):
         conn.close()
         Success(f"Utilisateur '{username}' ajouté avec succès.")
         Log(f"Clé d'API pour {username}: {api_key}")
-        return True
+        return True, f"Utilisateur '{username}' ajouté avec succès.\nClé d'API pour {username}: {api_key}"
     except Exception as e:
         Error(f"Erreur lors de l'ajout de l'utilisateur : {e}")
-        return False
+        return False, f"Erreur lors de l'ajout de l'utilisateur : {e}"
 
 def update_user(user_id, username=None, email=None, password=None, role=None, is_active=None):
     """Met à jour les informations d'un utilisateur."""
