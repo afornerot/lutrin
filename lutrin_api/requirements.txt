@@ -11,3 +11,4 @@ groq
 EbookLib
 beautifulsoup4
 gunicorn
+google-genai

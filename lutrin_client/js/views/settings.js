@@ -8,6 +8,8 @@ export function initSettingsView() {
     const piperModelContainer = document.getElementById('piper-model-selector-container');
     const piperModelSelect = document.getElementById('piper-model-select');
     const piperSpeedSlider = document.getElementById('piper-speed-slider');
+    const geminiVoiceContainer = document.getElementById('gemini-voice-selector-container');
+    const geminiVoiceSelect = document.getElementById('gemini-voice-select');
     const piperSpeedValue = document.getElementById('piper-speed-value');
     const testTtsButton = document.getElementById('test-tts-button');
     const testTtsAudio = document.getElementById('test-tts-audio');
@@ -20,6 +22,7 @@ export function initSettingsView() {
     const TTS_ENGINE_KEY = 'lutrin_tts_engine';
     const PIPER_MODEL_KEY = 'lutrin_piper_model';
     const PIPER_SPEED_KEY = 'lutrin_piper_speed';
+    const GEMINI_VOICE_KEY = 'lutrin_gemini_voice';
     const WIFI_WEBCAM_URL_KEY = 'lutrin_wifi_webcam_url';
     const UI_SCALE_KEY = 'lutrin_ui_scale';
 
@@ -53,14 +56,21 @@ export function initSettingsView() {
         localStorage.setItem(TTS_ENGINE_KEY, e.target.value);
     });
 
-    // --- Toggle modèle Piper ---
-    const togglePiperModelSelector = () => {
+    // --- Toggle modèle Piper et voix Gemini ---
+    const toggleModelSelector = () => {
+        piperModelContainer.classList.add('hidden');
+        geminiVoiceContainer.classList.add('hidden');
+
         if (ttsEngineSelect.value === 'piper') {
             piperModelContainer.classList.remove('hidden');
-        } else {
-            piperModelContainer.classList.add('hidden');
+            loadPiperModels();
+        } else if (ttsEngineSelect.value === 'gemini') {
+            geminiVoiceContainer.classList.remove('hidden');
+            loadGeminiVoices();
         }
     };
+
+    ttsEngineSelect?.addEventListener('change', toggleModelSelector);
 
     const loadPiperModels = async () => {
         try {
@@ -82,13 +92,40 @@ export function initSettingsView() {
             }
         } catch (error) {
             console.error("Impossible de charger les modèles Piper:", error);
-            piperModelContainer.classList.add('hidden');
         }
     };
 
-    ttsEngineSelect?.addEventListener('change', togglePiperModelSelector);
     piperModelSelect?.addEventListener('change', () => {
         localStorage.setItem(PIPER_MODEL_KEY, piperModelSelect.value);
+    });
+
+    const loadGeminiVoices = async () => {
+        try {
+            const response = await get('/tts/gemini-voices');
+            const voices = response.voices || [];
+            geminiVoiceSelect.innerHTML = voices.map(v => `<option value="${v.id}">${v.name} (${v.lang})</option>`).join('');
+
+            const savedVoice = localStorage.getItem(GEMINI_VOICE_KEY);
+            if (savedVoice && voices.find(v => v.id === savedVoice)) {
+                geminiVoiceSelect.value = savedVoice;
+            } else {
+                const frenchVoice = voices.find(v => v.lang === 'fr');
+                if (frenchVoice) {
+                    geminiVoiceSelect.value = frenchVoice.id;
+                } else {
+                    geminiVoiceSelect.value = voices[0]?.id;
+                }
+                if (geminiVoiceSelect.value) {
+                    localStorage.setItem(GEMINI_VOICE_KEY, geminiVoiceSelect.value);
+                }
+            }
+        } catch (error) {
+            console.error("Impossible de charger les voix Gemini:", error);
+        }
+    };
+
+    geminiVoiceSelect?.addEventListener('change', () => {
+        localStorage.setItem(GEMINI_VOICE_KEY, geminiVoiceSelect.value);
     });
 
     // --- Vitesse Piper ---
@@ -196,6 +233,5 @@ export function initSettingsView() {
     if (piperSpeedSlider) piperSpeedSlider.value = savedPiperSpeed;
     updateSpeedDisplay(savedPiperSpeed);
 
-    loadPiperModels();
-    togglePiperModelSelector();
+    toggleModelSelector();
 }

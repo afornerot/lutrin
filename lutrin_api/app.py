@@ -7,7 +7,7 @@ from flask import Flask, Response, jsonify, send_from_directory, url_for, reques
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from services import ocr_image, generate_tts, BigTitle, db_service, ocr_service, password_service, tts_service, epub_service, piper_voices, register_service, user_db_service, user_service, epub_db_service
-from config import UPLOAD_FOLDER, FLASK_PORT
+from config import UPLOAD_FOLDER, FLASK_PORT, GOOGLE_TOKEN
 
 # Configuration de Flask
 app = Flask(__name__)
@@ -214,14 +214,14 @@ def process_tts():
         return jsonify({"error": "Le texte est requis."}), 400
 
     tts_engine = data.get('tts_engine', 'piper')
-    piper_model_name = data.get('piper_model_name') # Récupérer le nom du modèle
-    length_scale = data.get('length_scale') # Récupérer la vitesse de la voix
+    piper_model_name = data.get('piper_model_name')
+    length_scale = data.get('length_scale')
+    voice_name = data.get('voice_name')
     user_id = g.user['id'] if g.user else None
 
-    # Générer un nom de fichier unique pour l'audio
     audio_filename = f"audio_{user_id}_{uuid.uuid4().hex[:6]}_{int(time.time())}.wav"
 
-    success, result = generate_tts(text, audio_filename, tts_engine, user_id, piper_model_name, length_scale)
+    success, result = generate_tts(text, audio_filename, tts_engine, user_id, piper_model_name, length_scale, voice_name)
 
     if success:
         return jsonify({"audio_url": f"/file/{os.path.basename(result)}"})
@@ -234,6 +234,47 @@ def process_tts():
 def get_piper_models():
     """Retourne la liste des modèles Piper disponibles."""
     return jsonify({"models": list(piper_voices.keys())})
+
+@app.route('/tts/gemini-voices', methods=['GET'])
+@api_key_required
+def get_gemini_voices():
+    """Retourne la liste des voix Gemini disponibles."""
+    if not GOOGLE_TOKEN:
+        return jsonify({"error": "GOOGLE_TOKEN non configuré."}), 400
+    
+    voices = [
+        {"id": "achernar", "name": "Achernar", "lang": "fr"},
+        {"id": "achird", "name": "Achird", "lang": "fr"},
+        {"id": "algenib", "name": "Algenib", "lang": "fr"},
+        {"id": "algieba", "name": "Algieba", "lang": "fr"},
+        {"id": "alnilam", "name": "Alnilam", "lang": "fr"},
+        {"id": "aoede", "name": "Aoede", "lang": "fr"},
+        {"id": "autonoe", "name": "Autonoe", "lang": "fr"},
+        {"id": "callirrhoe", "name": "Callirrhoe", "lang": "fr"},
+        {"id": "charon", "name": "Charon", "lang": "fr"},
+        {"id": "despina", "name": "Despina", "lang": "fr"},
+        {"id": "enceladus", "name": "Enceladus", "lang": "fr"},
+        {"id": "erinome", "name": "Erinome", "lang": "fr"},
+        {"id": "fenrir", "name": "Fenrir", "lang": "fr"},
+        {"id": "gacrux", "name": "Gacrux", "lang": "fr"},
+        {"id": "iapetus", "name": "Iapetus", "lang": "fr"},
+        {"id": "kore", "name": "Kore", "lang": "fr"},
+        {"id": "laomedeia", "name": "Laomedeia", "lang": "fr"},
+        {"id": "leda", "name": "Leda", "lang": "fr"},
+        {"id": "orus", "name": "Orus", "lang": "fr"},
+        {"id": "puck", "name": "Puck", "lang": "fr"},
+        {"id": "pulcherrima", "name": "Pulcherrima", "lang": "fr"},
+        {"id": "rasalgethi", "name": "Rasalgethi", "lang": "fr"},
+        {"id": "sadachbia", "name": "Sadachbia", "lang": "fr"},
+        {"id": "sadaltager", "name": "Sadaltager", "lang": "fr"},
+        {"id": "schedar", "name": "Schedar", "lang": "fr"},
+        {"id": "sulafat", "name": "Sulafat", "lang": "fr"},
+        {"id": "umbriel", "name": "Umbriel", "lang": "fr"},
+        {"id": "vindemiatrix", "name": "Vindemiatrix", "lang": "fr"},
+        {"id": "zephyr", "name": "Zephyr", "lang": "fr"},
+        {"id": "zubenelgenubi", "name": "Zubenelgenubi", "lang": "fr"},
+    ]
+    return jsonify({"voices": voices})
 
 @app.route('/file/<path:filename>')
 def serve_file(filename):
@@ -463,7 +504,7 @@ def delete_user(user_id):
     else:
         return jsonify({"error": message}), 404
 
-# Lancement du serveur de production Waitress sur toutes les interfaces (0.0.0.0)
-if __name__ == '__main__':   
-    print(f"INFO: Démarrage du serveur API en HTTP sur le port {FLASK_PORT} (derrière le reverse proxy)")
-    app.run(host='0.0.0.0', port=FLASK_PORT, debug=True)
+# Lancement du serveur Flask (debug avec reloader)
+if __name__ == '__main__':
+    print(f"INFO: Démarrage du serveur API sur le port {FLASK_PORT}")
+    app.run(host='0.0.0.0', port=FLASK_PORT, debug=True, use_reloader=True)

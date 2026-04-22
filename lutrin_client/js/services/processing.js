@@ -64,20 +64,18 @@ export async function runTTS(text) {
     if (!text || text.trim() === "") {
         throw new Error("Aucun texte fourni pour la synthèse vocale.");
     }
-    // On inverse la valeur du slider car pour Piper, length_scale > 1.0 = plus lent.
-    // Le slider va de 0.75 (lent) à 1.5 (rapide) pour l'utilisateur.
-    // On mappe cette plage sur la plage de Piper, par exemple 1.3 (lent) à 0.8 (rapide).
-    const userSpeed = parseFloat(localStorage.getItem('lutrin_piper_speed') || 1.15);
-    const piperLengthScale = 1.0 / (userSpeed / 1.15); // Inverser et normaliser
-
     const ttsEngine = localStorage.getItem('lutrin_tts_engine') || 'piper';
-    const piperModel = localStorage.getItem('lutrin_piper_model') || 'fr_FR-siwis-medium.onnx';
-    return post('/tts', {
-        text: text,
-        tts_engine: ttsEngine,
-        piper_model_name: piperModel,
-        length_scale: piperLengthScale
-    });
+    const payload = { text, tts_engine: ttsEngine };
+
+    if (ttsEngine === 'piper') {
+        const userSpeed = parseFloat(localStorage.getItem('lutrin_piper_speed') || 1.15);
+        payload.length_scale = 1.0 / (userSpeed / 1.15);
+        payload.piper_model_name = localStorage.getItem('lutrin_piper_model') || 'fr_FR-siwis-medium.onnx';
+    } else if (ttsEngine === 'gemini') {
+        payload.voice_name = localStorage.getItem('lutrin_gemini_voice') || '';
+    }
+
+    return post('/tts', payload);
 }
 
 /**

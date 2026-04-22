@@ -28,7 +28,7 @@ tasks:
       - task: start
 
   start:
-    desc: Start all services in background
+    desc: Start all services
     cmds:
       - docker compose up -d
       - |
@@ -41,12 +41,20 @@ tasks:
     desc: Stop all services
     cmds:
       - docker compose down
+      #- docker rm -f lutrin_api_dev 2>/dev/null || true
 
   restart:
     desc: Restart all services
     deps: [stop]
     cmds:
       - task: start
+
+#  dev:
+#    desc: Start API in dev mode (with hot reload)
+#    deps: [stop]
+#    cmds:
+#      - docker compose up -d --no-deps coqui client
+#      - docker compose run -d --rm --name lutrin_api_dev --service-ports api sh -c "export LUTRIN_MODE=dev && cd /app && python app.py"
 
   status:
     desc: Show service status

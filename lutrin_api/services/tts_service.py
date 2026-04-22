@@ -1,11 +1,14 @@
 import os
 import wave
+import io
 import onnxruntime
 import requests
 
 from piper.voice import PiperVoice, SynthesisConfig
+from google import genai
+from google.genai import types
 from .logger_service import BigTitle, Title, Error, Success, Log
-from config import UPLOAD_FOLDER, PIPER_MODEL, COQUI_TTS_URL, COQUI_MODEL
+from config import UPLOAD_FOLDER, PIPER_MODEL, COQUI_TTS_URL, COQUI_MODEL, GOOGLE_TOKEN, GEMINI_TTS_MODEL
 
 # --- Initialisation des modèles TTS (chargés une seule fois au démarrage) ---
 voices = {}
@@ -120,8 +123,66 @@ def _generate_tts_coqui(text, audio_filename):
         error_msg = f"Erreur lors de la génération TTS avec Coqui: {repr(e)}"
         Error(error_msg)
         return False, error_msg
+
+def _generate_tts_gemini(text, audio_filename, voice_name=None):
+    """
+    Génère un fichier audio .wav à partir du texte en utilisant Gemini TTS.
+    """
+
+    Title("Traitement du texte par Gemini TTS")
     
-def generate_tts(text, audio_filename, tts_engine='piper', user_id=None, piper_model_name=None, length_scale=None):
+    if not GOOGLE_TOKEN:
+        return False, "La clé API Google (GOOGLE_TOKEN) n'est pas configurée."
+    
+    try:
+        client = genai.Client(api_key=GOOGLE_TOKEN)
+        
+        voice_config = None
+        if voice_name:
+            voice_config = types.VoiceConfig(
+                prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=voice_name)
+            )
+        else:
+            voice_config = types.VoiceConfig(
+                prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="aoede")
+            )
+        
+        speech_config = types.SpeechConfig(voice_config=voice_config)
+        
+        response = client.models.generate_content(
+            model=GEMINI_TTS_MODEL,
+            contents=[text],
+            config=types.GenerateContentConfig(
+                response_modalities=["AUDIO"],
+                speech_config=speech_config
+            )
+        )
+        
+        if not response.candidates or not response.candidates[0].content.parts:
+            return False, "Aucune donnée audio reçue de Gemini."
+        
+        part = response.candidates[0].content.parts[0]
+        if not hasattr(part, 'inline_data') or not part.inline_data:
+            return False, "Aucune donnée audio reçue de Gemini."
+        
+        audio_data = part.inline_data.data
+        
+        audio_path = os.path.join(UPLOAD_FOLDER, audio_filename)
+        
+        with wave.open(audio_path, "wb") as wav_file:
+            wav_file.setnchannels(1)
+            wav_file.setsampwidth(2)
+            wav_file.setframerate(24000)
+            wav_file.writeframes(audio_data)
+            
+        Success(f"Fichier audio généré = {audio_path}")
+        return True, audio_path
+    except Exception as e:
+        error_msg = f"Erreur lors de la génération TTS avec Gemini: {repr(e)}"
+        Error(error_msg)
+        return False, error_msg
+    
+def generate_tts(text, audio_filename, tts_engine='piper', user_id=None, piper_model_name=None, length_scale=None, voice_name=None):
     """
     Aiguilleur principal pour le service TTS.
     """
@@ -140,3 +201,5 @@ def generate_tts(text, audio_filename, tts_engine='piper', user_id=None, piper_m
         return _generate_tts_piper(text, audio_filename, piper_model_name, length_scale)
     elif tts_engine == 'coqui':
         return _generate_tts_coqui(text, audio_filename)
+    elif tts_engine == 'gemini':
+        return _generate_tts_gemini(text, audio_filename, voice_name)

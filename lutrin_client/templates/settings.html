@@ -22,6 +22,7 @@
                 <select id="tts-engine-select" name="tts-engine">
                     <option value="piper" selected>Piper (Rapide)</option>
                     <!-- <option value="coqui">Coqui (Qualité)</option> -->
+                    <option value="gemini">Gemini (Cloud)</option>
                 </select>
             </div>
 
@@ -39,6 +40,13 @@
                         <span class="slider-label">Rapide</span>
                     </div>
                     <p class="text-center">Actuellement : <span id="piper-speed-value">Normal</span></p>
+                </div>
+            </div>
+
+            <div id="gemini-voice-selector-container" class="hidden">
+                <div class="form-group">
+                    <label for="gemini-voice-select">Voix</label>
+                    <select id="gemini-voice-select" name="gemini-voice"></select>
                 </div>
             </div>
 

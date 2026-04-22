@@ -8,13 +8,13 @@ load_dotenv(find_dotenv('.env'))
 # Charger le fichier .env.local pour surcharger les valeurs.
 load_dotenv(find_dotenv('.env.local'), override=True)
 
-# Base dir
+# Base dir
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Front URL
+# Front URL
 FRONT_URL=os.getenv('FRONT_URL', 'https://lutrin.terium.org')
 
-# SMTP
+# SMTP
 MAILER_DSN=os.getenv('MAILER_DSN', 'sendmail://default')
 
 # Configuration Piper
@@ -28,7 +28,11 @@ COQUI_MODEL = os.getenv('COQUI_MODEL', 'tts_models/multilingual/multi-dataset/xt
 # Jeton
 GROQ_TOKEN = os.getenv('GROQ_TOKEN', '')
 
-# Port de communication flask
+# Configuration Gemini TTS
+GOOGLE_TOKEN = os.getenv('GOOGLE_TOKEN', '')
+GEMINI_TTS_MODEL = os.getenv('GEMINI_TTS_MODEL', 'gemini-2.5-flash-preview-tts')
+
+# Port de communication flask
 FLASK_PORT = int(os.getenv('FLASK_PORT', 5000)) 
 
 # Définir le chemin des uploads
