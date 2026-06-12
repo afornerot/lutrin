@@ -6,7 +6,7 @@ from functools import wraps
 from flask import Flask, Response, jsonify, send_from_directory, url_for, request, g
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
-from services import ocr_image, generate_tts, BigTitle, db_service, ocr_service, password_service, tts_service, epub_service, piper_voices, register_service, user_db_service, user_service, epub_db_service
+from services import ocr_image, generate_tts, BigTitle, db_service, password_service, tts_service, epub_service, piper_voices, register_service, user_db_service, user_service, epub_db_service
 from config import UPLOAD_FOLDER, FLASK_PORT
 
 # Configuration de Flask
@@ -16,7 +16,6 @@ app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024 # 50 Mégaoctets
 
 BigTitle("API Lutrin démarré")
 db_service.init_db()
-ocr_service.init_ocr_engine()
 tts_service.init_tts_engine()
 
 # Activation de CORS pour toutes les routes
@@ -181,7 +180,6 @@ def process_ocr():
 
     data = request.get_json()
     image_filename = data.get('image_filename')
-    ocr_engine = data.get('ocr_engine', 'paddle') # 'paddle' par défaut
 
     if not image_filename:
         return jsonify({"error": "Le paramètre 'image_filename' est manquant"}), 400
@@ -194,7 +192,7 @@ def process_ocr():
     unique_id = uuid.uuid4().hex[:6]
     text_filename = f"ocr_result_{g.user['id']}_{unique_id}_{timestamp}.txt"
 
-    recognized_text, text_path_or_error = ocr_image(image_path, text_filename, ocr_engine_choice=ocr_engine, user_id=g.user['id'])
+    recognized_text, text_path_or_error = ocr_image(image_path, text_filename, user_id=g.user['id'])
     if not recognized_text and text_path_or_error: # Si l'OCR a échoué
         return jsonify({"error": "L'OCR a échoué", "details": text_path_or_error}), 500
 

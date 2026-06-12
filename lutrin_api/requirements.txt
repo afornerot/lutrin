@@ -4,8 +4,7 @@ waitress
 flask-cors
 python-dotenv
 numpy
-paddleocr
-paddlepaddle
+requests
 piper-tts
 groq
 EbookLib

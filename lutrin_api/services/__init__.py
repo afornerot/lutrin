@@ -1,5 +1,5 @@
-from . import ocr_service, register_db_service, tts_service, db_service, epub_service, register_service, user_db_service, epub_db_service, email_service, password_service, password_db_service
-from .ocr_service import ocr_image, init_ocr_engine
+from . import register_db_service, tts_service, db_service, epub_service, register_service, user_db_service, epub_db_service, email_service, password_service, password_db_service
+from .ocr_service import ocr_image
 from .tts_service import generate_tts, init_tts_engine, voices as piper_voices
 from .logger_service import BigTitle, Title, Line, Error, Warning, Success, Info, Log
 

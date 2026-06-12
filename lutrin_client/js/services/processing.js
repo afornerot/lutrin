@@ -48,7 +48,7 @@ export async function uploadCapturedImage(imageBlob) {
  * @returns {Promise<{text: string}>} Les données de la réponse de l'API, incluant le texte reconnu.
  */
 export async function runOCR(imageFilename) {
-    const ocrEngine = localStorage.getItem('lutrin_ocr_engine') || 'paddle';
+    const ocrEngine = localStorage.getItem('lutrin_ocr_engine') || 'groq';
     return post('/ocr', {
         image_filename: imageFilename,
         ocr_engine: ocrEngine

@@ -1,78 +1,9 @@
 # lutrin_api/services/ocr_service.py
 import os
 import base64
-import onnxruntime
-import requests
 from groq import Groq
-from paddleocr import PaddleOCR
 from .logger_service import *
 from config import UPLOAD_FOLDER, GROQ_TOKEN
-
-# --- Initialisation des moteurs OCR (chargés une seule fois au démarrage) ---
-ocr_engine = None
-
-def init_ocr_engine():
-    """Initialise le moteur PaddleOCR. Appelé au démarrage du serveur."""
-    global ocr_engine
-    if ocr_engine is None:
-        # Masquer les avertissements de ONNX Runtime concernant l'absence de GPU
-        onnxruntime.set_default_logger_severity(3) # 3 = ERROR
-        Log("Initialisation du moteur OCR (Paddle)...")
-        try:
-            ocr_engine = PaddleOCR(use_angle_cls=True, lang='fr')
-            Log("Moteur PaddleOCR chargé avec succès.")
-        except Exception as e:
-            Error(f"Impossible de charger le moteur PaddleOCR. Détails: {e}. Le moteur Paddle sera indisponible.")
-
-def _reordonner_double_page(resultat_ocr):
-    """
-    Réorganise le texte d'une double page scannée en supposant un milieu
-    horizontal de l'image (l'axe Y) comme séparateur de page.
-    """
-
-    if not resultat_ocr:
-        return ""
-    
-    # Le dictionnaire de résultat est généralement le premier élément de la liste 'result'
-    res = resultat_ocr[0]
-    
-    # Extraire les textes et leurs coordonnées (polygones)
-    textes = res.get('rec_texts', [])
-    polys = res.get('rec_polys', [])
-    
-    if not textes or not polys:
-        return "Aucun texte trouvé."
-
-    # 1. Calculer la largeur maximale de l'image pour déterminer le milieu
-    # On prend la coordonnée X maximale parmi toutes les boîtes (approximatif mais suffisant)
-    max_x = max(p[:, 0].max() for p in polys)
-    
-    # Déterminer la position centrale de l'image (la "gouttière")
-    centre_x = max_x / 2
-
-    # 2. Préparer les données
-    fragments = []
-    for texte, poly in zip(textes, polys):
-        # Calculer le centre horizontal (x_centre) et la coordonnée verticale supérieure (y_top)
-        x_centre = poly[:, 0].mean()
-        y_top = poly[:, 1].min()
-        
-        # Déterminer la page (0 pour gauche, 1 pour droite)
-        page = 1 if x_centre > centre_x else 0
-        
-        fragments.append({
-            'texte': texte,
-            'page': page,
-            'y_top': y_top
-        })
-
-    # 3. Trier les fragments : d'abord par page (0 puis 1), puis par position verticale (y_top croissant)
-    fragments_tries = sorted(fragments, key=lambda f: (f['page'], f['y_top']))
-
-    # 4. Concaténer le texte
-    texte_final = ' '.join(f['texte'] for f in fragments_tries)
-    
-    return texte_final
 
 def _delete_old_files(user_id):
     """
@@ -177,63 +108,13 @@ def _ocr_image_groq(filepath, output_filename): # Renommé de ocr_image_ia à _o
         Error(f"{error_msg}")
         return "", error_msg
 
-def _ocr_image_paddle(filepath, output_filename): 
+def ocr_image(filepath, output_filename, user_id=None):
     """
-    Exécute la reconnaissance de caractères (OCR) sur l'image fournie avec PaddleOCR.
-    Écrit le texte reconnu dans un fichier et retourne le texte et le chemin du fichier.
-    """
-
-    # Tester la précence de paddle
-    if not ocr_engine:
-        error_msg = "Le moteur PaddleOCR) n'est pas initialisé"
-        Error(f"{error_msg}")
-        text_output_path = os.path.join(UPLOAD_FOLDER, output_filename)
-        with open(text_output_path, 'w', encoding='utf-8') as f:
-            f.write(error_msg)
-        return error_msg, text_output_path
-
-
-    # Traitement l'image par Paddle
-    Title("Traitement de l'image par Paddle")
-    try:
-        # Exécution de PaddleOCR sur le fichier image qui retourne un objet plus structuré.
-        result = ocr_engine.predict(filepath)
-
-        # Déterminer les textes de pages gauche et droite
-        full_text=_reordonner_double_page(result)
-        
-        # Si le texte est vide après le traitement, assigner un message par défaut.
-        if not full_text or not full_text.strip():
-            full_text = "Aucun texte trouvée"
-        
-        Log(f"Texte extrait = {full_text[:300]}...")
-
-        # Écrire le texte reconnu dans le fichier spécifié
-        text_output_path = os.path.join(UPLOAD_FOLDER, output_filename)
-        with open(text_output_path, 'w', encoding='utf-8') as f:
-            f.write(full_text)
-
-        Success(f"Texte OCR sauvegardé dans = {text_output_path}")
-       
-        # Retourner le texte et le chemin du fichier
-        return full_text, text_output_path
-    except Exception as e:
-        error_msg = f"Erreur OCR inattendue: {e}"
-        Error(error_msg)
-        return "", error_msg
-
-def ocr_image(filepath, output_filename, ocr_engine_choice='paddle', user_id=None):
-    """
-    Aiguilleur principal pour le service OCR.
-    Appelle le moteur local (PaddleOCR) ou une API externe en fonction de la configuration.
+    Point d'entrée pour le service OCR via l'API Groq.
     """
 
-    BigTitle(f"Traitement OCR avec le moteur : {ocr_engine_choice.upper()}")
+    BigTitle("Traitement OCR avec Groq")
     if user_id:
-        # Suppression des anciens fichiers de l'utilisateur
         _delete_old_files(user_id)
     
-    #if ocr_engine_choice == 'groq':
-        return _ocr_image_groq(filepath, output_filename)
-    #else:
-    #    return _ocr_image_paddle(filepath, output_filename)
+    return _ocr_image_groq(filepath, output_filename)
