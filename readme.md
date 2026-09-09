@@ -143,3 +143,9 @@ lutrin/
 └── Makefile             # Installation des prérequis
 ```
 
+---
+
+## 📜 Licence
+
+Ce projet est distribué sous licence. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+
