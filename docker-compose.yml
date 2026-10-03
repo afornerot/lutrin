@@ -39,9 +39,12 @@ services:
     networks:
       - lutrin-network
 
-  # Coqui TTS service (using existing image)
+  # Coqui TTS service (fork maintenu Idiap, PyTorch ajouté via Dockerfile)
   coqui:
-    image: ghcr.io/coqui-ai/tts-cpu
+    build:
+      context: ./lutrin_coqui
+      dockerfile: Dockerfile
+    image: lutrin-coqui
     container_name: lutrin_coqui
     restart: unless-stopped
     entrypoint: ["/bin/bash"]
@@ -50,6 +53,8 @@ services:
     env_file:
       - .env
       - .env.local
+    environment:
+      - COQUI_TOS_AGREED=1
     ports:
       - "5002:5002"
     volumes:
