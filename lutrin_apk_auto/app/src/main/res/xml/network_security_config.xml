@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Le site public (lutrin.terium.org) est derrière Let's Encrypt : confiance
+    système standard. cleartext interdit ; pour un serveur local non-TLS, voir docs. -->
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

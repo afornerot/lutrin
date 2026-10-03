@@ -16,3 +16,10 @@ lutrin_tools/certs
 lutrin_data/
 lutrin_api/models/*
 !lutrin_api/models/.gitkeep
+
+# lutrin_apk_auto
+lutrin_apk_auto/local.properties
+lutrin_apk_auto/.gradle/
+lutrin_apk_auto/build/
+lutrin_apk_auto/app/build/
+lutrin_apk_auto/*.apk
