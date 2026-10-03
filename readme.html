@@ -95,8 +95,16 @@
 </thead>
 <tbody>
 <tr>
-<td><code>GROQ_TOKEN</code></td>
-<td>Clé API pour Groq OCR (optionnel, pour une vitesse accrue)</td>
+<td><code>LLM_API_KEY</code></td>
+<td>Clé API du fournisseur LLM (OCR + EPUB, optionnel, pour une vitesse accrue)</td>
+</tr>
+<tr>
+<td><code>LLM_BASE_URL</code></td>
+<td>Endpoint de l'API LLM compatible OpenAI (défaut : Groq)</td>
+</tr>
+<tr>
+<td><code>LLM_MODEL</code></td>
+<td>Modèle LLM utilisé (vision requis pour l'OCR, ex: qwen/qwen3.8-27b)</td>
 </tr>
 <tr>
 <td><code>COQUI_MODEL</code></td>

@@ -6,21 +6,21 @@ from ebooklib import epub, ITEM_DOCUMENT, ITEM_COVER
 import re
 import requests
 from bs4 import BeautifulSoup
-from groq import Groq
+from openai import OpenAI
 from .logger_service import *
-from config import UPLOAD_FOLDER, GROQ_TOKEN
+from config import UPLOAD_FOLDER, LLM_API_KEY, LLM_MODEL, LLM_BASE_URL
 
-def _enhance_with_groq(metadata):
+def _enhance_with_llm(metadata):
     """
-    Utilise Groq pour analyser, corriger et enrichir les métadonnées d'un livre.
+    Utilise le LLM pour analyser, corriger et enrichir les métadonnées d'un livre.
     """
-    if not GROQ_TOKEN:
-        Warning("GROQ_TOKEN non configuré. L'enrichissement des métadonnées est désactivé.")
+    if not LLM_API_KEY:
+        Warning("LLM_API_KEY non configurée. L'enrichissement des métadonnées est désactivé.")
         return metadata
 
-    Title("Étape 1: Enrichissement des métadonnées avec Groq")
+    Title("Étape 1: Enrichissement des métadonnées avec le LLM")
     try:
-        client = Groq(api_key=GROQ_TOKEN)
+        client = OpenAI(api_key=LLM_API_KEY, base_url=LLM_BASE_URL)
         metadata_str = json.dumps(metadata, indent=2, ensure_ascii=False)
 
         chat_completion = client.chat.completions.create(
@@ -28,12 +28,12 @@ def _enhance_with_groq(metadata):
                 {"role": "system", "content": "Tu es un expert bibliothécaire. Analyse les métadonnées fournies. Ton but est de nettoyer le titre et d'extraire les informations de série. Retourne UNIQUEMENT un objet JSON valide avec les champs 'title' (le titre propre du livre, sans la série), 'style' (le genre principal, ex: 'Science-Fiction'), 'series' (le nom de la série, ou null), et 'series_number' (le numéro dans la série, ou null). N'invente AUCUNE information, surtout pas de description."},
                 {"role": "user", "content": f"Analyse ces métadonnées et retourne les champs demandés : \n\n{metadata_str}"}
             ],
-            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            model=LLM_MODEL,
             temperature=0.1,
             response_format={"type": "json_object"},
         )
         enhanced_data = json.loads(chat_completion.choices[0].message.content)
-        Success("Analyse par Groq terminée.")
+        Success("Analyse par le LLM terminée.")
 
         # Mettre le titre en "Title Case" (majuscule à chaque mot)
         if 'title' in enhanced_data and enhanced_data['title']:
@@ -42,24 +42,24 @@ def _enhance_with_groq(metadata):
         # Fusionner les données enrichies avec les métadonnées originales
         return {**metadata, **enhanced_data}
     except Exception as e:
-        Error(f"Erreur lors de l'appel à Groq pour l'enrichissement des métadonnées : {e}")
+        Error(f"Erreur lors de l'appel au LLM pour l'enrichissement des métadonnées : {e}")
         return metadata # En cas d'erreur, on retourne les métadonnées originales
 
 
 def _pick_best_google_result(metadata, google_results):
     """
-    Utilise Groq pour analyser les résultats Google Books et choisir celui
+    Utilise le LLM pour analyser les résultats Google Books et choisir celui
     qui correspond le mieux aux métadonnées locales.
     """
 
-    if not GROQ_TOKEN:
-        Warning("GROQ_TOKEN non configuré. Analyse Groq désactivée.")
+    if not LLM_API_KEY:
+        Warning("LLM_API_KEY non configurée. Analyse LLM désactivée.")
         return {"index": 0, "reason": "Token absent", "confidence": 0.0}
 
-    Title("Étape 2: Désambiguïsation avec Groq (Google Books)")
+    Title("Étape 2: Désambiguïsation avec le LLM (Google Books)")
 
     try:
-        client = Groq(api_key=GROQ_TOKEN)
+        client = OpenAI(api_key=LLM_API_KEY, base_url=LLM_BASE_URL)
 
         # On simplifie les résultats Google Books pour éviter les JSON trop longs
         simplified_results = []
@@ -118,7 +118,7 @@ Réponds STRICTEMENT au format JSON :
                 {"role": "system", "content": "Tu es un expert bibliothécaire et documentaliste spécialisé en métadonnées de livres."},
                 {"role": "user", "content": prompt}
             ],
-            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            model=LLM_MODEL,
             temperature=0.1,
             response_format={"type": "json_object"},
         )
@@ -126,13 +126,13 @@ Réponds STRICTEMENT au format JSON :
         choice = json.loads(chat_completion.choices[0].message.content)
 
         if not isinstance(choice.get("index"), int):
-            choice = {"index": 0, "reason": "Réponse Groq invalide", "confidence": 0.0}
+            choice = {"index": 0, "reason": "Réponse LLM invalide", "confidence": 0.0}
 
-        Success(f"Groq a choisi le résultat #{choice['index']} (confiance {choice.get('confidence', 0):.2f}) : {choice.get('reason', '')}")
+        Success(f"Le LLM a choisi le résultat #{choice['index']} (confiance {choice.get('confidence', 0):.2f}) : {choice.get('reason', '')}")
         return choice
 
     except Exception as e:
-        Error(f"Erreur lors de l'appel à Groq pour la désambiguïsation : {e}")
+        Error(f"Erreur lors de l'appel au LLM pour la désambiguïsation : {e}")
         return {"index": 0, "reason": f"Erreur: {e}", "confidence": 0.0}
 
 def _enhance_with_google_books(metadata):
@@ -167,18 +167,18 @@ def _enhance_with_google_books(metadata):
             Warning("Aucun livre correspondant trouvé sur Google Books.")
             return metadata, None
 
-        # Étape Groq : désambiguïsation entre plusieurs résultats
+        # Étape LLM : désambiguïsation entre plusieurs résultats
         choice = _pick_best_google_result(metadata, google_results)
         best_index = choice.get("index", 0)
         if best_index < 0 or best_index >= len(google_results):
-            Warning(f"Aucune correspondance fiable selon Groq ({choice.get('reason', '')}).")
+            Warning(f"Aucune correspondance fiable selon LLM ({choice.get('reason', '')}).")
             return metadata, None
 
         # Extraction des métadonnées
         Log(choice)
         book_info = google_results[best_index]["volumeInfo"]
         book_info["description"] = choice["description_fr"]
-        Success(f"Résultat choisi par Groq : #{best_index} ({choice.get('reason', '')})")
+        Success(f"Résultat choisi par le LLM : #{best_index} ({choice.get('reason', '')})")
         Log(book_info)
 
         # Extraction et enrichissement des métadonnées
@@ -252,7 +252,7 @@ def _enhance_with_open_library(metadata, isbn=None):
                 series_name = book_info['series'][0]
                 enhanced_data['series'] = series_name
                 # Le numéro de volume n'est pas un champ standard, il faut le chercher
-                # dans le titre ou le sous-titre, ce que Groq a déjà tenté de faire.
+                # dans le titre ou le sous-titre, ce que le LLM a déjà tenté de faire.
                 # On se contente du nom de la série pour l'instant.
 
             return {**metadata, **enhanced_data}
@@ -332,7 +332,7 @@ def add_epub(file_storage, user_id):
         Log(f"Métadonnées brutes extraites : {metadata}")
 
         # Chaînage des enrichissements
-        metadata_pass1 = _enhance_with_groq(metadata)
+        metadata_pass1 = _enhance_with_llm(metadata)
         metadata_pass2, isbn = _enhance_with_google_books(metadata_pass1)
         # metadata_pass3 = _enhance_with_open_library(metadata_pass2, isbn)
         metadata = metadata_pass2 # Résultat final

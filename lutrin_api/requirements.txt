@@ -6,7 +6,7 @@ python-dotenv
 numpy
 requests
 piper-tts
-groq
+openai
 EbookLib
 beautifulsoup4
 gunicorn

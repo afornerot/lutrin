@@ -85,11 +85,11 @@ Lors du premier `task build`, un administrateur est créé. Vous pouvez en ajout
 
 Toutes les variables sont définies dans le fichier `.env` à la racine du projet. Si vous souhaitez les modifier, **ne modifiez pas `.env`** : créez un fichier `.env.local` et surchargez-y uniquement les variables souhaitées.
 
-> ⚠️ **IMPORTANT** : Créez systématiquement un fichier `.env.local` et modifiez-y les secrets (`GROQ_TOKEN`, `MAILER_DSN`, etc.). Le fichier `.env` contient des valeurs par défaut publiques et ne doit **jamais** contenir de vrais secrets.
+> ⚠️ **IMPORTANT** : Créez systématiquement un fichier `.env.local` et modifiez-y les secrets (`LLM_API_KEY`, `MAILER_DSN`, etc.). Le fichier `.env` contient des valeurs par défaut publiques et ne doit **jamais** contenir de vrais secrets.
 
 **Exemple de `.env.local`** :
 ```env
-GROQ_TOKEN=votre_cle_api
+LLM_API_KEY=votre_cle_api
 COQUI_MODEL=tts_models/fr/mai/tacotron2-DDC
 CLIENT_PORT=9000
 ```
@@ -98,7 +98,9 @@ CLIENT_PORT=9000
 
 | Variable | Description | Valeur par défaut |
 |----------|-------------|-------------------|
-| `GROQ_TOKEN` | Clé API Groq pour l'OCR (optionnel, vitesse accrue) | `changeme` |
+| `LLM_BASE_URL` | Endpoint de l'API LLM (compatible OpenAI) | `https://api.groq.com/openai/v1` |
+| `LLM_API_KEY` | Clé API du fournisseur LLM (OCR + EPUB, optionnel) | `changeme` |
+| `LLM_MODEL` | Modèle LLM (vision requis pour l'OCR) | `qwen/qwen3.8-27b` |
 | `MAILER_DSN` | Configuration d'envoi d'e-mails | `sendmail://default` |
 | `FRONT_URL` | URL du frontend (utilisée dans les e-mails) | `https://localhost:8000` |
 | `COQUI_TTS_URL` | URL du service Coqui TTS | `http://coqui:5002` |

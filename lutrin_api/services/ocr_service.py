@@ -1,9 +1,9 @@
 # lutrin_api/services/ocr_service.py
 import os
 import base64
-from groq import Groq
+from openai import OpenAI
 from .logger_service import *
-from config import UPLOAD_FOLDER, GROQ_TOKEN
+from config import UPLOAD_FOLDER, LLM_API_KEY, LLM_MODEL, LLM_BASE_URL
 
 def _delete_old_files(user_id):
     """
@@ -25,25 +25,25 @@ def _delete_old_files(user_id):
                 Error(f"Suppression du fichier impossible {filename} = {e}")
 
 
-def _ocr_image_groq(filepath, output_filename): # Renommé de ocr_image_ia à _ocr_image_groq
+def _ocr_image_llm(filepath, output_filename): # Renommé de ocr_image_ia à _ocr_image_llm
     """
-    Point d'entrée pour l'OCR via une API externe (Groq).
+    Point d'entrée pour l'OCR via une API LLM externe.
     """
 
-    # Tester la présence du tocken
+    # Tester la présence du tocken
     error_msg = ""
-    if not GROQ_TOKEN:
-        error_msg = "Le jeton d'API Groq est manquant dans la configuration."
+    if not LLM_API_KEY:
+        error_msg = "Le jeton d'API LLM est manquant dans la configuration (LLM_API_KEY)."
         Error(error_msg)
         text_output_path = os.path.join(UPLOAD_FOLDER, output_filename)
         with open(text_output_path, 'w', encoding='utf-8') as f:
             f.write(error_msg)
         return error_msg, text_output_path
 
-    # Traitement l'image par Groq
+    # Traitement l'image par le LLM
     try:
-        Title("Traitement de l'image par Groq")
-        client = Groq(api_key=GROQ_TOKEN)
+        Title("Traitement de l'image par le LLM")
+        client = OpenAI(api_key=LLM_API_KEY, base_url=LLM_BASE_URL)
 
         # Lire l'image et l'encoder en base64
         with open(filepath, "rb") as image_file:
@@ -51,8 +51,8 @@ def _ocr_image_groq(filepath, output_filename): # Renommé de ocr_image_ia à _o
         image_data_url = f"data:image/jpeg;base64,{encoded_image}"
         Log(f"Image encodée en base64 (taille: {len(encoded_image)}).")
 
-        # Envoyer la requête à Groq via la librairie Python
-        Log("Envoi de la requête à l'API Groq")
+        # Envoyer la requête au LLM via la librairie Python (API OpenAI-compatible)
+        Log("Envoi de la requête à l'API LLM")
         chat_completion = client.chat.completions.create(
             messages=[
                  {
@@ -82,11 +82,11 @@ def _ocr_image_groq(filepath, output_filename): # Renommé de ocr_image_ia à _o
                      ]
                  }
              ],
-            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            model=LLM_MODEL,
             temperature=0.2,
             max_tokens=4000
         )
-        Log("Réponse Groq reçue.")
+        Log("Réponse LLM reçue.")
 
         # Extraire le texte
         extracted_text = chat_completion.choices[0].message.content
@@ -104,17 +104,17 @@ def _ocr_image_groq(filepath, output_filename): # Renommé de ocr_image_ia à _o
         return extracted_text, text_output_path
 
     except Exception as e:
-        error_msg = f"Erreur inattendue lors du traitement Groq OCR: {repr(e)}"
+        error_msg = f"Erreur inattendue lors du traitement LLM OCR: {repr(e)}"
         Error(f"{error_msg}")
         return "", error_msg
 
 def ocr_image(filepath, output_filename, user_id=None):
     """
-    Point d'entrée pour le service OCR via l'API Groq.
+    Point d'entrée pour le service OCR via la fonction interne LLM.
     """
 
-    BigTitle("Traitement OCR avec Groq")
+    BigTitle("Traitement OCR avec LLM")
     if user_id:
         _delete_old_files(user_id)
-    
-    return _ocr_image_groq(filepath, output_filename)
+
+    return _ocr_image_llm(filepath, output_filename)

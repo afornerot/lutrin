@@ -25,8 +25,10 @@ PIPER_MODEL = os.path.join(BASE_DIR, PIPER_MODEL_RELATIVE)
 COQUI_TTS_URL = os.getenv('COQUI_TTS_URL', 'http://localhost:5002')
 COQUI_MODEL = os.getenv('COQUI_MODEL', 'tts_models/multilingual/multi-dataset/xtts_v2')
 
-# Jeton
-GROQ_TOKEN = os.getenv('GROQ_TOKEN', '')
+# Client LLM (API OpenAI-compatible : Groq, OpenAI, Mistral, Together, ...)
+LLM_BASE_URL = os.getenv('LLM_BASE_URL', 'https://api.groq.com/openai/v1')
+LLM_API_KEY = os.getenv('LLM_API_KEY', '')
+LLM_MODEL = os.getenv('LLM_MODEL', 'qwen/qwen3.8-27b')
 
 # Port de communication flask
 FLASK_PORT = int(os.getenv('FLASK_PORT', 5000)) 
