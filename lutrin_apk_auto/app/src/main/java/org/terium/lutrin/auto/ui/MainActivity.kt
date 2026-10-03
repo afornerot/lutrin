@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.flow.first
 import org.terium.lutrin.auto.audio.PlaybackController
+import org.terium.lutrin.auto.data.AppDatabase
 import org.terium.lutrin.auto.data.SettingsStore
 
 class MainActivity : ComponentActivity() {
@@ -19,9 +20,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MaterialTheme(
+                // Palette de lutrin_client (assets/style.css)
                 colorScheme = darkColorScheme(
-                    primary = Color(0xFF8A7BEA),
-                    background = Color(0xFF12122A)
+                    primary = Color(0xFF3B82F6),          // boutons primaires
+                    onPrimary = Color.White,
+                    tertiary = Color(0xFF7EC8E3),         // liens
+                    background = Color(0xFF73655C),       // --bg-main
+                    surface = Color(0xFF3E3E3E),          // --bg-card
+                    onBackground = Color.White,
+                    onSurface = Color.White,
+                    secondary = Color(0xFF4A4038),        // --bg-modal
+                    error = Color(0xFFF87171)
                 )
             ) {
                 Root()
@@ -38,20 +47,28 @@ fun Root() {
 
     var screen by remember { mutableStateOf("loading") } // loading|login|library|book|settings
     var openBookId by remember { mutableStateOf(-1L) }
+    var bootMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
-        val st = prefs.current()
-        if (st.apiKey.isNotBlank()) {
-            org.terium.lutrin.auto.net.ApiClient.configure(st.serverUrl, st.apiKey)
-            if (PlaybackController.connect(context)) {
-                openBookId = st.lastBookId
-                screen = if (openBookId > 0) "book" else "library"
+        // Trace du dernier crash (si l'app s'est fermée violemment)
+        bootMessage = org.terium.lutrin.auto.CrashReporter.consume(context)
+            ?.lineSequence()?.firstOrNull()?.let { "Dernier bug : $it" }
+        // Boot infaillible : même si le service audio ne répond pas, on ouvre
+        // la bibliothèque (l'app reste utilisable, un réessai est possible).
+        val result = runCatching {
+            val st = prefs.current()
+            if (st.apiKey.isBlank()) {
+                "login"
             } else {
-                screen = "login"
+                org.terium.lutrin.auto.net.ApiClient.configure(st.serverUrl, st.apiKey)
+                val connected = kotlinx.coroutines.withTimeoutOrNull(15_000L) {
+                    PlaybackController.connect(context)
+                } == true
+                // On NE rouvre pas auto le dernier livre : bibliothèque directe.
+                if (!connected) "library" else "library"
             }
-        } else {
-            screen = "login"
-        }
+        }.getOrElse { "login" }
+        screen = result
     }
 
     when (screen) {
@@ -59,7 +76,8 @@ fun Root() {
         "login" -> LoginScreen(onSuccess = { screen = "library" })
         "library" -> LibraryScreen(
             onOpenBook = { id -> openBookId = id; screen = "book" },
-            onOpenSettings = { screen = "settings" }
+            onOpenSettings = { screen = "settings" },
+            banner = bootMessage
         )
         "book" -> BookScreen(bookId = openBookId, onBack = { screen = "library" })
         "settings" -> SettingsScreen(

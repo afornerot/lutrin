@@ -33,11 +33,21 @@ object PlaybackController {
         val positionMs: Long = 0,
         val durationMs: Long = 0,
         val bookTitle: String = "",
-        val playingBookId: Long = -1
+        val playingBookId: Long = -1,
+        val lastError: String? = null
     )
 
     private val _state = MutableStateFlow(UiState())
     val state: StateFlow<UiState> = _state
+
+    /** Appelé par le service quand la lecture/génération échoue. */
+    fun reportError(message: String) {
+        _state.value = _state.value.copy(lastError = message)
+    }
+
+    fun clearError() {
+        _state.value = _state.value.copy(lastError = null)
+    }
 
     private val listener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) {
@@ -47,7 +57,8 @@ object PlaybackController {
 
     private fun publish(p: Player) {
         val extras = p.currentMediaItem?.mediaMetadata?.extras
-        _state.value = UiState(
+        val prev = _state.value
+        _state.value = prev.copy(
             isConnected = true,
             isBuffering = p.playbackState == Player.STATE_BUFFERING,
             isPlaying = p.isPlaying,
@@ -64,25 +75,38 @@ object PlaybackController {
 
     suspend fun connect(context: Context): Boolean {
         if (controller != null) return true
-        val token = SessionToken(
-            context,
-            ComponentName(context, PlaybackService::class.java)
-        )
-        val future = MediaController.Builder(context, token).buildAsync()
-        return try {
-            val c = future.get() as MediaController
+        // Le binding + le get doivent JAMAIS tourner sur le Main bridge (ici via IO) :
+        // c'est exactement le genre d'attente qui déclenche un ANR ("ne répond pas").
+        val c = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            val token = SessionToken(
+                context,
+                ComponentName(context, PlaybackService::class.java)
+            )
+            val future = MediaController.Builder(context, token).buildAsync()
+            try {
+                future.get(20, java.util.concurrent.TimeUnit.SECONDS) as MediaController
+            } catch (e: Exception) {
+                android.util.Log.w("LutrinAuto", "connexion MediaController échouée", e)
+                future.cancel(false)
+                null
+            }
+        } ?: return false
+
+        // MediaController doit être manié sur le thread principal uniquement.
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
             c.addListener(listener)
             controller = c
             publish(c)
-            true
-        } catch (_: Exception) {
-            false
         }
+        return true
     }
 
-    fun setBook(id: Long) {
+    fun setBook(id: Long, chapterIndex: Int? = null) {
         playingBookId = id
-        send(CMD_SET_BOOK, Bundle().apply { putLong("bookId", id) })
+        send(CMD_SET_BOOK, Bundle().apply {
+            putLong("bookId", id)
+            if (chapterIndex != null) putInt("chapterIndex", chapterIndex)
+        })
     }
 
     fun skip(delta: Int) = send(CMD_SKIP, Bundle().apply { putInt("delta", delta) })

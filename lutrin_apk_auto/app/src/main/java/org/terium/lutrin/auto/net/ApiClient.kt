@@ -13,12 +13,15 @@ import java.util.concurrent.TimeUnit
 /**
  * Client HTTP pour l'API Lutrin (auth par header X-API-Key).
  *
- * Routes utilisées (lutrin_api) :
- *  - POST /auth/login        {username, password} → {api_key, role}
- *  - POST /epub/add          multipart champ 'epub_file' → {metadata, cover_image, text}
- *  - GET  /tts/piper-models  → {models: [filename.onnx]}
- *  - POST /tts               {text, piper_model_name?, length_scale?} → {audio_url}
- *  - GET  /file/<name>       WAV brut (pas d'auth)
+ * Le serveur public passe par le proxy du client web : toute route JSON est
+ * préfixée /api, les fichiers sont servis sous /file (racine).
+ *
+ * Routes utilisées :
+ *  - POST /api/auth/login??? (via proxy)  {username, password} → {api_key, role}
+ *  - POST /api/epub/add      multipart champ 'epub_file' → {metadata, cover_image, text}
+ *  - GET  /api/tts/piper-models → {models: [filename.onnx]}
+ *  - POST /api/tts           {text, piper_model_name?, length_scale?} → {audio_url: /file/xxx}
+ *  - GET  /file/<name>       WAV brut (pas d'auth, pas de préfixe /api)
  */
 object ApiClient {
 
@@ -45,15 +48,15 @@ object ApiClient {
 
     fun login(serverUrl: String, username: String, password: String): JSONObject {
         val payload = JSONObject().put("username", username).put("password", password)
-        val req = requestBuilder(serverUrl.trimEnd('/') + "/auth/login")
+        val req = requestBuilder(serverUrl.trimEnd('/') + "/api/auth/login")
             .post(payload.toString().toRequestBody("application/json".toMediaType()))
         return execute(req)
     }
 
-    fun getJson(path: String): JSONObject = execute(requestBuilder(baseUrl + path).get())
+    fun getJson(path: String): JSONObject = execute(requestBuilder(urlFor(path)).get())
 
     fun postJson(path: String, payload: JSONObject): JSONObject =
-        execute(requestBuilder(baseUrl + path)
+        execute(requestBuilder(urlFor(path))
             .post(payload.toString().toRequestBody("application/json".toMediaType())))
 
     fun uploadEpub(path: String, file: File): JSONObject {
@@ -62,16 +65,26 @@ object ApiClient {
             .addFormDataPart("epub_file", file.name,
                 file.asRequestBody("application/epub+zip".toMediaType()))
             .build()
-        return execute(requestBuilder(baseUrl + path).post(requestBody))
+        return execute(requestBuilder(urlFor(path)).post(requestBody))
     }
 
     fun downloadFile(path: String, dest: File) {
-        val resp = client.newCall(requestBuilder(baseUrl + path).build()).execute()
+        val resp = client.newCall(requestBuilder(urlFor(path)).build()).execute()
         resp.use {
             if (!it.isSuccessful) throw ApiError(it.code, "téléchargement $path")
             val src = it.body ?: throw RuntimeException("corps vide")
             dest.outputStream().use { out -> src.byteStream().copyTo(out) }
         }
+    }
+
+    /**
+     * Les réponses de l'API renvoient des chemins tels que "/file/xxx.wav"
+     * (racine du serveur, pas le préfixe /api). Les chemins d'appel JSON sont
+     * exprimés relativement à /api.
+     */
+    private fun urlFor(path: String): String {
+        val p = path.trimStart('/')
+        return if (p.startsWith("file/")) "$baseUrl/$p" else "$baseUrl/api/$p"
     }
 
     private fun execute(builder: Request.Builder): JSONObject {

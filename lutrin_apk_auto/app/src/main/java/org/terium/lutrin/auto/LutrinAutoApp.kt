@@ -13,6 +13,7 @@ class LutrinAutoApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        CrashReporter.install(this)
         val prefs = SettingsStore(this)
         appScope.launch {
             val st = prefs.current()

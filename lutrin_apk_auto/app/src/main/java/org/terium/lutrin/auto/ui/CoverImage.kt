@@ -16,19 +16,17 @@ import androidx.compose.ui.unit.Dp
 /** Affiche une couverture encodée data:image/...;base64,xxx. */
 @Composable
 fun CoverImage(dataUrl: String?, size: Dp) {
-    val bitmap by remember(dataUrl) {
-        derivedStateOf { decodeDataUrl(dataUrl) }
-    }
+    val bitmap by remember(dataUrl) { derivedStateOf { decodeDataUrl(dataUrl) } }
     if (bitmap != null) {
         Image(
             bitmap = bitmap!!.asImageBitmap(),
             contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.size(size)
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.size(width = size, height = size * 1.5f)
         )
     } else {
         Box(
-            Modifier.size(size).background(Color(0xFF3A3A5E))
+            Modifier.size(width = size, height = size * 1.5f).background(Color(0xFF3A3A5E))
         )
     }
 }

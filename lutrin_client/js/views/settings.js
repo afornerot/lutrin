@@ -141,6 +141,14 @@ export function initSettingsView() {
         }
     });
 
+    // --- Lien APK Android Auto (masqué si le fichier n'est pas servi) ---
+    const apkLink = document.getElementById('apk-download-link');
+    if (apkLink) {
+        fetch('/file/lutrin-auto.apk', { method: 'HEAD' })
+            .then(resp => { if (!resp.ok) apkLink.classList.add('hidden'); })
+            .catch(() => apkLink.classList.add('hidden'));
+    }
+
     // --- Webcam WiFi ---
     const savedWifiUrl = localStorage.getItem(WIFI_WEBCAM_URL_KEY);
     if (savedWifiUrl && wifiWebcamUrlInput) {

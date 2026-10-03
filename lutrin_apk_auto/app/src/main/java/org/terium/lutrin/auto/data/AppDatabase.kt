@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [BookEntity::class], version = 1, exportSchema = false)
+@Database(entities = [BookEntity::class, ChapterEntity::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun bookDao(): BookDao
 
@@ -16,7 +16,11 @@ abstract class AppDatabase : RoomDatabase() {
             instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
                     context.applicationContext, AppDatabase::class.java, "lutrin-auto.db"
-                ).build().also { instance = it }
+                )
+                    // v1 (texte complet sur une ligne) est cassée pour les gros
+                    // livres ; on repart de zéro, les livres se réimportent.
+                    .fallbackToDestructiveMigration()
+                    .build().also { instance = it }
             }
     }
 }

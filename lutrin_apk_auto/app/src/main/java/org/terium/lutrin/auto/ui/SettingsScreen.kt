@@ -37,20 +37,38 @@ fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
     val dao = remember { AppDatabase.get(context).bookDao() }
 
     var piperVoice by remember { mutableStateOf("") }
-    var lengthScale by remember { mutableFloatStateOf(1.0f) }
+    var userSpeed by remember { mutableFloatStateOf(1.15f) } // 1.15 = neutre (comme le client web)
     var models by remember { mutableStateOf<List<String>>(emptyList()) }
     var error by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
+    var speedLabel by remember { mutableStateOf("Normale") }
     LaunchedEffect(Unit) {
         val st = prefs.current()
         piperVoice = st.piperVoice
-        lengthScale = st.lengthScale
+        // Conversion inverse de celle appliquée à la lecture : lengthScale → userSpeed
+        // lengthScale = 1.0 / (userSpeed / 1.15)  =>  userSpeed = 1.15 / lengthScale
+        userSpeed = (1.15f / st.lengthScale).coerceIn(0.75f, 1.5f)
         username = st.username
         models = withContext(Dispatchers.IO) {
             runCatching { ApiClient.getJson("/tts/piper-models").getJSONArray("models").toStringList() }
                 .getOrElse { emptyList() }
         }
         if (models.isEmpty()) error = "Liste des voix indisponible (API)"
+    }
+
+    /** Même formule que le client web (processing.js) :
+     *  length_scale = 1.0 / (userSpeed / 1.15) — >1.0 = plus lent. */
+    fun storeSpeed(v: Float) {
+        userSpeed = v
+        // label d'affichage du web (settings.js)
+        speedLabel = when {
+            v < 1.0f -> "Lente"
+            v > 1.3f -> "Très Rapide"
+            v > 1.1f -> "Rapide"
+            else -> "Normale"
+        }
+        val piperScale = 1.0f / (v / 1.15f)
+        scope.launch { prefs.setLengthScale(piperScale) }
     }
 
     Scaffold(
@@ -89,24 +107,20 @@ fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
             }
 
             // ---- Vitesse ----
-            Text("Vitesse de lecture", style = MaterialTheme.typography.titleMedium)
+            Text("Vitesse de la voix", style = MaterialTheme.typography.titleMedium)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("0,7×")
+                Text("Lente")
                 Slider(
-                    value = lengthScale,
-                    onValueChange = { lengthScale = it },
-                    onValueChangeFinished = {
-                        // length_scale : >1 = plus lent ; la vitesse d'affichage est
-                        // l'inverse → on expose directement length_scale ici (1.0 défaut)
-                        scope.launch { prefs.setLengthScale(lengthScale) }
-                    },
-                    valueRange = 0.7f..1.3f,
+                    value = userSpeed,
+                    onValueChange = { userSpeed = it },
+                    onValueChangeFinished = { storeSpeed(userSpeed) },
+                    valueRange = 0.75f..1.5f,
                     modifier = Modifier.weight(1f)
                 )
-                Text("1,3×")
+                Text("Rapide")
             }
             Text(
-                "Réglage actuel : ${"%.2f".format(lengthScale)} (plus grand = plus lent)",
+                "Actuellement : $speedLabel",
                 style = MaterialTheme.typography.labelSmall
             )
 

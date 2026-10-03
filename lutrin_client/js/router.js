@@ -126,8 +126,10 @@ export function initRouter() {
     // Intercepter les clics sur les liens pour gérer la navigation SPA
     document.addEventListener('click', e => {
         // Vérifier si le clic est sur un lien interne
+        // (on laisse passer les téléchargements : attribut download ou extension de fichier)
         const link = e.target.closest('a');
-        if (link && link.target !== '_blank' && link.origin === window.location.origin) {
+        const isDownload = link && (link.hasAttribute('download') || /\.(apk|wav|mp3|pdf|epub|zip|onnx)$/i.test(link.pathname));
+        if (link && !isDownload && link.target !== '_blank' && link.origin === window.location.origin) {
             e.preventDefault(); // Empêcher la navigation par défaut
             navigateTo(link.pathname);
         }

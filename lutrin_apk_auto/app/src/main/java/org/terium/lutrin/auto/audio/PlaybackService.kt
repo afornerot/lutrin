@@ -51,6 +51,7 @@ class PlaybackService : MediaLibraryService() {
         // Libellé browse Android Auto
         private const val ROOT_ID = "lutrin_root"
         private const val BOOK_PREFIX = "book:"
+        private const val TAG = "LutrinAuto"
     }
 
     private lateinit var player: ExoPlayer
@@ -108,17 +109,39 @@ class PlaybackService : MediaLibraryService() {
         }
     }
 
-    /** Joue un chapitre : génère le WAV si absent du cache puis charge dans le player. */
+    /** Joue un chapitre : génère le WAV si absent du cache puis charge dans le player.
+     *  Les opérations (réseau, fichier, Room) tournent sur IO pour ne jamais bloquer
+     *  le thread principal. */
     private suspend fun playChapter(index: Int, resumeMs: Long = 0L) {
         val b = book ?: return
         if (index !in chapters.indices) return
         currentChapter = index
         pendingResumeMs = resumeMs
-        val file = ensureChapterFile(index)
-        val item = buildChapterItem(b, index)
-        player.setMediaItem(item)
-        player.prepare()
-        player.play()
+        val playerRef = player
+        try {
+            val file = kotlinx.coroutines.withContext(Dispatchers.IO) { ensureChapterFile(index) }
+            val item = buildChapterItem(b, index)
+            playerRef.setMediaItem(item)
+            playerRef.prepare()
+            playerRef.play()
+            org.terium.lutrin.auto.audio.PlaybackController.clearError()
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "playChapter($index) échoué", e)
+            org.terium.lutrin.auto.audio.PlaybackController.reportError(
+                "Chapitre ${index + 1} : ${e.message ?: e.javaClass.simpleName}"
+            )
+        }
+    }
+
+    /**
+     * Fichier de chapitre mis en cache DANS un sous-dossier qui dépend des
+     * réglages TTS (voix + vitesse) : changer un réglage invalide le cache et
+     * régénère le chapitre avec les nouveaux paramètres dès la relecture.
+     */
+    private suspend fun chapterFile(index: Int): File {
+        val st = prefs.current()
+        val tag = "${st.piperVoice.ifBlank { "defaut" }}_x${st.lengthScale}"
+        return File(cacheDir, "chapters/book_${book?.id ?: 0}/$tag/ch_$index.wav")
     }
 
     private suspend fun ensureChapterFile(index: Int): File {
@@ -127,14 +150,17 @@ class PlaybackService : MediaLibraryService() {
         return generateChapter(index)
     }
 
-    private fun chapterFile(index: Int): File =
-        File(cacheDir, "chapters/book_${book?.id ?: 0}/ch_$index.wav")
-
-    private fun buildChapterItem(b: BookEntity, index: Int): MediaItem {
+    private suspend fun buildChapterItem(b: BookEntity, index: Int): MediaItem {
+        // Couverture du livre en artwork : visible dans le widget média Auto,
+        // l'écran "lecture en cours" et les notifications.
+        val artworkUri: android.net.Uri? = artworkFileFor(b)?.let { file ->
+            try { android.net.Uri.parse(file.toURI().toString()) } catch (_: Exception) { null }
+        }
         val metadata = MediaMetadata.Builder()
             .setTitle("Chapitre ${index + 1}/${chapters.size}")
             .setArtist(b.authors)
             .setAlbumTitle(b.title)
+            .setArtworkUri(artworkUri)
             .setExtras(Bundle().apply {
                 putInt(EXTRA_CHAPTER_INDEX, index)
                 putInt(EXTRA_CHAPTER_COUNT, chapters.size)
@@ -148,7 +174,31 @@ class PlaybackService : MediaLibraryService() {
             .build()
     }
 
-    private suspend fun generateChapter(index: Int): File {
+    /** Cache de la couverture du livre : data URL base64 → JPEG fichier. */
+    private fun artworkFileFor(b: BookEntity): File? {
+        val dataUrl = b.coverDataUrl ?: return null
+        val f = File(cacheDir, "chapters/book_${b.id}/cover.jpg")
+        if (f.exists() && f.length() > 0) return f
+        if (f.parentFile?.exists() != true) f.parentFile?.mkdirs()
+        return try {
+            val b64 = if ("," in dataUrl) dataUrl.substringAfter(',') else dataUrl
+            val bytes = android.util.Base64.decode(
+                b64, android.util.Base64.DEFAULT
+            )
+            // Re-encodage JPEG contrôlé : les data URLs serveur sont lossy/WebP variés
+            val bmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            if (bmp != null) {
+                f.outputStream().use { out -> bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG, 85, out) }
+                bmp.recycle()
+                f
+            } else null
+        } catch (e: Exception) {
+            android.util.Log.w(TAG, "artwork indisponible pour le livre ${b.id}", e)
+            null
+        }
+    }
+
+    private suspend fun generateChapter(index: Int): File = kotlinx.coroutines.withContext(Dispatchers.IO) {
         val st = prefs.current()
         val payload = org.json.JSONObject().put("text", chapters[index])
         if (st.piperVoice.isNotBlank()) payload.put("piper_model_name", st.piperVoice)
@@ -161,7 +211,7 @@ class PlaybackService : MediaLibraryService() {
         val dest = chapterFile(index)
         dest.parentFile?.mkdirs()
         ApiClient.downloadFile(audioUrl, dest)
-        return dest
+        dest
     }
 
     /** Pré-génère le chapitre suivant en fond (pas d'attente à la fin du chapitre). */
@@ -171,22 +221,28 @@ class PlaybackService : MediaLibraryService() {
         val file = chapterFile(next)
         if (file.exists() && file.length() > 0) return
         runCatching { generateChapter(next) }
+            .onFailure {
+                android.util.Log.e(TAG, "pré-génération du chapitre $next échouée", it)
+            }
     }
 
-    private fun setBook(bookId: Long) {
-        scope.launch {
-            val b = runBlocking { dao.getById(bookId) } ?: return@launch
-            book = b
-            chapters = BookEntity.chapters(b.fullText)
-            val start = b.lastChapter.coerceIn(chapters.indices)
-            saveLastBook(b.id)
-            playChapter(start, resumeMs = if (start == b.lastChapter) b.lastPositionMs else 0L)
+    /** Premier chapitre jouable à partir de `index` (les fragments trop courts
+     *  rejetés par /tts sont sautés, comme le client web avec ses "silent"). */
+    private fun firstPlayableIndex(tryFrom: Int): Int {
+        for (i in tryFrom until chapters.size) {
+            if (chapters[i].trim().length >= 2) return i
         }
+        return -1
     }
 
     private fun gotoChapter(index: Int) {
-        if (index !in chapters.indices) return
-        scope.launch { playChapter(index) }
+        val target = firstPlayableIndex(index)
+        if (target == -1) {
+            android.util.Log.d(TAG, "plus de chapitre jouable dès $index — pas d'avance")
+            return
+        }
+        android.util.Log.d(TAG, "gotoChapter($target)")
+        scope.launch { playChapter(target) }
     }
 
     // ------------------------------------------------------------- progression
@@ -217,19 +273,50 @@ class PlaybackService : MediaLibraryService() {
 
     private fun handleSetBook(args: Bundle): Boolean {
         val id = args.getLong("bookId", -1L)
-        if (id > 0) { setBook(id); return true }
-        return false
+        if (id <= 0) return false
+        val chapter = if (args.containsKey("chapterIndex")) args.getInt("chapterIndex", -1) else null
+        android.util.Log.d(TAG, "setBook($id, chapter=$chapter)")
+        scope.launch {
+            try {
+                val b = dao.getById(id)
+                if (b == null) { android.util.Log.e(TAG, "livre $id introuvable"); return@launch }
+                book = b
+                // Chapitres depuis la table chapters (IO) — jamais le texte entier
+                chapters = kotlinx.coroutines.withContext(Dispatchers.IO) { dao.getChapters(id) }
+                    .filter { it.trim().length >= 2 } // chute les frags < 2c (500 côté /tts)
+                android.util.Log.d(TAG, "livre '${b.title}' → ${chapters.size} chapitres")
+                if (chapters.isEmpty()) return@launch
+                val start = chapter?.takeIf { it in chapters.indices }
+                    ?: b.lastChapter.coerceIn(chapters.indices)
+                saveLastBook(b.id)
+                playChapter(
+                    start,
+                    resumeMs = if (chapter == null && start == b.lastChapter) b.lastPositionMs else 0L
+                )
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "setBook($id) échoué", e)
+                org.terium.lutrin.auto.audio.PlaybackController.reportError(
+                    "Livre : ${e.message ?: e.javaClass.simpleName}"
+                )
+            }
+        }
+        return true
     }
 
     private fun handleSkip(args: Bundle): Boolean {
         val delta = args.getInt("delta", 0)
-        if (delta != 0) { gotoChapter((currentChapter + delta).coerceIn(chapters.indices)); return true }
+        if (delta != 0 && chapters.isNotEmpty()) {
+            gotoChapter((currentChapter + delta).coerceIn(chapters.indices))
+            return true
+        }
+        android.util.Log.d(TAG, "skip ignoré (delta=$delta, chapitres=${chapters.size})")
         return false
     }
 
     private fun handleGoto(args: Bundle): Boolean {
         val index = args.getInt("chapterIndex", -1)
-        if (index >= 0 && index < chapters.size) { gotoChapter(index); return true }
+        if (index in chapters.indices) { gotoChapter(index); return true }
+        android.util.Log.d(TAG, "goto ignoré ($index, chapitres=${chapters.size})")
         return false
     }
 
@@ -283,7 +370,7 @@ class PlaybackService : MediaLibraryService() {
             if (first.startsWith(BOOK_PREFIX)) {
                 val id = first.removePrefix(BOOK_PREFIX).toLongOrNull() ?: -1L
                 if (id > 0) {
-                    setBook(id)
+                    handleSetBook(Bundle().apply { putLong("bookId", id) })
                     return Futures.immediateFuture(emptyList()) // le service gère la file lui-même
                 }
             }
